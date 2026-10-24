@@ -1,0 +1,63 @@
+<template>
+  <style>
+    @font-face { font-family: "Open Sans Doku"; src: url("assets/fonts/open-sans-latin-700-normal.woff2") format("woff2"); font-weight: 700; }
+    @font-face { font-family: "Open Sans Doku"; src: url("assets/fonts/open-sans-latin-600-normal.woff2") format("woff2"); font-weight: 600; }
+    #root { position: absolute; inset: 0; font-family: "Open Sans Doku", sans-serif; }
+    #er-dim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,26,38,.97) 0%, rgba(20,26,38,.97) 54%, rgba(20,26,38,.72) 100%); }
+    .er-ti { position: absolute; left: 72px; top: 228px; color: #fff; }
+    .er-ti .k, .er-ti .s { font-weight: 600; font-size: 32px; letter-spacing: .13em; text-transform: uppercase; }
+    .er-ti .h { font-weight: 700; font-size: 132px; line-height: 1.08; margin: 6px 0 8px -4px; }
+    #er-band { position: absolute; left: 0; top: 640px; width: 1080px; height: 400px; background: linear-gradient(180deg, #cfe4f5 0%, #e8f1f8 70%, #9cc27a 70%, #86ad66 100%); overflow: hidden; }
+    .node { position: absolute; top: 120px; width: 170px; text-align: center; }
+    .node img { width: 132px; height: 132px; display: block; margin: 0 auto; }
+    .node b { display: block; margin-top: 52px; font-weight: 700; font-size: 22px; letter-spacing: .1em; color: #1d2a3a; }
+    .arr { position: absolute; top: 178px; width: 46px; height: 12px; }
+    .arr i { position: absolute; inset: 0; background: #2c3e55; border-radius: 6px; }
+    .arr i::after { content: ""; position: absolute; right: -10px; top: -8px; border-left: 16px solid #2c3e55; border-top: 14px solid transparent; border-bottom: 14px solid transparent; }
+    .arr.rot i { background: #e03b3b; }
+    .arr.rot i::after { border-left-color: #e03b3b; }
+    #er-x { position: absolute; left: 20px; top: 92px; width: 190px; height: 190px; }
+    #er-note { position: absolute; left: 0; width: 1080px; top: 1062px; text-align: center; color: #5fd0e8; font-weight: 700; font-size: 30px; letter-spacing: .13em; }
+  </style>
+  <div id="root" data-composition-id="erklaerung" data-width="1080" data-height="1920">
+    <div id="er-dim"></div>
+    <div id="er-t1" class="clip er-ti" data-start="0" data-duration="2.5" data-track-index="1">
+      <div class="k">Die Ursache</div><div class="h">Warum?</div><div class="s">Schema, nicht maßstabsgetreu</div>
+    </div>
+    <div id="er-t2" class="clip er-ti" data-start="2.5" data-duration="3.89" data-track-index="1">
+      <div class="k">Die Ursache</div><div class="h">Die Kette</div><div class="s">Schema, nicht maßstabsgetreu</div>
+    </div>
+    <div id="er-band">
+      <div class="node" id="n0" style="left:10px"><img src="assets/icons/arbeit.svg" alt="" /><b>ARBEIT</b></div>
+      <div class="arr" id="a0" style="left:178px"><i></i></div>
+      <div class="node" id="n1" style="left:222px"><img src="assets/icons/fabrik.svg" alt="" /><b>FABRIK</b></div>
+      <div class="arr" id="a1" style="left:388px"><i></i></div>
+      <div class="node" id="n2" style="left:432px"><img src="assets/icons/lkw.svg" alt="" /><b>LIEFERUNG</b></div>
+      <div class="arr" id="a2" style="left:598px"><i></i></div>
+      <div class="node" id="n3" style="left:642px"><img src="assets/icons/laden.svg" alt="" /><b>LADEN</b></div>
+      <div class="arr" id="a3" style="left:808px"><i></i></div>
+      <div class="node" id="n4" style="left:852px"><img src="assets/icons/zuhause.svg" alt="" /><b>DU</b></div>
+      <img id="er-x" src="assets/icons/kreuz.svg" alt="" />
+    </div>
+    <div id="er-note">EIN GLIED FÄLLT AUS – ALLES STEHT</div>
+  </div>
+  <script>
+    // lokale Zeit: 0 = 53.82 s (Root). Woerter: KETTE 3.29, FAELLT 4.06, GLIED 4.61, STOPPT 5.4, REST 5.85
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#er-dim", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 0);
+    tl.fromTo("#er-t2 .h", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2 }, 2.5);
+    tl.fromTo("#er-band", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "power2.inOut" }, 0.15);
+    const nodes = ["#n0", "#n1", "#n2", "#n3", "#n4"], arrs = ["#a0", "#a1", "#a2", "#a3"];
+    nodes.forEach((n, i) => tl.fromTo(n, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(1.8)" }, 2.55 + i * 0.16));
+    arrs.forEach((a, i) => tl.fromTo(a, { opacity: 0, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.2, ease: "power2.out", transformOrigin: "0 50%" }, 2.65 + i * 0.16));
+    // Glied faellt aus: Kreuz auf ARBEIT, dann kippt die Kette Glied fuer Glied
+    tl.fromTo("#er-x", { opacity: 0, scale: 2.2, rotation: -25 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.22, ease: "power4.out" }, 4.0);
+    tl.to("#n0 img", { opacity: 0.35, duration: 0.2 }, 4.1);
+    arrs.forEach((a, i) => {
+      tl.set(a, { className: "arr rot" }, 4.75 + i * 0.2);
+      tl.to(nodes[i + 1] + " img", { opacity: 0.3, y: 10, duration: 0.25, ease: "power2.in" }, 4.85 + i * 0.2);
+    });
+    tl.fromTo("#er-note", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.25 }, 5.3);
+    window.__timelines["erklaerung"] = tl;
+  </script>
+</template>

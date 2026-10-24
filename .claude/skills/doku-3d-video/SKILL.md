@@ -1,0 +1,107 @@
+---
+name: doku-3d-video
+description: Standard für JEDES TikTok-Video des Users. Erzählt Geschichte, Ereignisse und Gedankenexperimente in stilisierten 3D-Szenen mit Three.js in HyperFrames, im Stil der Referenzen (Tsunami 2004, Titanic 1912, Fehlalarm 1983). Immer auf Deutsch und in der Du-Form, mit Countdown-Titel oben links, kursiven Wort-für-Wort-Untertiteln mit blauen Schlüsselwörtern und einem Erklärteil („Warum?“) als flache Schemagrafik. Gilt für jede Video-, Themen- oder Skriptanfrage für seinen Kanal.
+---
+
+# Doku-3D-Videos (TikTok, Deutsch)
+
+Alles wird im Code gebaut: HyperFrames plus Three.js. Lies zuerst den Skill `hyperframes`, dort stehen Vertrag, `check`, `snapshot` und `render`.
+**Sprache: immer Deutsch.** Das gilt für Skript, Stimme, Titel, Untertitel und für Antworten an den User.
+
+## Das Format (aus drei Referenzvideos gemessen)
+
+- **Technik:** 1080×1920, 30 fps.
+- **Länge: STANDARD 60–90 Sekunden** (ausdrücklicher Wunsch des Users; ~150–200 Wörter, 10–14 Einstellungen). Kürzer nur auf ausdrücklichen Wunsch.
+- **Perspektive:** Der Zuschauer bist DU. „Du gehst zum Strand.“ „Du sitzt in einem Bunker bei Moskau.“ „Dein Wecker klingelt.“
+- **Countdown-Struktur:** Die Zeit ist das Rückgrat. „In 3 Stunden“ → „Noch 2,5 Std.“ → „Noch 30 Min.“ → „Stunde 0“ → „+40 Min.“. Alternativ „Minute 0/25/100/160“ oder „Tag 1/3/7/10“. Der Wendepunkt ist „Stunde 0“ bzw. „Minute 0“.
+- **Aufbau:**
+  1. Ruhiger Einstieg (idyllisch oder alltäglich), Datum und Ort in der Dachzeile.
+  2. Zeichen und Eskalation, jede Einstellung ein Zeitsprung.
+  3. Katastrophe oder Wendepunkt.
+  4. Bilanz mit einer harten Zahl, gern auf einer stilisierten Karte („≈ 230.000“, rote Zahlen bei Alarm).
+  5. **Erklärteil „… im Schnitt“ / „Warum?“** mit dunklem Panel und flacher Schemagrafik, Untertitel „SCHEMA, NICHT MASSSTABSGETREU“.
+  6. Schluss: eine Lehre oder eine Frage an „dich“.
+- **Schnitt:** harte Schnitte zwischen Einstellungen (alle 2–4 s). Innerhalb jeder Einstellung fährt die Kamera langsam, als Dolly oder Push-in, mit `smooth()` über die ganze Einstellung.
+
+## Gestaltung
+
+**3D-Welt (Three.js r149, `assets/vendor/three.min.js`, im Szenen-`<template>` laden):**
+- Stilisierte, weiche Low-Poly-Welt mit glatten Materialien (roughness ~0.8), warmer Sonne und weichen Schatten (PCFSoft, 1024er-Map).
+- Himmel als Verlaufstextur, dazu Nebel. Tonemapping ACES mit Belichtung ~0.62, sonst wirkt alles blass.
+- **Figuren = Gliederpuppen:** Kapsel-Beine, -Torso und -Arme, Kugelkopf, Haarkappe, einfarbige Kleidung, keine Gesichter. Helfer `person(seed, {top, pants, scale})`, Animation mit `idle()` / `walk()`, Phasen nie synchron.
+- Requisiten aus Box, Zylinder und Kugel, Details über `canvasTex()` (Zifferblatt, Schilder, Fenster).
+- Nachtszenen mit Emissive-Fenstern; Licht aus = `emissiveIntensity` gestaffelt nach Entfernung.
+- Jede Einstellung ist `W.<id> = {scene, camera, update(tLokal, T)}`, `SHOTS` legt die Zeiten fest. Gerendert wird über einen GSAP-Proxy (`onUpdate → renderAt`) und zusätzlich über `hf-seek`.
+- Vorlage: `templates/beispiel-keiner-arbeitet/welt.html`, mit diesen Szenen: Schlafzimmer + Wecker, Großraumbüro, Bushaltestelle, Supermarkt, Krankenhausflur, Müllstraße + Ratten, Stadt bei Nacht (Licht aus), Küche mit Kerze, Fenster/Balkon. Helfer, Szenen und Renderer kopieren, Szenen wiederverwenden oder ersetzen.
+- Portrait-Bildausschnitt ist schmal (~27° horizontal): Kamera weiter weg stellen, als man denkt, und Figuren in die Bildmitte setzen.
+- Hold-Shots unter Panels: `{ id, t0, t1, hold: true }` rendert die Szene im Endzustand.
+
+**Titelblock oben links** (`scripts/titel.py`, Daten in `titel.json`), Open Sans, weiß, weicher Schatten:
+- Dachzeile, 32 px, 600, Großbuchstaben mit Sperrung, z. B. „26. DEZEMBER 2004, ≈ 10:00 UHR“.
+- Titel, 132 px, 700, z. B. „Noch 30 Min.“, „Minute 0“, „Tag 7“. Bei Alarm darf er rot sein (`"farbe":"#ff4b3e"`).
+- Unterzeile, 32 px, 600, Großbuchstaben, z. B. „DAS MEER ZIEHT SICH ZURÜCK“.
+- Position: links 72 px, oben 228 px. Wechselt mit jedem Schnitt (Blur-in 0.2 s).
+
+**Untertitel** (`scripts/untertitel.py`):
+- Open Sans 700 *kursiv*, 54 px, zentriert bei y ≈ 1210.
+- Eine Phrase (bis zum Satzzeichen bzw. max. 5 Wörter) steht da. Noch nicht gesprochene Wörter sind gedimmt (0.5) und leuchten beim Sprechen auf.
+- Schlüsselwörter in Hellblau `#6cc0ff` (`--blau "Meer,Welle"`).
+
+**Bilanz-Karte** (Vorlage `bilanz.html`, Pfade aus `europa-paths.json` bzw. Natural Earth):
+- Flache Karte: Meer `#123f73`, Land beige `#e9dfc6`, Zielland heller mit weißem Rand, gelbe Stadtpunkte.
+- Weiße Ringe pulsieren vom Zentrum, große Zahl im Titelblock zählt hoch und wird rot.
+
+**Erklärteil** (Vorlagen `erklaerung.html` = Kette, `vorrat.html` = zwei Phasen im selben Streifen):
+- Szene stark abgedunkelt (`rgba(20,26,38,.97)` oben, unten etwas Durchblick).
+- Titelblock „DIE URSACHE / Warum? / SCHEMA, NICHT MASSSTABSGETREU“.
+- Ein heller Bildstreifen (y 640–1040) mit flacher Illustration (Querschnitt, Kette, Kammern…) und Labels in Großbuchstaben.
+- Status-Satz in Cyan `#5fd0e8` unter dem Streifen.
+- Rotes Kreuz bzw. grüner Haken als Icons (OpenMoji).
+
+**Ton:** Die Stimme ist die Uhr. SFX sparsam einsetzen:
+- whoosh-short bei Schnitten
+- impact-bass beim Wendepunkt
+- error/pop bei Kreuz oder Alarm
+
+Musik nur, wenn der User eine Datei liefert.
+
+## Ablauf (ohne Rückfragen, wenn ein Thema genannt ist)
+
+1. `bash scripts/setup.sh` (einmal pro Container), dann `bash scripts/projekt.sh <slug>`.
+2. `skript.txt` schreiben: eine Zeile pro Einstellung, Du-Form, kurze Sätze.
+   - Länge: 60 s ≈ 150 Wörter, 70 s ≈ 165, 90 s ≈ 210 (Piper ~2,5 Wörter/s inkl. Pausen).
+   - Zahlen für die Stimme ausschreiben, Anzeige mit `zwölf{12}`.
+   - Fakten nur, wenn belastbar; Schätzungen mit „rund“/„etwa“, Gedankenexperimente im Konjunktiv bzw. als Szenario.
+3. `python3 scripts/voice.py skript.txt assets/audio --speed 1.08 --gap 0.45`
+   - Ergebnis: `voice.wav` und `words.json`, Einstellungen nach `lines[].start` schneiden.
+   - Eigene Aufnahme des Users hat Vorrang.
+4. `titel.json` → `python3 scripts/titel.py titel.json compositions/titel.html`
+5. `python3 scripts/untertitel.py assets/audio/words.json compositions/untertitel.html --blau "..."`
+6. `compositions/welt.html` (3D) und `compositions/erklaerung.html` (Schema) bauen; `index.html` aus der Vorlage übernehmen (Ebenen: welt 1, erklaerung 2, titel 3, untertitel 4, Audio).
+7. `npx hyperframes check --json` (Fehler müssen weg; Kontrastwarnungen über hellem Himmel sind stilbedingt).
+   - Dann `npx hyperframes snapshot --at a,b,c,d,e,f --no-end -o snap`, maximal ca. 6 Zeitpunkte pro Aufruf.
+   - Bilder ansehen und korrigieren.
+8. Render im Hintergrund: `npx hyperframes render -o renders/<slug>.mp4 -q delivery -w 2 --quiet`.
+   - WebGL läuft auf der CPU, das dauert einige Minuten.
+   - Danach mit ffprobe prüfen, Kontaktabzug ansehen und die Datei an den User schicken.
+
+## Stimme (Wunsch des Users: freundliche Frauenstimme)
+
+- **Bevorzugt: ElevenLabs-Datei vom User** (bisher „Jessica – Playful, Bright, Warm“, eleven_v4). Ablauf:
+  1. Dem User das Skript als Textblock zum Einsprechen geben (eine Zeile pro Einstellung).
+  2. Referenz mit Wortzeiten erzeugen: `python3 scripts/voice.py skript.txt /tmp/ref --voice ~/.cache/geo-voice/vits-piper-de_DE-kerstin-low/de_DE-kerstin-low.onnx --gap 0.4`
+  3. Ausrichten: `python3 scripts/align.py /tmp/ref assets/audio/<eleven>.mp3 assets/audio` (DTW über MFCC, Zeilenstarts auf echte Pausen gerastet).
+     Ergebnis: `voice.wav` + `words.json`; Zeilengrenzen mit `silencedetect` gegenprüfen.
+  4. Alle Zeiten (Schnitte, Titel, Effekte, Panels) aus den neuen Wortzeiten ableiten.
+- Ersatz ohne Datei: weibliche Piper-Stimmen (Kerstin/Ramona/Eva, GitHub `k2-fsa/sherpa-onnx` Release `tts-models`). Die klingen synthetisch; nur als Notlösung, das dem User so sagen.
+- Kein Voice-Cloning möglich (Modelle blockiert), keine fremden oder Promi-Stimmen nachbauen.
+
+## Fallen
+
+- **Qualität vor Tempo** (Wunsch des Users): immer 1080×1920, `-q delivery`, volle Schatten und Kantenglättung. Ein 70-s-Render dauert in der Cloud (CPU-WebGL) etwa 40–60 Min. Das vorher ansagen und nicht herunterregeln.
+
+- `pkill -f <muster>` trifft die eigene Shell, wenn das Muster im Befehl steht. Prozesse stattdessen per PID beenden.
+- Die Piper-Stimme klingt synthetisch (16 kHz). Biete eine eigene Aufnahme oder eine ElevenLabs-Datei an.
+- Bei Zeilen mit unbekanntem Phonem gibt es kein Alignment. `voice.py` verteilt die Wörter dann nach Energie und Silbenlänge; Timing im Snapshot prüfen.
+- Szenen-Ids müssen eindeutig sein (Präfixe `er-`, `ti-`, `ut-`).
+- Der Container ist flüchtig: Videos sofort schicken. Skill und Projekte bleiben nur erhalten, wenn sie in ein Git-Repo gepusht werden.

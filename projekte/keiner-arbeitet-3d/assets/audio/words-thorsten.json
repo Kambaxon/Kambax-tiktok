@@ -1,0 +1,1215 @@
+{
+ "duration": 65.14,
+ "lines": [
+  {
+   "start": 0.12,
+   "end": 4.728,
+   "text": "Montag, sieben Uhr. Dein Wecker klingelt. Aber heute bleibt ganz Deutschland im Bett."
+  },
+  {
+   "start": 5.228,
+   "end": 9.036,
+   "text": "Sechsundvierzig Millionen Menschen. Und keiner von ihnen geht zur Arbeit."
+  },
+  {
+   "start": 9.536,
+   "end": 13.072,
+   "text": "An der Haltestelle wartest du. Doch kein Bus kommt. Keine Bahn."
+  },
+  {
+   "start": 13.572,
+   "end": 19.012,
+   "text": "Tag drei. Die Regale im Supermarkt sind fast leer. Denn kein Laster liefert nach."
+  },
+  {
+   "start": 19.512,
+   "end": 25.112,
+   "text": "Tag fünf. Im Krankenhaus fehlen die Pflegekräfte. Notrufe bleiben unbeantwortet."
+  },
+  {
+   "start": 25.612,
+   "end": 30.54,
+   "text": "Tag sieben. Vor deiner Tür stapelt sich der Müll. Es stinkt. Die ersten Ratten tauchen auf."
+  },
+  {
+   "start": 31.04,
+   "end": 36.112,
+   "text": "Tag zehn. Im Kraftwerk sitzt niemand mehr am Pult. Nachts gehen die Lichter aus."
+  },
+  {
+   "start": 36.612,
+   "end": 40.964,
+   "text": "Ohne Strom stehen die Pumpen still. Aus deinem Wasserhahn kommt kein Tropfen mehr."
+  },
+  {
+   "start": 41.464,
+   "end": 47.672,
+   "text": "Jeden Tag erwirtschaftet Deutschland rund zwölf Milliarden Euro. Nach zehn Tagen fehlen hundertzwanzig Milliarden."
+  },
+  {
+   "start": 48.172,
+   "end": 52.876,
+   "text": "Warum geht das so schnell? Alles hängt an einer Kette. Fällt ein Glied aus, stoppt der Rest."
+  },
+  {
+   "start": 53.376,
+   "end": 60.592,
+   "text": "Supermärkte haben oft nur Ware für wenige Tage. Kliniken, Kraftwerke und Wasserwerke laufen nur, weil jemand da ist."
+  },
+  {
+   "start": 61.092,
+   "end": 65.14,
+   "text": "Deine Arbeit ist ein Glied dieser Kette. Wie lange würdest du ohne sie durchhalten?"
+  }
+ ],
+ "words": [
+  {
+   "id": "w0",
+   "text": "MONTAG",
+   "start": 0.184,
+   "end": 0.728,
+   "line": 0
+  },
+  {
+   "id": "w1",
+   "text": "SIEBEN",
+   "start": 0.936,
+   "end": 1.256,
+   "line": 0
+  },
+  {
+   "id": "w2",
+   "text": "UHR",
+   "start": 1.288,
+   "end": 1.464,
+   "line": 0
+  },
+  {
+   "id": "w3",
+   "text": "DEIN",
+   "start": 1.592,
+   "end": 1.816,
+   "line": 0
+  },
+  {
+   "id": "w4",
+   "text": "WECKER",
+   "start": 1.864,
+   "end": 2.088,
+   "line": 0
+  },
+  {
+   "id": "w5",
+   "text": "KLINGELT",
+   "start": 2.12,
+   "end": 2.536,
+   "line": 0
+  },
+  {
+   "id": "w6",
+   "text": "ABER",
+   "start": 2.712,
+   "end": 2.952,
+   "line": 0
+  },
+  {
+   "id": "w7",
+   "text": "HEUTE",
+   "start": 2.984,
+   "end": 3.224,
+   "line": 0
+  },
+  {
+   "id": "w8",
+   "text": "BLEIBT",
+   "start": 3.256,
+   "end": 3.496,
+   "line": 0
+  },
+  {
+   "id": "w9",
+   "text": "GANZ",
+   "start": 3.528,
+   "end": 3.736,
+   "line": 0
+  },
+  {
+   "id": "w10",
+   "text": "DEUTSCHLAND",
+   "start": 3.768,
+   "end": 4.184,
+   "line": 0
+  },
+  {
+   "id": "w11",
+   "text": "IM",
+   "start": 4.264,
+   "end": 4.36,
+   "line": 0
+  },
+  {
+   "id": "w12",
+   "text": "BETT",
+   "start": 4.392,
+   "end": 4.648,
+   "line": 0
+  },
+  {
+   "id": "w13",
+   "text": "46",
+   "start": 5.385,
+   "end": 6.215,
+   "line": 1
+  },
+  {
+   "id": "w14",
+   "text": "MILLIONEN",
+   "start": 6.215,
+   "end": 6.713,
+   "line": 1
+  },
+  {
+   "id": "w15",
+   "text": "MENSCHEN",
+   "start": 6.713,
+   "end": 7.156,
+   "line": 1
+  },
+  {
+   "id": "w16",
+   "text": "UND",
+   "start": 7.156,
+   "end": 7.322,
+   "line": 1
+  },
+  {
+   "id": "w17",
+   "text": "KEINER",
+   "start": 7.322,
+   "end": 7.654,
+   "line": 1
+  },
+  {
+   "id": "w18",
+   "text": "VON",
+   "start": 7.654,
+   "end": 7.82,
+   "line": 1
+  },
+  {
+   "id": "w19",
+   "text": "IHNEN",
+   "start": 7.82,
+   "end": 8.096,
+   "line": 1
+  },
+  {
+   "id": "w20",
+   "text": "GEHT",
+   "start": 8.096,
+   "end": 8.318,
+   "line": 1
+  },
+  {
+   "id": "w21",
+   "text": "ZUR",
+   "start": 8.318,
+   "end": 8.484,
+   "line": 1
+  },
+  {
+   "id": "w22",
+   "text": "ARBEIT",
+   "start": 8.484,
+   "end": 8.816,
+   "line": 1
+  },
+  {
+   "id": "w23",
+   "text": "AN",
+   "start": 9.6,
+   "end": 9.68,
+   "line": 2
+  },
+  {
+   "id": "w24",
+   "text": "DER",
+   "start": 9.712,
+   "end": 9.824,
+   "line": 2
+  },
+  {
+   "id": "w25",
+   "text": "HALTESTELLE",
+   "start": 9.872,
+   "end": 10.384,
+   "line": 2
+  },
+  {
+   "id": "w26",
+   "text": "WARTEST",
+   "start": 10.432,
+   "end": 10.72,
+   "line": 2
+  },
+  {
+   "id": "w27",
+   "text": "DU",
+   "start": 10.752,
+   "end": 10.848,
+   "line": 2
+  },
+  {
+   "id": "w28",
+   "text": "DOCH",
+   "start": 11.104,
+   "end": 11.28,
+   "line": 2
+  },
+  {
+   "id": "w29",
+   "text": "KEIN",
+   "start": 11.36,
+   "end": 11.568,
+   "line": 2
+  },
+  {
+   "id": "w30",
+   "text": "BUS",
+   "start": 11.6,
+   "end": 11.792,
+   "line": 2
+  },
+  {
+   "id": "w31",
+   "text": "KOMMT",
+   "start": 11.84,
+   "end": 12.112,
+   "line": 2
+  },
+  {
+   "id": "w32",
+   "text": "KEINE",
+   "start": 12.256,
+   "end": 12.56,
+   "line": 2
+  },
+  {
+   "id": "w33",
+   "text": "BAHN",
+   "start": 12.608,
+   "end": 12.976,
+   "line": 2
+  },
+  {
+   "id": "w34",
+   "text": "TAG",
+   "start": 13.86,
+   "end": 14.132,
+   "line": 3
+  },
+  {
+   "id": "w35",
+   "text": "DREI",
+   "start": 14.18,
+   "end": 14.564,
+   "line": 3
+  },
+  {
+   "id": "w36",
+   "text": "DIE",
+   "start": 15.012,
+   "end": 15.124,
+   "line": 3
+  },
+  {
+   "id": "w37",
+   "text": "REGALE",
+   "start": 15.172,
+   "end": 15.556,
+   "line": 3
+  },
+  {
+   "id": "w38",
+   "text": "IM",
+   "start": 15.604,
+   "end": 15.716,
+   "line": 3
+  },
+  {
+   "id": "w39",
+   "text": "SUPERMARKT",
+   "start": 15.78,
+   "end": 16.34,
+   "line": 3
+  },
+  {
+   "id": "w40",
+   "text": "SIND",
+   "start": 16.372,
+   "end": 16.5,
+   "line": 3
+  },
+  {
+   "id": "w41",
+   "text": "FAST",
+   "start": 16.548,
+   "end": 16.756,
+   "line": 3
+  },
+  {
+   "id": "w42",
+   "text": "LEER",
+   "start": 16.804,
+   "end": 17.044,
+   "line": 3
+  },
+  {
+   "id": "w43",
+   "text": "DENN",
+   "start": 17.412,
+   "end": 17.62,
+   "line": 3
+  },
+  {
+   "id": "w44",
+   "text": "KEIN",
+   "start": 17.684,
+   "end": 17.94,
+   "line": 3
+  },
+  {
+   "id": "w45",
+   "text": "LASTER",
+   "start": 17.988,
+   "end": 18.244,
+   "line": 3
+  },
+  {
+   "id": "w46",
+   "text": "LIEFERT",
+   "start": 18.292,
+   "end": 18.548,
+   "line": 3
+  },
+  {
+   "id": "w47",
+   "text": "NACH",
+   "start": 18.596,
+   "end": 18.916,
+   "line": 3
+  },
+  {
+   "id": "w48",
+   "text": "TAG",
+   "start": 19.752,
+   "end": 20.008,
+   "line": 4
+  },
+  {
+   "id": "w49",
+   "text": "FÜNF",
+   "start": 20.04,
+   "end": 20.36,
+   "line": 4
+  },
+  {
+   "id": "w50",
+   "text": "IM",
+   "start": 20.6,
+   "end": 20.76,
+   "line": 4
+  },
+  {
+   "id": "w51",
+   "text": "KRANKENHAUS",
+   "start": 20.824,
+   "end": 21.528,
+   "line": 4
+  },
+  {
+   "id": "w52",
+   "text": "FEHLEN",
+   "start": 21.576,
+   "end": 21.832,
+   "line": 4
+  },
+  {
+   "id": "w53",
+   "text": "DIE",
+   "start": 21.864,
+   "end": 21.976,
+   "line": 4
+  },
+  {
+   "id": "w54",
+   "text": "PFLEGEKRÄFTE",
+   "start": 22.008,
+   "end": 22.776,
+   "line": 4
+  },
+  {
+   "id": "w55",
+   "text": "NOTRUFE",
+   "start": 23.128,
+   "end": 23.736,
+   "line": 4
+  },
+  {
+   "id": "w56",
+   "text": "BLEIBEN",
+   "start": 23.768,
+   "end": 24.088,
+   "line": 4
+  },
+  {
+   "id": "w57",
+   "text": "UNBEANTWORTET",
+   "start": 24.136,
+   "end": 24.936,
+   "line": 4
+  },
+  {
+   "id": "w58",
+   "text": "TAG",
+   "start": 25.781,
+   "end": 25.97,
+   "line": 5
+  },
+  {
+   "id": "w59",
+   "text": "SIEBEN",
+   "start": 25.97,
+   "end": 26.349,
+   "line": 5
+  },
+  {
+   "id": "w60",
+   "text": "VOR",
+   "start": 26.349,
+   "end": 26.538,
+   "line": 5
+  },
+  {
+   "id": "w61",
+   "text": "DEINER",
+   "start": 26.538,
+   "end": 26.916,
+   "line": 5
+  },
+  {
+   "id": "w62",
+   "text": "TÜR",
+   "start": 26.916,
+   "end": 27.106,
+   "line": 5
+  },
+  {
+   "id": "w63",
+   "text": "STAPELT",
+   "start": 27.106,
+   "end": 27.547,
+   "line": 5
+  },
+  {
+   "id": "w64",
+   "text": "SICH",
+   "start": 27.547,
+   "end": 27.8,
+   "line": 5
+  },
+  {
+   "id": "w65",
+   "text": "DER",
+   "start": 27.8,
+   "end": 27.989,
+   "line": 5
+  },
+  {
+   "id": "w66",
+   "text": "MÜLL",
+   "start": 27.989,
+   "end": 28.241,
+   "line": 5
+  },
+  {
+   "id": "w67",
+   "text": "ES",
+   "start": 28.241,
+   "end": 28.367,
+   "line": 5
+  },
+  {
+   "id": "w68",
+   "text": "STINKT",
+   "start": 28.367,
+   "end": 28.746,
+   "line": 5
+  },
+  {
+   "id": "w69",
+   "text": "DIE",
+   "start": 28.746,
+   "end": 28.935,
+   "line": 5
+  },
+  {
+   "id": "w70",
+   "text": "ERSTEN",
+   "start": 28.935,
+   "end": 29.313,
+   "line": 5
+  },
+  {
+   "id": "w71",
+   "text": "RATTEN",
+   "start": 29.313,
+   "end": 29.692,
+   "line": 5
+  },
+  {
+   "id": "w72",
+   "text": "TAUCHEN",
+   "start": 29.692,
+   "end": 30.133,
+   "line": 5
+  },
+  {
+   "id": "w73",
+   "text": "AUF",
+   "start": 30.133,
+   "end": 30.323,
+   "line": 5
+  },
+  {
+   "id": "w74",
+   "text": "TAG",
+   "start": 31.271,
+   "end": 31.492,
+   "line": 6
+  },
+  {
+   "id": "w75",
+   "text": "ZEHN",
+   "start": 31.492,
+   "end": 31.787,
+   "line": 6
+  },
+  {
+   "id": "w76",
+   "text": "IM",
+   "start": 31.787,
+   "end": 31.935,
+   "line": 6
+  },
+  {
+   "id": "w77",
+   "text": "KRAFTWERK",
+   "start": 31.935,
+   "end": 32.6,
+   "line": 6
+  },
+  {
+   "id": "w78",
+   "text": "SITZT",
+   "start": 32.6,
+   "end": 32.969,
+   "line": 6
+  },
+  {
+   "id": "w79",
+   "text": "NIEMAND",
+   "start": 32.969,
+   "end": 33.486,
+   "line": 6
+  },
+  {
+   "id": "w80",
+   "text": "MEHR",
+   "start": 33.486,
+   "end": 33.781,
+   "line": 6
+  },
+  {
+   "id": "w81",
+   "text": "AM",
+   "start": 33.781,
+   "end": 33.929,
+   "line": 6
+  },
+  {
+   "id": "w82",
+   "text": "PULT",
+   "start": 33.929,
+   "end": 34.224,
+   "line": 6
+  },
+  {
+   "id": "w83",
+   "text": "NACHTS",
+   "start": 34.224,
+   "end": 34.667,
+   "line": 6
+  },
+  {
+   "id": "w84",
+   "text": "GEHEN",
+   "start": 34.667,
+   "end": 35.037,
+   "line": 6
+  },
+  {
+   "id": "w85",
+   "text": "DIE",
+   "start": 35.037,
+   "end": 35.258,
+   "line": 6
+  },
+  {
+   "id": "w86",
+   "text": "LICHTER",
+   "start": 35.258,
+   "end": 35.775,
+   "line": 6
+  },
+  {
+   "id": "w87",
+   "text": "AUS",
+   "start": 35.775,
+   "end": 35.997,
+   "line": 6
+  },
+  {
+   "id": "w88",
+   "text": "OHNE",
+   "start": 36.708,
+   "end": 36.98,
+   "line": 7
+  },
+  {
+   "id": "w89",
+   "text": "STROM",
+   "start": 37.012,
+   "end": 37.316,
+   "line": 7
+  },
+  {
+   "id": "w90",
+   "text": "STEHEN",
+   "start": 37.364,
+   "end": 37.588,
+   "line": 7
+  },
+  {
+   "id": "w91",
+   "text": "DIE",
+   "start": 37.62,
+   "end": 37.716,
+   "line": 7
+  },
+  {
+   "id": "w92",
+   "text": "PUMPEN",
+   "start": 37.764,
+   "end": 38.132,
+   "line": 7
+  },
+  {
+   "id": "w93",
+   "text": "STILL",
+   "start": 38.18,
+   "end": 38.452,
+   "line": 7
+  },
+  {
+   "id": "w94",
+   "text": "AUS",
+   "start": 38.74,
+   "end": 38.916,
+   "line": 7
+  },
+  {
+   "id": "w95",
+   "text": "DEINEM",
+   "start": 38.948,
+   "end": 39.22,
+   "line": 7
+  },
+  {
+   "id": "w96",
+   "text": "WASSERHAHN",
+   "start": 39.252,
+   "end": 39.732,
+   "line": 7
+  },
+  {
+   "id": "w97",
+   "text": "KOMMT",
+   "start": 39.764,
+   "end": 39.972,
+   "line": 7
+  },
+  {
+   "id": "w98",
+   "text": "KEIN",
+   "start": 40.004,
+   "end": 40.212,
+   "line": 7
+  },
+  {
+   "id": "w99",
+   "text": "TROPFEN",
+   "start": 40.244,
+   "end": 40.58,
+   "line": 7
+  },
+  {
+   "id": "w100",
+   "text": "MEHR",
+   "start": 40.628,
+   "end": 40.852,
+   "line": 7
+  },
+  {
+   "id": "w101",
+   "text": "JEDEN",
+   "start": 41.581,
+   "end": 41.879,
+   "line": 8
+  },
+  {
+   "id": "w102",
+   "text": "TAG",
+   "start": 41.879,
+   "end": 42.059,
+   "line": 8
+  },
+  {
+   "id": "w103",
+   "text": "ERWIRTSCHAFTET",
+   "start": 42.059,
+   "end": 42.895,
+   "line": 8
+  },
+  {
+   "id": "w104",
+   "text": "DEUTSCHLAND",
+   "start": 42.895,
+   "end": 43.553,
+   "line": 8
+  },
+  {
+   "id": "w105",
+   "text": "RUND",
+   "start": 43.553,
+   "end": 43.792,
+   "line": 8
+  },
+  {
+   "id": "w106",
+   "text": "12",
+   "start": 43.792,
+   "end": 44.091,
+   "line": 8
+  },
+  {
+   "id": "w107",
+   "text": "MILLIARDEN",
+   "start": 44.091,
+   "end": 44.688,
+   "line": 8
+  },
+  {
+   "id": "w108",
+   "text": "EURO",
+   "start": 44.688,
+   "end": 44.927,
+   "line": 8
+  },
+  {
+   "id": "w109",
+   "text": "NACH",
+   "start": 44.927,
+   "end": 45.166,
+   "line": 8
+  },
+  {
+   "id": "w110",
+   "text": "ZEHN",
+   "start": 45.166,
+   "end": 45.405,
+   "line": 8
+  },
+  {
+   "id": "w111",
+   "text": "TAGEN",
+   "start": 45.405,
+   "end": 45.704,
+   "line": 8
+  },
+  {
+   "id": "w112",
+   "text": "FEHLEN",
+   "start": 45.704,
+   "end": 46.063,
+   "line": 8
+  },
+  {
+   "id": "w113",
+   "text": "120",
+   "start": 46.063,
+   "end": 46.899,
+   "line": 8
+  },
+  {
+   "id": "w114",
+   "text": "MILLIARDEN",
+   "start": 46.899,
+   "end": 47.497,
+   "line": 8
+  },
+  {
+   "id": "w115",
+   "text": "WARUM",
+   "start": 48.204,
+   "end": 48.54,
+   "line": 9
+  },
+  {
+   "id": "w116",
+   "text": "GEHT",
+   "start": 48.572,
+   "end": 48.732,
+   "line": 9
+  },
+  {
+   "id": "w117",
+   "text": "DAS",
+   "start": 48.764,
+   "end": 48.86,
+   "line": 9
+  },
+  {
+   "id": "w118",
+   "text": "SO",
+   "start": 48.892,
+   "end": 49.004,
+   "line": 9
+  },
+  {
+   "id": "w119",
+   "text": "SCHNELL",
+   "start": 49.052,
+   "end": 49.356,
+   "line": 9
+  },
+  {
+   "id": "w120",
+   "text": "ALLES",
+   "start": 49.484,
+   "end": 49.74,
+   "line": 9
+  },
+  {
+   "id": "w121",
+   "text": "HÄNGT",
+   "start": 49.804,
+   "end": 50.012,
+   "line": 9
+  },
+  {
+   "id": "w122",
+   "text": "AN",
+   "start": 50.076,
+   "end": 50.14,
+   "line": 9
+  },
+  {
+   "id": "w123",
+   "text": "EINER",
+   "start": 50.204,
+   "end": 50.444,
+   "line": 9
+  },
+  {
+   "id": "w124",
+   "text": "KETTE",
+   "start": 50.492,
+   "end": 50.78,
+   "line": 9
+  },
+  {
+   "id": "w125",
+   "text": "FÄLLT",
+   "start": 51.036,
+   "end": 51.26,
+   "line": 9
+  },
+  {
+   "id": "w126",
+   "text": "EIN",
+   "start": 51.292,
+   "end": 51.42,
+   "line": 9
+  },
+  {
+   "id": "w127",
+   "text": "GLIED",
+   "start": 51.452,
+   "end": 51.66,
+   "line": 9
+  },
+  {
+   "id": "w128",
+   "text": "AUS",
+   "start": 51.708,
+   "end": 51.964,
+   "line": 9
+  },
+  {
+   "id": "w129",
+   "text": "STOPPT",
+   "start": 52.108,
+   "end": 52.38,
+   "line": 9
+  },
+  {
+   "id": "w130",
+   "text": "DER",
+   "start": 52.428,
+   "end": 52.524,
+   "line": 9
+  },
+  {
+   "id": "w131",
+   "text": "REST",
+   "start": 52.572,
+   "end": 52.764,
+   "line": 9
+  },
+  {
+   "id": "w132",
+   "text": "SUPERMÄRKTE",
+   "start": 53.408,
+   "end": 54.128,
+   "line": 10
+  },
+  {
+   "id": "w133",
+   "text": "HABEN",
+   "start": 54.16,
+   "end": 54.416,
+   "line": 10
+  },
+  {
+   "id": "w134",
+   "text": "OFT",
+   "start": 54.448,
+   "end": 54.608,
+   "line": 10
+  },
+  {
+   "id": "w135",
+   "text": "NUR",
+   "start": 54.64,
+   "end": 54.816,
+   "line": 10
+  },
+  {
+   "id": "w136",
+   "text": "WARE",
+   "start": 54.864,
+   "end": 55.088,
+   "line": 10
+  },
+  {
+   "id": "w137",
+   "text": "FÜR",
+   "start": 55.136,
+   "end": 55.296,
+   "line": 10
+  },
+  {
+   "id": "w138",
+   "text": "WENIGE",
+   "start": 55.344,
+   "end": 55.728,
+   "line": 10
+  },
+  {
+   "id": "w139",
+   "text": "TAGE",
+   "start": 55.776,
+   "end": 56.144,
+   "line": 10
+  },
+  {
+   "id": "w140",
+   "text": "KLINIKEN",
+   "start": 56.496,
+   "end": 57.104,
+   "line": 10
+  },
+  {
+   "id": "w141",
+   "text": "KRAFTWERKE",
+   "start": 57.264,
+   "end": 57.952,
+   "line": 10
+  },
+  {
+   "id": "w142",
+   "text": "UND",
+   "start": 58.016,
+   "end": 58.192,
+   "line": 10
+  },
+  {
+   "id": "w143",
+   "text": "WASSERWERKE",
+   "start": 58.24,
+   "end": 58.848,
+   "line": 10
+  },
+  {
+   "id": "w144",
+   "text": "LAUFEN",
+   "start": 58.88,
+   "end": 59.2,
+   "line": 10
+  },
+  {
+   "id": "w145",
+   "text": "NUR",
+   "start": 59.232,
+   "end": 59.552,
+   "line": 10
+  },
+  {
+   "id": "w146",
+   "text": "WEIL",
+   "start": 59.632,
+   "end": 59.792,
+   "line": 10
+  },
+  {
+   "id": "w147",
+   "text": "JEMAND",
+   "start": 59.84,
+   "end": 60.112,
+   "line": 10
+  },
+  {
+   "id": "w148",
+   "text": "DA",
+   "start": 60.144,
+   "end": 60.288,
+   "line": 10
+  },
+  {
+   "id": "w149",
+   "text": "IST",
+   "start": 60.336,
+   "end": 60.48,
+   "line": 10
+  },
+  {
+   "id": "w150",
+   "text": "DEINE",
+   "start": 61.192,
+   "end": 61.453,
+   "line": 11
+  },
+  {
+   "id": "w151",
+   "text": "ARBEIT",
+   "start": 61.453,
+   "end": 61.766,
+   "line": 11
+  },
+  {
+   "id": "w152",
+   "text": "IST",
+   "start": 61.766,
+   "end": 61.922,
+   "line": 11
+  },
+  {
+   "id": "w153",
+   "text": "EIN",
+   "start": 61.922,
+   "end": 62.079,
+   "line": 11
+  },
+  {
+   "id": "w154",
+   "text": "GLIED",
+   "start": 62.079,
+   "end": 62.34,
+   "line": 11
+  },
+  {
+   "id": "w155",
+   "text": "DIESER",
+   "start": 62.34,
+   "end": 62.653,
+   "line": 11
+  },
+  {
+   "id": "w156",
+   "text": "KETTE",
+   "start": 62.653,
+   "end": 62.914,
+   "line": 11
+  },
+  {
+   "id": "w157",
+   "text": "WIE",
+   "start": 62.914,
+   "end": 63.071,
+   "line": 11
+  },
+  {
+   "id": "w158",
+   "text": "LANGE",
+   "start": 63.071,
+   "end": 63.332,
+   "line": 11
+  },
+  {
+   "id": "w159",
+   "text": "WÜRDEST",
+   "start": 63.332,
+   "end": 63.698,
+   "line": 11
+  },
+  {
+   "id": "w160",
+   "text": "DU",
+   "start": 63.698,
+   "end": 63.802,
+   "line": 11
+  },
+  {
+   "id": "w161",
+   "text": "OHNE",
+   "start": 63.802,
+   "end": 64.011,
+   "line": 11
+  },
+  {
+   "id": "w162",
+   "text": "SIE",
+   "start": 64.011,
+   "end": 64.168,
+   "line": 11
+  },
+  {
+   "id": "w163",
+   "text": "DURCHHALTEN",
+   "start": 64.168,
+   "end": 64.742,
+   "line": 11
+  }
+ ]
+}

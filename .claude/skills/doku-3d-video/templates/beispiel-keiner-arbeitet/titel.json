@@ -1,0 +1,66 @@
+[
+ {
+  "start": 0,
+  "end": 6.13,
+  "kicker": "Deutschland · Montag, 7:00 Uhr",
+  "titel": "Tag 1",
+  "sub": "Niemand geht zur Arbeit"
+ },
+ {
+  "start": 6.13,
+  "end": 10.76,
+  "kicker": "Erwerbstätige in Deutschland",
+  "titel": "≈ 46 Mio.",
+  "sub": "Und keiner arbeitet"
+ },
+ {
+  "start": 10.76,
+  "end": 15.59,
+  "kicker": "Montag, 7:30 Uhr",
+  "titel": "Tag 1",
+  "sub": "Kein Bus. Keine Bahn."
+ },
+ {
+  "start": 15.59,
+  "end": 21.67,
+  "kicker": "Mittwoch, 10:00 Uhr",
+  "titel": "Tag 3",
+  "sub": "Kein Laster liefert nach"
+ },
+ {
+  "start": 21.67,
+  "end": 27.99,
+  "kicker": "Freitag, 14:00 Uhr",
+  "titel": "Tag 5",
+  "sub": "Die Station ist unbesetzt"
+ },
+ {
+  "start": 27.99,
+  "end": 35.11,
+  "kicker": "Sonntag, 9:00 Uhr",
+  "titel": "Tag 7",
+  "sub": "Die Müllabfuhr bleibt aus"
+ },
+ {
+  "start": 35.11,
+  "end": 40.93,
+  "kicker": "Mittwoch, 22:00 Uhr",
+  "titel": "Tag 10",
+  "sub": "Niemand steuert das Stromnetz"
+ },
+ {
+  "start": 40.93,
+  "end": 46.11,
+  "kicker": "Donnerstag, 8:00 Uhr",
+  "titel": "Tag 11",
+  "sub": "Kein Strom. Kein Wasser.",
+  "farbe": "#ff5a4a"
+ },
+ {
+  "start": 68.3,
+  "end": 77.0,
+  "kicker": "Deutschland ohne Arbeit",
+  "titel": "Und du?",
+  "sub": "Wie lange hältst du durch?"
+ }
+]

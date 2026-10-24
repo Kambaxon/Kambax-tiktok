@@ -1,0 +1,63 @@
+<template>
+  <style>
+    @font-face { font-family: "Open Sans Doku"; src: url("assets/fonts/open-sans-latin-700-normal.woff2") format("woff2"); font-weight: 700; }
+    @font-face { font-family: "Open Sans Doku"; src: url("assets/fonts/open-sans-latin-600-normal.woff2") format("woff2"); font-weight: 600; }
+    #root { position: absolute; inset: 0; font-family: "Open Sans Doku", sans-serif; }
+    #vo-dim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,26,38,.97) 0%, rgba(20,26,38,.97) 54%, rgba(20,26,38,.72) 100%); }
+    .vo-ti { position: absolute; left: 72px; top: 228px; color: #fff; }
+    .vo-ti .k, .vo-ti .s { font-weight: 600; font-size: 32px; letter-spacing: .13em; text-transform: uppercase; }
+    .vo-ti .h { font-weight: 700; font-size: 132px; line-height: 1.08; margin: 6px 0 8px -4px; }
+    #vo-band { position: absolute; left: 0; top: 640px; width: 1080px; height: 400px; background: #e8f1f8; overflow: hidden; }
+    #vo-shelf { position: absolute; inset: 0; }
+    .day { position: absolute; bottom: 64px; width: 200px; height: 250px; }
+    .day .frame { position: absolute; inset: 0; border: 6px solid #2c3e55; border-top: none; border-radius: 0 0 10px 10px; }
+    .day .fill { position: absolute; left: 6px; right: 6px; bottom: 6px; height: 232px; background: repeating-linear-gradient(90deg, #e2563f 0 34px, #f2b632 34px 68px, #3b8fe2 68px 102px, #4fb36b 102px 136px); transform-origin: 50% 100%; }
+    .day b { position: absolute; left: 0; right: 0; bottom: -48px; text-align: center; font-weight: 700; font-size: 28px; letter-spacing: .12em; color: #1d2a3a; }
+    #vo-wagen { position: absolute; left: 30px; top: 30px; width: 110px; height: 110px; }
+    #vo-row { position: absolute; inset: 0; }
+    .site { position: absolute; top: 70px; width: 300px; text-align: center; }
+    .site .ic { width: 150px; height: 150px; display: block; margin: 0 auto; }
+    .site .mn { position: absolute; width: 92px; height: 92px; left: 178px; top: 86px; filter: drop-shadow(0 4px 6px rgba(0,0,0,.25)); }
+    .site b { display: block; margin-top: 40px; font-weight: 700; font-size: 28px; letter-spacing: .12em; color: #1d2a3a; }
+    #vo-note { position: absolute; left: 0; width: 1080px; top: 1062px; text-align: center; color: #5fd0e8; font-weight: 700; font-size: 30px; letter-spacing: .13em; }
+  </style>
+  <div id="root" data-composition-id="vorrat" data-width="1080" data-height="1920" data-layout-allow-overlap>
+    <div id="vo-dim"></div>
+    <div id="vo-t1" class="clip vo-ti" data-start="0" data-duration="3.4" data-track-index="1">
+      <div class="k">Just in time</div><div class="h">Wenige Tage</div><div class="s">Schema, nicht maßstabsgetreu</div>
+    </div>
+    <div id="vo-t2" class="clip vo-ti" data-start="3.4" data-duration="4.69" data-track-index="1">
+      <div class="k">Ohne Menschen</div><div class="h">Kein Betrieb</div><div class="s">Schema, nicht maßstabsgetreu</div>
+    </div>
+    <div id="vo-band">
+      <div id="vo-shelf">
+        <img id="vo-wagen" src="assets/icons/wagen.svg" alt="" />
+        <div class="day" style="left:150px"><div class="fill" id="f1"></div><div class="frame"></div><b>TAG 1</b></div>
+        <div class="day" style="left:440px"><div class="fill" id="f2"></div><div class="frame"></div><b>TAG 2</b></div>
+        <div class="day" style="left:730px"><div class="fill" id="f3"></div><div class="frame"></div><b>TAG 3</b></div>
+      </div>
+      <div id="vo-row">
+        <div class="site" id="s1" style="left:30px"><img class="ic" src="assets/icons/klinik.svg" alt="" /><img class="mn" src="assets/icons/mensch.svg" alt="" /><b>KLINIK</b></div>
+        <div class="site" id="s2" style="left:390px"><img class="ic" src="assets/icons/strom.svg" alt="" /><img class="mn" src="assets/icons/mensch.svg" alt="" /><b>KRAFTWERK</b></div>
+        <div class="site" id="s3" style="left:750px"><img class="ic" src="assets/icons/wasser.svg" alt="" /><img class="mn" src="assets/icons/mensch.svg" alt="" /><b>WASSERWERK</b></div>
+      </div>
+    </div>
+    <div id="vo-n1" class="clip" data-start="1.0" data-duration="2.4" data-track-index="2" style="position:absolute;left:0;width:1080px;top:1062px;text-align:center;color:#5fd0e8;font-weight:700;font-size:30px;letter-spacing:.13em;">REGALE: VORRAT FÜR WENIGE TAGE</div>
+    <div id="vo-note" class="clip" data-start="5.9" data-duration="2.19" data-track-index="2">LÄUFT NUR, WENN JEMAND DA IST</div>
+  </div>
+  <script>
+    // lokal 0 = 60.21 s. "wenige Tage" 2.36, Kliniken 3.58, Kraftwerke 4.51, Wasserwerke 5.4, "jemand da" 7.06
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#vo-dim", { opacity: 0.6 }, { opacity: 1, duration: 0.25 }, 0);
+    tl.fromTo("#vo-t1 .h", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2 }, 0.05);
+    tl.fromTo("#vo-band", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "power2.inOut" }, 0.1);
+    ["#f1", "#f2", "#f3"].forEach((f, i) => tl.fromTo(f, { scaleY: 1 }, { scaleY: [0.55, 0.2, 0.0][i], duration: 0.7, ease: "power2.inOut" }, 1.3 + i * 0.45));
+    tl.fromTo("#vo-n1", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 1.0);
+    tl.to("#vo-shelf", { opacity: 0, x: -60, duration: 0.25, ease: "power2.in" }, 3.25);
+    tl.fromTo("#vo-t2 .h", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2 }, 3.4);
+    [["#s1", 3.5], ["#s2", 4.45], ["#s3", 5.35]].forEach(([id, t]) => tl.fromTo(id, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(1.8)" }, t));
+    tl.fromTo(".site .mn", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2.5)", stagger: 0.12 }, 6.95);
+    tl.fromTo("#vo-note", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.25 }, 5.9);
+    window.__timelines["vorrat"] = tl;
+  </script>
+</template>
