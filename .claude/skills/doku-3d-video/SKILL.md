@@ -127,6 +127,14 @@ Jedes Projekt soll Atmosphäre, Effekte, Animation und Klang über das vorige he
 - **Klang:** `klang.py sfx2` für Geiger (3 Dichten), Alarm, Explosion, Feuer, Sirene2, Bus, Regen und Knarren. In `musik-plan.json` gibt es `luft` (Obertöne), `sub` (Tiefbass) und `stille` (harte Stille-Fenster, z. B. direkt nach dem Knall). Dazu ein Riser, der genau auf den Wendepunkt zuläuft (Start = Treffer − 10,03 s).
 - **Struktur, die trägt:** Anfang und Ende spiegeln sich (du schläfst ↔ du stehst wach am Fenster), Karte und Schema dazwischen.
 
+## Qualitäts-Checkliste vor jedem Render (Feedback des Users: „sauber arbeiten“)
+
+- **Kein Flattern (Z-Fighting):** Keine zwei Flächen fast deckungsgleich. Böden, Sandflächen, Markierungen und Fensterplanes mindestens 0,02 m (nah) bzw. 0,2 m (weit) Abstand geben, oder `polygonOffset: true, polygonOffsetFactor: -1` auf dem oberen Material. Overlay-Planes (z. B. Alarm über Paneel) nie 1 cm davor.
+- **Kein Schattenflimmern:** `shadow.bias` / `normalBias` setzen, die Schattenkamera eng um die Szene legen (`size` passend), bei großen Szenen `mapSize` 2048.
+- **Bewegungs-Check:** Jede Einstellung mit `snapshot --range a,b --frames 8` in Bewegung prüfen, nicht nur Einzelbilder. Flackern, Springen und Durchdringen suchen.
+- **Keine traurigen Szenen:** Jede Einstellung braucht Tiefe und Details (Vorder-, Mittel-, Hintergrund), lebendige Figuren (Gesten, versetzte Bewegung) und stimmiges Licht. Szenen wie der Spielplatz waren zu leer und flach. Mehr Requisiten (Bänke, Bäume, Zäune, Laternen, Wäscheleinen, Autos), Bodentextur statt Einheitsfarbe, Licht mit Richtung (Gegenlicht/Morgensonne) und mehr Figuren in Aktion einsetzen.
+- Kontrastreiche Untertitel auf hellen Szenen prüfen.
+
 ## Fallen
 
 - `cam()` hat nur 400 m Sichtweite. Für alles, was weiter weg steht (Horizont, Kraftwerk, Bögen), `camFar(3000+)` nehmen und den Nebel weit genug setzen, sonst ist es unsichtbar.
