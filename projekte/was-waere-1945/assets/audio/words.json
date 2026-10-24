@@ -1,0 +1,1096 @@
+{
+ "duration": 71.471,
+ "lines": [
+  {
+   "start": 0.19,
+   "end": 8.927,
+   "text": "Berlin, Mai neunzehnhundertfünfundvierzig. Stell dir vor, die Kapitulation kommt nie. Hitler überlebt – und gewinnt den Krieg."
+  },
+  {
+   "start": 9.56,
+   "end": 15.321,
+   "text": "Neunzehnhundertfünfzig. Du wächst in einem Land auf, in dem ein falsches Wort dich ins Lager bringt."
+  },
+  {
+   "start": 15.65,
+   "end": 21.126,
+   "text": "Zeitungen, Radio, Schule – alles gehört der Partei. Es gibt nur eine Wahrheit."
+  },
+  {
+   "start": 21.62,
+   "end": 27.7,
+   "text": "Im Osten läuft der Generalplan Ost. Millionen Menschen werden vertrieben, versklavt oder ermordet."
+  },
+  {
+   "start": 28.21,
+   "end": 29.806,
+   "text": "Und der Holocaust geht weiter."
+  },
+  {
+   "start": 30.55,
+   "end": 37.545,
+   "text": "Neunzehnhundertsechzig. Berlin heißt jetzt Germania. Unter der Kuppel der Großen Halle könnten sich Wolken bilden."
+  },
+  {
+   "start": 37.89,
+   "end": 42.814,
+   "text": "Der Frieden bleibt kalt. Das Reich und Amerika bedrohen sich mit Atombomben."
+  },
+  {
+   "start": 43.51,
+   "end": 50.224,
+   "text": "Neunzehnhundertneunundachtzig. Hitler wäre hundert. Er wäre wohl tot – sein System vielleicht nicht."
+  },
+  {
+   "start": 50.78,
+   "end": 58.203,
+   "text": "Warum das fast unmöglich war? Die USA bauten mehr Panzer, Flugzeuge und Schiffe als alle Achsenmächte zusammen."
+  },
+  {
+   "start": 58.43,
+   "end": 62.428,
+   "text": "Und ab August neunzehnhundertfünfundvierzig hatten nur sie die Atombombe."
+  },
+  {
+   "start": 62.74,
+   "end": 66.983,
+   "text": "Dass es anders kam, verdanken wir Millionen Menschen, die dagegen gekämpft haben."
+  },
+  {
+   "start": 67.32,
+   "end": 71.313,
+   "text": "Was hättest du getan: mitgemacht – oder Widerstand geleistet?"
+  }
+ ],
+ "words": [
+  {
+   "id": "w0",
+   "text": "BERLIN",
+   "start": 0.24,
+   "end": 0.636,
+   "line": 0
+  },
+  {
+   "id": "w1",
+   "text": "MAI",
+   "start": 0.95,
+   "end": 1.289,
+   "line": 0
+  },
+  {
+   "id": "w2",
+   "text": "1945",
+   "start": 1.32,
+   "end": 2.902,
+   "line": 0
+  },
+  {
+   "id": "w3",
+   "text": "STELL",
+   "start": 3.46,
+   "end": 3.692,
+   "line": 0
+  },
+  {
+   "id": "w4",
+   "text": "DIR",
+   "start": 3.79,
+   "end": 3.96,
+   "line": 0
+  },
+  {
+   "id": "w5",
+   "text": "VOR",
+   "start": 4.02,
+   "end": 4.142,
+   "line": 0
+  },
+  {
+   "id": "w6",
+   "text": "DIE",
+   "start": 4.27,
+   "end": 4.443,
+   "line": 0
+  },
+  {
+   "id": "w7",
+   "text": "KAPITULATION",
+   "start": 4.47,
+   "end": 5.23,
+   "line": 0
+  },
+  {
+   "id": "w8",
+   "text": "KOMMT",
+   "start": 5.26,
+   "end": 5.528,
+   "line": 0
+  },
+  {
+   "id": "w9",
+   "text": "NIE",
+   "start": 5.57,
+   "end": 5.934,
+   "line": 0
+  },
+  {
+   "id": "w10",
+   "text": "HITLER",
+   "start": 6.36,
+   "end": 6.698,
+   "line": 0
+  },
+  {
+   "id": "w11",
+   "text": "ÜBERLEBT",
+   "start": 6.75,
+   "end": 7.432,
+   "line": 0
+  },
+  {
+   "id": "w12",
+   "text": "UND",
+   "start": 7.78,
+   "end": 7.918,
+   "line": 0
+  },
+  {
+   "id": "w13",
+   "text": "GEWINNT",
+   "start": 7.98,
+   "end": 8.309,
+   "line": 0
+  },
+  {
+   "id": "w14",
+   "text": "DEN",
+   "start": 8.34,
+   "end": 8.532,
+   "line": 0
+  },
+  {
+   "id": "w15",
+   "text": "KRIEG",
+   "start": 8.55,
+   "end": 8.927,
+   "line": 0
+  },
+  {
+   "id": "w16",
+   "text": "1950",
+   "start": 9.61,
+   "end": 10.82,
+   "line": 1
+  },
+  {
+   "id": "w17",
+   "text": "DU",
+   "start": 11.47,
+   "end": 11.58,
+   "line": 1
+  },
+  {
+   "id": "w18",
+   "text": "WÄCHST",
+   "start": 11.59,
+   "end": 11.867,
+   "line": 1
+  },
+  {
+   "id": "w19",
+   "text": "IN",
+   "start": 11.89,
+   "end": 11.939,
+   "line": 1
+  },
+  {
+   "id": "w20",
+   "text": "EINEM",
+   "start": 11.95,
+   "end": 12.119,
+   "line": 1
+  },
+  {
+   "id": "w21",
+   "text": "LAND",
+   "start": 12.13,
+   "end": 12.332,
+   "line": 1
+  },
+  {
+   "id": "w22",
+   "text": "AUF",
+   "start": 12.37,
+   "end": 12.77,
+   "line": 1
+  },
+  {
+   "id": "w23",
+   "text": "IN",
+   "start": 13.08,
+   "end": 13.244,
+   "line": 1
+  },
+  {
+   "id": "w24",
+   "text": "DEM",
+   "start": 13.3,
+   "end": 13.441,
+   "line": 1
+  },
+  {
+   "id": "w25",
+   "text": "EIN",
+   "start": 13.45,
+   "end": 13.612,
+   "line": 1
+  },
+  {
+   "id": "w26",
+   "text": "FALSCHES",
+   "start": 13.64,
+   "end": 13.975,
+   "line": 1
+  },
+  {
+   "id": "w27",
+   "text": "WORT",
+   "start": 13.99,
+   "end": 14.261,
+   "line": 1
+  },
+  {
+   "id": "w28",
+   "text": "DICH",
+   "start": 14.27,
+   "end": 14.42,
+   "line": 1
+  },
+  {
+   "id": "w29",
+   "text": "INS",
+   "start": 14.45,
+   "end": 14.666,
+   "line": 1
+  },
+  {
+   "id": "w30",
+   "text": "LAGER",
+   "start": 14.69,
+   "end": 14.909,
+   "line": 1
+  },
+  {
+   "id": "w31",
+   "text": "BRINGT",
+   "start": 14.93,
+   "end": 15.321,
+   "line": 1
+  },
+  {
+   "id": "w32",
+   "text": "ZEITUNGEN",
+   "start": 15.7,
+   "end": 16.392,
+   "line": 2
+  },
+  {
+   "id": "w33",
+   "text": "RADIO",
+   "start": 16.46,
+   "end": 17.142,
+   "line": 2
+  },
+  {
+   "id": "w34",
+   "text": "SCHULE",
+   "start": 17.37,
+   "end": 17.886,
+   "line": 2
+  },
+  {
+   "id": "w35",
+   "text": "ALLES",
+   "start": 18.14,
+   "end": 18.47,
+   "line": 2
+  },
+  {
+   "id": "w36",
+   "text": "GEHÖRT",
+   "start": 18.51,
+   "end": 18.688,
+   "line": 2
+  },
+  {
+   "id": "w37",
+   "text": "DER",
+   "start": 18.73,
+   "end": 18.852,
+   "line": 2
+  },
+  {
+   "id": "w38",
+   "text": "PARTEI",
+   "start": 18.87,
+   "end": 19.41,
+   "line": 2
+  },
+  {
+   "id": "w39",
+   "text": "ES",
+   "start": 19.82,
+   "end": 19.931,
+   "line": 2
+  },
+  {
+   "id": "w40",
+   "text": "GIBT",
+   "start": 19.96,
+   "end": 20.132,
+   "line": 2
+  },
+  {
+   "id": "w41",
+   "text": "NUR",
+   "start": 20.14,
+   "end": 20.362,
+   "line": 2
+  },
+  {
+   "id": "w42",
+   "text": "EINE",
+   "start": 20.42,
+   "end": 20.718,
+   "line": 2
+  },
+  {
+   "id": "w43",
+   "text": "WAHRHEIT",
+   "start": 20.75,
+   "end": 21.126,
+   "line": 2
+  },
+  {
+   "id": "w44",
+   "text": "IM",
+   "start": 21.67,
+   "end": 21.842,
+   "line": 3
+  },
+  {
+   "id": "w45",
+   "text": "OSTEN",
+   "start": 21.88,
+   "end": 22.205,
+   "line": 3
+  },
+  {
+   "id": "w46",
+   "text": "LÄUFT",
+   "start": 22.23,
+   "end": 22.43,
+   "line": 3
+  },
+  {
+   "id": "w47",
+   "text": "DER",
+   "start": 22.46,
+   "end": 22.566,
+   "line": 3
+  },
+  {
+   "id": "w48",
+   "text": "GENERALPLAN",
+   "start": 22.6,
+   "end": 23.414,
+   "line": 3
+  },
+  {
+   "id": "w49",
+   "text": "OST",
+   "start": 23.46,
+   "end": 23.905,
+   "line": 3
+  },
+  {
+   "id": "w50",
+   "text": "MILLIONEN",
+   "start": 24.22,
+   "end": 24.834,
+   "line": 3
+  },
+  {
+   "id": "w51",
+   "text": "MENSCHEN",
+   "start": 24.85,
+   "end": 25.185,
+   "line": 3
+  },
+  {
+   "id": "w52",
+   "text": "WERDEN",
+   "start": 25.2,
+   "end": 25.487,
+   "line": 3
+  },
+  {
+   "id": "w53",
+   "text": "VERTRIEBEN",
+   "start": 25.5,
+   "end": 26.123,
+   "line": 3
+  },
+  {
+   "id": "w54",
+   "text": "VERSKLAVT",
+   "start": 26.61,
+   "end": 27.068,
+   "line": 3
+  },
+  {
+   "id": "w55",
+   "text": "ODER",
+   "start": 27.1,
+   "end": 27.27,
+   "line": 3
+  },
+  {
+   "id": "w56",
+   "text": "ERMORDET",
+   "start": 27.33,
+   "end": 27.7,
+   "line": 3
+  },
+  {
+   "id": "w57",
+   "text": "UND",
+   "start": 28.26,
+   "end": 28.414,
+   "line": 4
+  },
+  {
+   "id": "w58",
+   "text": "DER",
+   "start": 28.44,
+   "end": 28.604,
+   "line": 4
+  },
+  {
+   "id": "w59",
+   "text": "HOLOCAUST",
+   "start": 28.62,
+   "end": 29.148,
+   "line": 4
+  },
+  {
+   "id": "w60",
+   "text": "GEHT",
+   "start": 29.21,
+   "end": 29.367,
+   "line": 4
+  },
+  {
+   "id": "w61",
+   "text": "WEITER",
+   "start": 29.39,
+   "end": 29.806,
+   "line": 4
+  },
+  {
+   "id": "w62",
+   "text": "1960",
+   "start": 30.6,
+   "end": 31.995,
+   "line": 5
+  },
+  {
+   "id": "w63",
+   "text": "BERLIN",
+   "start": 32.36,
+   "end": 32.882,
+   "line": 5
+  },
+  {
+   "id": "w64",
+   "text": "HEISST",
+   "start": 32.94,
+   "end": 33.181,
+   "line": 5
+  },
+  {
+   "id": "w65",
+   "text": "JETZT",
+   "start": 33.19,
+   "end": 33.454,
+   "line": 5
+  },
+  {
+   "id": "w66",
+   "text": "GERMANIA",
+   "start": 33.51,
+   "end": 34.26,
+   "line": 5
+  },
+  {
+   "id": "w67",
+   "text": "UNTER",
+   "start": 34.64,
+   "end": 34.86,
+   "line": 5
+  },
+  {
+   "id": "w68",
+   "text": "DER",
+   "start": 34.89,
+   "end": 35.028,
+   "line": 5
+  },
+  {
+   "id": "w69",
+   "text": "KUPPEL",
+   "start": 35.09,
+   "end": 35.295,
+   "line": 5
+  },
+  {
+   "id": "w70",
+   "text": "DER",
+   "start": 35.32,
+   "end": 35.48,
+   "line": 5
+  },
+  {
+   "id": "w71",
+   "text": "GROSSEN",
+   "start": 35.5,
+   "end": 35.902,
+   "line": 5
+  },
+  {
+   "id": "w72",
+   "text": "HALLE",
+   "start": 35.94,
+   "end": 36.21,
+   "line": 5
+  },
+  {
+   "id": "w73",
+   "text": "KÖNNTEN",
+   "start": 36.22,
+   "end": 36.55,
+   "line": 5
+  },
+  {
+   "id": "w74",
+   "text": "SICH",
+   "start": 36.58,
+   "end": 36.756,
+   "line": 5
+  },
+  {
+   "id": "w75",
+   "text": "WOLKEN",
+   "start": 36.82,
+   "end": 37.085,
+   "line": 5
+  },
+  {
+   "id": "w76",
+   "text": "BILDEN",
+   "start": 37.12,
+   "end": 37.545,
+   "line": 5
+  },
+  {
+   "id": "w77",
+   "text": "DER",
+   "start": 37.94,
+   "end": 38.13,
+   "line": 6
+  },
+  {
+   "id": "w78",
+   "text": "FRIEDEN",
+   "start": 38.2,
+   "end": 38.593,
+   "line": 6
+  },
+  {
+   "id": "w79",
+   "text": "BLEIBT",
+   "start": 38.6,
+   "end": 38.895,
+   "line": 6
+  },
+  {
+   "id": "w80",
+   "text": "KALT",
+   "start": 38.93,
+   "end": 39.334,
+   "line": 6
+  },
+  {
+   "id": "w81",
+   "text": "DAS",
+   "start": 39.71,
+   "end": 39.844,
+   "line": 6
+  },
+  {
+   "id": "w82",
+   "text": "REICH",
+   "start": 39.9,
+   "end": 40.302,
+   "line": 6
+  },
+  {
+   "id": "w83",
+   "text": "UND",
+   "start": 40.33,
+   "end": 40.585,
+   "line": 6
+  },
+  {
+   "id": "w84",
+   "text": "AMERIKA",
+   "start": 40.65,
+   "end": 41.143,
+   "line": 6
+  },
+  {
+   "id": "w85",
+   "text": "BEDROHEN",
+   "start": 41.18,
+   "end": 41.593,
+   "line": 6
+  },
+  {
+   "id": "w86",
+   "text": "SICH",
+   "start": 41.63,
+   "end": 41.782,
+   "line": 6
+  },
+  {
+   "id": "w87",
+   "text": "MIT",
+   "start": 41.82,
+   "end": 41.954,
+   "line": 6
+  },
+  {
+   "id": "w88",
+   "text": "ATOMBOMBEN",
+   "start": 42.02,
+   "end": 42.814,
+   "line": 6
+  },
+  {
+   "id": "w89",
+   "text": "1989",
+   "start": 43.56,
+   "end": 45.314,
+   "line": 7
+  },
+  {
+   "id": "w90",
+   "text": "HITLER",
+   "start": 45.6,
+   "end": 46.054,
+   "line": 7
+  },
+  {
+   "id": "w91",
+   "text": "WÄRE",
+   "start": 46.12,
+   "end": 46.416,
+   "line": 7
+  },
+  {
+   "id": "w92",
+   "text": "HUNDERT",
+   "start": 46.47,
+   "end": 46.993,
+   "line": 7
+  },
+  {
+   "id": "w93",
+   "text": "ER",
+   "start": 47.4,
+   "end": 47.529,
+   "line": 7
+  },
+  {
+   "id": "w94",
+   "text": "WÄRE",
+   "start": 47.55,
+   "end": 47.762,
+   "line": 7
+  },
+  {
+   "id": "w95",
+   "text": "WOHL",
+   "start": 47.77,
+   "end": 48.008,
+   "line": 7
+  },
+  {
+   "id": "w96",
+   "text": "TOT",
+   "start": 48.04,
+   "end": 48.45,
+   "line": 7
+  },
+  {
+   "id": "w97",
+   "text": "SEIN",
+   "start": 48.83,
+   "end": 49.002,
+   "line": 7
+  },
+  {
+   "id": "w98",
+   "text": "SYSTEM",
+   "start": 49.08,
+   "end": 49.632,
+   "line": 7
+  },
+  {
+   "id": "w99",
+   "text": "VIELLEICHT",
+   "start": 49.66,
+   "end": 49.98,
+   "line": 7
+  },
+  {
+   "id": "w100",
+   "text": "NICHT",
+   "start": 49.99,
+   "end": 50.224,
+   "line": 7
+  },
+  {
+   "id": "w101",
+   "text": "WARUM",
+   "start": 50.83,
+   "end": 51.127,
+   "line": 8
+  },
+  {
+   "id": "w102",
+   "text": "DAS",
+   "start": 51.21,
+   "end": 51.368,
+   "line": 8
+  },
+  {
+   "id": "w103",
+   "text": "FAST",
+   "start": 51.43,
+   "end": 51.669,
+   "line": 8
+  },
+  {
+   "id": "w104",
+   "text": "UNMÖGLICH",
+   "start": 51.73,
+   "end": 52.3,
+   "line": 8
+  },
+  {
+   "id": "w105",
+   "text": "WAR",
+   "start": 52.33,
+   "end": 52.536,
+   "line": 8
+  },
+  {
+   "id": "w106",
+   "text": "DIE",
+   "start": 52.91,
+   "end": 53.01,
+   "line": 8
+  },
+  {
+   "id": "w107",
+   "text": "USA",
+   "start": 53.06,
+   "end": 53.566,
+   "line": 8
+  },
+  {
+   "id": "w108",
+   "text": "BAUTEN",
+   "start": 53.6,
+   "end": 53.977,
+   "line": 8
+  },
+  {
+   "id": "w109",
+   "text": "MEHR",
+   "start": 54.0,
+   "end": 54.322,
+   "line": 8
+  },
+  {
+   "id": "w110",
+   "text": "PANZER",
+   "start": 54.34,
+   "end": 54.749,
+   "line": 8
+  },
+  {
+   "id": "w111",
+   "text": "FLUGZEUGE",
+   "start": 54.95,
+   "end": 55.573,
+   "line": 8
+  },
+  {
+   "id": "w112",
+   "text": "UND",
+   "start": 55.63,
+   "end": 55.788,
+   "line": 8
+  },
+  {
+   "id": "w113",
+   "text": "SCHIFFE",
+   "start": 55.88,
+   "end": 56.274,
+   "line": 8
+  },
+  {
+   "id": "w114",
+   "text": "ALS",
+   "start": 56.33,
+   "end": 56.516,
+   "line": 8
+  },
+  {
+   "id": "w115",
+   "text": "ALLE",
+   "start": 56.58,
+   "end": 56.824,
+   "line": 8
+  },
+  {
+   "id": "w116",
+   "text": "ACHSENMÄCHTE",
+   "start": 56.88,
+   "end": 57.64,
+   "line": 8
+  },
+  {
+   "id": "w117",
+   "text": "ZUSAMMEN",
+   "start": 57.7,
+   "end": 58.203,
+   "line": 8
+  },
+  {
+   "id": "w118",
+   "text": "UND",
+   "start": 58.48,
+   "end": 58.774,
+   "line": 9
+  },
+  {
+   "id": "w119",
+   "text": "AB",
+   "start": 58.79,
+   "end": 58.862,
+   "line": 9
+  },
+  {
+   "id": "w120",
+   "text": "AUGUST",
+   "start": 58.87,
+   "end": 59.195,
+   "line": 9
+  },
+  {
+   "id": "w121",
+   "text": "1945",
+   "start": 59.24,
+   "end": 60.63,
+   "line": 9
+  },
+  {
+   "id": "w122",
+   "text": "HATTEN",
+   "start": 60.69,
+   "end": 60.904,
+   "line": 9
+  },
+  {
+   "id": "w123",
+   "text": "NUR",
+   "start": 60.96,
+   "end": 61.288,
+   "line": 9
+  },
+  {
+   "id": "w124",
+   "text": "SIE",
+   "start": 61.35,
+   "end": 61.544,
+   "line": 9
+  },
+  {
+   "id": "w125",
+   "text": "DIE",
+   "start": 61.64,
+   "end": 61.757,
+   "line": 9
+  },
+  {
+   "id": "w126",
+   "text": "ATOMBOMBE",
+   "start": 61.83,
+   "end": 62.428,
+   "line": 9
+  },
+  {
+   "id": "w127",
+   "text": "DASS",
+   "start": 62.79,
+   "end": 63.092,
+   "line": 10
+  },
+  {
+   "id": "w128",
+   "text": "ES",
+   "start": 63.11,
+   "end": 63.224,
+   "line": 10
+  },
+  {
+   "id": "w129",
+   "text": "ANDERS",
+   "start": 63.3,
+   "end": 63.552,
+   "line": 10
+  },
+  {
+   "id": "w130",
+   "text": "KAM",
+   "start": 63.64,
+   "end": 63.848,
+   "line": 10
+  },
+  {
+   "id": "w131",
+   "text": "VERDANKEN",
+   "start": 64.06,
+   "end": 64.416,
+   "line": 10
+  },
+  {
+   "id": "w132",
+   "text": "WIR",
+   "start": 64.45,
+   "end": 64.658,
+   "line": 10
+  },
+  {
+   "id": "w133",
+   "text": "MILLIONEN",
+   "start": 64.68,
+   "end": 65.032,
+   "line": 10
+  },
+  {
+   "id": "w134",
+   "text": "MENSCHEN",
+   "start": 65.07,
+   "end": 65.395,
+   "line": 10
+  },
+  {
+   "id": "w135",
+   "text": "DIE",
+   "start": 65.54,
+   "end": 65.736,
+   "line": 10
+  },
+  {
+   "id": "w136",
+   "text": "DAGEGEN",
+   "start": 65.8,
+   "end": 66.202,
+   "line": 10
+  },
+  {
+   "id": "w137",
+   "text": "GEKÄMPFT",
+   "start": 66.25,
+   "end": 66.666,
+   "line": 10
+  },
+  {
+   "id": "w138",
+   "text": "HABEN",
+   "start": 66.69,
+   "end": 66.983,
+   "line": 10
+  },
+  {
+   "id": "w139",
+   "text": "WAS",
+   "start": 67.37,
+   "end": 67.675,
+   "line": 11
+  },
+  {
+   "id": "w140",
+   "text": "HÄTTEST",
+   "start": 67.69,
+   "end": 67.842,
+   "line": 11
+  },
+  {
+   "id": "w141",
+   "text": "DU",
+   "start": 67.87,
+   "end": 67.994,
+   "line": 11
+  },
+  {
+   "id": "w142",
+   "text": "GETAN",
+   "start": 68.04,
+   "end": 68.456,
+   "line": 11
+  },
+  {
+   "id": "w143",
+   "text": "MITGEMACHT",
+   "start": 68.86,
+   "end": 69.581,
+   "line": 11
+  },
+  {
+   "id": "w144",
+   "text": "ODER",
+   "start": 69.85,
+   "end": 70.124,
+   "line": 11
+  },
+  {
+   "id": "w145",
+   "text": "WIDERSTAND",
+   "start": 70.14,
+   "end": 70.672,
+   "line": 11
+  },
+  {
+   "id": "w146",
+   "text": "GELEISTET",
+   "start": 70.7,
+   "end": 71.313,
+   "line": 11
+  }
+ ]
+}

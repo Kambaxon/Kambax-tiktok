@@ -1,0 +1,11 @@
+[
+ {"start":0,"end":9.4,"kicker":"Berlin · Gedankenexperiment","titel":"Mai 1945","sub":"Die Kapitulation bleibt aus"},
+ {"start":9.4,"end":15.5,"kicker":"Berlin · Wohnung im Wedding","titel":"1950","sub":"Ein falsches Wort"},
+ {"start":15.5,"end":21.5,"kicker":"Volksschule","titel":"1950","sub":"Nur eine Wahrheit"},
+ {"start":21.5,"end":28.05,"kicker":"Besetzte Ostgebiete","titel":"1955","sub":"Generalplan Ost","farbe":"#ff5a4a"},
+ {"start":28.05,"end":30.4,"kicker":"Besetzte Ostgebiete","titel":"1955","sub":"Die Lager bleiben","farbe":"#ff5a4a"},
+ {"start":30.4,"end":37.75,"kicker":"Berlin heißt Germania","titel":"1960","sub":"Die Große Halle"},
+ {"start":43.35,"end":50.6,"kicker":"Gedankenexperiment","titel":"1989","sub":"Hitler wäre 100"},
+ {"start":62.6,"end":67.2,"kicker":"Die Wirklichkeit","titel":"8. Mai 1945","sub":"Kriegsende in Europa"},
+ {"start":67.2,"end":75.5,"kicker":"Gedankenexperiment","titel":"Und du?","sub":"Mitmachen oder Widerstand?"}
+]

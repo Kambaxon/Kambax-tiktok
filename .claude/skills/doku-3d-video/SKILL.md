@@ -96,6 +96,26 @@ Musik nur, wenn der User eine Datei liefert.
 - Ersatz ohne Datei: weibliche Piper-Stimmen (Kerstin/Ramona/Eva, GitHub `k2-fsa/sherpa-onnx` Release `tts-models`). Die klingen synthetisch; nur als Notlösung, das dem User so sagen.
 - Kein Voice-Cloning möglich (Modelle blockiert), keine fremden oder Promi-Stimmen nachbauen.
 
+## Musik und Geräusche
+
+Der User will immer eine leise Hintergrundmusik und Effektgeräusche. Openverse, Freesound, Pixabay, archive.org und HeyGen sind blockiert, deshalb wird beides synthetisch erzeugt mit `scripts/klang.py`.
+
+- **Musik:** `python3 scripts/klang.py musik musik-plan.json assets/music/musik.wav`
+  - `musik-plan.json` legt pro Abschnitt fest: Akkord, Energie, Helligkeit und optional einen Puls in BPM. Dazu kommen ein paar Klaviertöne.
+  - Die Abschnitte folgen der Dramaturgie: düster → Anspannung (Puls) → Tiefpunkt fast still → warmer Dur-Akkord bei Hoffnung.
+  - Ins Video mit `data-volume` ~0.22 unter der Stimme (Musikdatei ≈ −18 LUFS).
+- **Effekte:** `python3 scripts/klang.py sfx assets/sfx` erzeugt wind, grollen, radio, uhr, schritte, kolonne, sirene, glocke, herz, brummen, boom.
+  - Dazu kommen die mitgelieferten whoosh/impact/riser aus `media-use`.
+  - Lautstärken 0.15–0.45, Dauerklänge mit `data-fade-in/out`.
+- **Kontrolle:** Spektrum per `showspectrumpic` ansehen (Klicks = senkrechte Linien). Ich kann nicht selbst hören, deshalb dem User sagen, dass der Mix gemessen und nicht gehört ist.
+- Bei sensiblen Themen (Holocaust, Opfer) die Musik zurücknehmen; nur Wind oder Brummen.
+
+## Sensible Geschichtsthemen
+
+- Keine Hakenkreuze, SS-Runen oder andere NS-Symbole und keine Täter-Porträts mit Gesicht (TikTok sperrt das, auch im historischen Kontext). Fahnen und Uniformen abstrakt halten.
+- Lager und Gewalt nur andeuten (Zaun, Wachturm, Nebel), keine Opfer zeigen. Ton sachlich und kritisch.
+- Bei Was-wäre-wenn-Szenarien am Ende die Wirklichkeit einordnen („Die Realität“ / „Warum fast unmöglich“) und die Befreiung zeigen.
+
 ## Fallen
 
 - **Qualität vor Tempo** (Wunsch des Users): immer 1080×1920, `-q delivery`, volle Schatten und Kantenglättung. Ein 70-s-Render dauert in der Cloud (CPU-WebGL) etwa 40–60 Min. Das vorher ansagen und nicht herunterregeln.
