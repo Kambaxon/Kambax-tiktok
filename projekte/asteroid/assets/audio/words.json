@@ -1,0 +1,1220 @@
+{
+ "duration": 69.956,
+ "lines": [
+  {
+   "start": 0.04,
+   "end": 6.316,
+   "text": "Ein ganz normaler Abend. Du schaust in den Himmel. Ein neuer Stern ist aufgetaucht – und er wird heller."
+  },
+  {
+   "start": 7.07,
+   "end": 12.909,
+   "text": "Es ist ein Asteroid. Zehn Kilometer groß. Siebzigtausend Kilometer pro Stunde schnell."
+  },
+  {
+   "start": 13.2,
+   "end": 16.214,
+   "text": "Noch zehn Sekunden. Er ist heller als die Sonne."
+  },
+  {
+   "start": 16.63,
+   "end": 21.378,
+   "text": "Einschlag. Tausende Kilometer entfernt – und trotzdem blendet dich der Blitz."
+  },
+  {
+   "start": 21.82,
+   "end": 26.093,
+   "text": "Die Energie von Milliarden Hiroshima-Bomben. Die ganze Erde bebt."
+  },
+  {
+   "start": 26.67,
+   "end": 30.945,
+   "text": "Glühendes Gestein regnet vom Himmel. Die Luft wird heiß. Wälder brennen."
+  },
+  {
+   "start": 31.27,
+   "end": 35.033,
+   "text": "An den Küsten türmt sich ein Tsunami auf – hunderte Meter hoch."
+  },
+  {
+   "start": 35.35,
+   "end": 41.566,
+   "text": "Dann wird es dunkel. Ruß und Staub verdecken die Sonne – nicht für Tage, sondern für Jahre."
+  },
+  {
+   "start": 42.18,
+   "end": 47.502,
+   "text": "Pflanzen sterben. Dann die Tiere, die sie fressen. Drei Viertel aller Arten verschwinden."
+  },
+  {
+   "start": 47.82,
+   "end": 54.645,
+   "text": "Genau das ist schon einmal passiert – vor sechsundsechzig Millionen Jahren. Die Dinosaurier hatten keine Chance."
+  },
+  {
+   "start": 54.95,
+   "end": 61.728,
+   "text": "Und wir? Die NASA kennt die meisten großen Asteroiden. Keiner der bekannten trifft uns in den nächsten hundert Jahren."
+  },
+  {
+   "start": 62.22,
+   "end": 67.101,
+   "text": "Und zweitausendzweiundzwanzig hat sie zum ersten Mal einen Asteroiden aus der Bahn geschubst."
+  },
+  {
+   "start": 67.39,
+   "end": 69.762,
+   "text": "Was würdest du in deiner letzten Stunde tun?"
+  }
+ ],
+ "words": [
+  {
+   "id": "w0",
+   "text": "EIN",
+   "start": 0.09,
+   "end": 0.318,
+   "line": 0
+  },
+  {
+   "id": "w1",
+   "text": "GANZ",
+   "start": 0.37,
+   "end": 0.628,
+   "line": 0
+  },
+  {
+   "id": "w2",
+   "text": "NORMALER",
+   "start": 0.67,
+   "end": 1.099,
+   "line": 0
+  },
+  {
+   "id": "w3",
+   "text": "ABEND",
+   "start": 1.12,
+   "end": 1.698,
+   "line": 0
+  },
+  {
+   "id": "w4",
+   "text": "DU",
+   "start": 2.04,
+   "end": 2.174,
+   "line": 0
+  },
+  {
+   "id": "w5",
+   "text": "SCHAUST",
+   "start": 2.19,
+   "end": 2.534,
+   "line": 0
+  },
+  {
+   "id": "w6",
+   "text": "IN",
+   "start": 2.57,
+   "end": 2.696,
+   "line": 0
+  },
+  {
+   "id": "w7",
+   "text": "DEN",
+   "start": 2.76,
+   "end": 3.02,
+   "line": 0
+  },
+  {
+   "id": "w8",
+   "text": "HIMMEL",
+   "start": 3.05,
+   "end": 3.218,
+   "line": 0
+  },
+  {
+   "id": "w9",
+   "text": "EIN",
+   "start": 3.57,
+   "end": 3.679,
+   "line": 0
+  },
+  {
+   "id": "w10",
+   "text": "NEUER",
+   "start": 3.71,
+   "end": 4.008,
+   "line": 0
+  },
+  {
+   "id": "w11",
+   "text": "STERN",
+   "start": 4.07,
+   "end": 4.402,
+   "line": 0
+  },
+  {
+   "id": "w12",
+   "text": "IST",
+   "start": 4.44,
+   "end": 4.58,
+   "line": 0
+  },
+  {
+   "id": "w13",
+   "text": "AUFGETAUCHT",
+   "start": 4.63,
+   "end": 5.29,
+   "line": 0
+  },
+  {
+   "id": "w14",
+   "text": "UND",
+   "start": 5.65,
+   "end": 5.768,
+   "line": 0
+  },
+  {
+   "id": "w15",
+   "text": "ER",
+   "start": 5.78,
+   "end": 5.816,
+   "line": 0
+  },
+  {
+   "id": "w16",
+   "text": "WIRD",
+   "start": 5.83,
+   "end": 6.01,
+   "line": 0
+  },
+  {
+   "id": "w17",
+   "text": "HELLER",
+   "start": 6.03,
+   "end": 6.316,
+   "line": 0
+  },
+  {
+   "id": "w18",
+   "text": "ES",
+   "start": 7.12,
+   "end": 7.44,
+   "line": 1
+  },
+  {
+   "id": "w19",
+   "text": "IST",
+   "start": 7.44,
+   "end": 7.7,
+   "line": 1
+  },
+  {
+   "id": "w20",
+   "text": "EIN",
+   "start": 7.7,
+   "end": 7.92,
+   "line": 1
+  },
+  {
+   "id": "w21",
+   "text": "ASTEROID",
+   "start": 7.92,
+   "end": 8.82,
+   "line": 1
+  },
+  {
+   "id": "w22",
+   "text": "10",
+   "start": 8.82,
+   "end": 8.98,
+   "line": 1
+  },
+  {
+   "id": "w23",
+   "text": "KILOMETER",
+   "start": 8.98,
+   "end": 9.69,
+   "line": 1
+  },
+  {
+   "id": "w24",
+   "text": "GROSS",
+   "start": 9.69,
+   "end": 9.89,
+   "line": 1
+  },
+  {
+   "id": "w25",
+   "text": "70.000",
+   "start": 9.89,
+   "end": 11.06,
+   "line": 1
+  },
+  {
+   "id": "w26",
+   "text": "KILOMETER",
+   "start": 11.06,
+   "end": 11.66,
+   "line": 1
+  },
+  {
+   "id": "w27",
+   "text": "PRO",
+   "start": 11.66,
+   "end": 11.93,
+   "line": 1
+  },
+  {
+   "id": "w28",
+   "text": "STUNDE",
+   "start": 11.93,
+   "end": 12.28,
+   "line": 1
+  },
+  {
+   "id": "w29",
+   "text": "SCHNELL",
+   "start": 12.28,
+   "end": 12.909,
+   "line": 1
+  },
+  {
+   "id": "w30",
+   "text": "NOCH",
+   "start": 13.25,
+   "end": 13.484,
+   "line": 2
+  },
+  {
+   "id": "w31",
+   "text": "10",
+   "start": 13.58,
+   "end": 13.935,
+   "line": 2
+  },
+  {
+   "id": "w32",
+   "text": "SEKUNDEN",
+   "start": 13.95,
+   "end": 14.507,
+   "line": 2
+  },
+  {
+   "id": "w33",
+   "text": "ER",
+   "start": 14.81,
+   "end": 14.912,
+   "line": 2
+  },
+  {
+   "id": "w34",
+   "text": "IST",
+   "start": 14.95,
+   "end": 15.083,
+   "line": 2
+  },
+  {
+   "id": "w35",
+   "text": "HELLER",
+   "start": 15.15,
+   "end": 15.399,
+   "line": 2
+  },
+  {
+   "id": "w36",
+   "text": "ALS",
+   "start": 15.46,
+   "end": 15.676,
+   "line": 2
+  },
+  {
+   "id": "w37",
+   "text": "DIE",
+   "start": 15.69,
+   "end": 15.894,
+   "line": 2
+  },
+  {
+   "id": "w38",
+   "text": "SONNE",
+   "start": 16.01,
+   "end": 16.214,
+   "line": 2
+  },
+  {
+   "id": "w39",
+   "text": "EINSCHLAG",
+   "start": 16.68,
+   "end": 17.38,
+   "line": 3
+  },
+  {
+   "id": "w40",
+   "text": "TAUSENDE",
+   "start": 17.85,
+   "end": 18.299,
+   "line": 3
+  },
+  {
+   "id": "w41",
+   "text": "KILOMETER",
+   "start": 18.32,
+   "end": 18.852,
+   "line": 3
+  },
+  {
+   "id": "w42",
+   "text": "ENTFERNT",
+   "start": 18.89,
+   "end": 19.463,
+   "line": 3
+  },
+  {
+   "id": "w43",
+   "text": "UND",
+   "start": 19.64,
+   "end": 19.84,
+   "line": 3
+  },
+  {
+   "id": "w44",
+   "text": "TROTZDEM",
+   "start": 19.92,
+   "end": 20.495,
+   "line": 3
+  },
+  {
+   "id": "w45",
+   "text": "BLENDET",
+   "start": 20.54,
+   "end": 20.911,
+   "line": 3
+  },
+  {
+   "id": "w46",
+   "text": "DICH",
+   "start": 20.93,
+   "end": 21.021,
+   "line": 3
+  },
+  {
+   "id": "w47",
+   "text": "DER",
+   "start": 21.03,
+   "end": 21.093,
+   "line": 3
+  },
+  {
+   "id": "w48",
+   "text": "BLITZ",
+   "start": 21.1,
+   "end": 21.378,
+   "line": 3
+  },
+  {
+   "id": "w49",
+   "text": "DIE",
+   "start": 21.87,
+   "end": 21.945,
+   "line": 4
+  },
+  {
+   "id": "w50",
+   "text": "ENERGIE",
+   "start": 21.98,
+   "end": 22.518,
+   "line": 4
+  },
+  {
+   "id": "w51",
+   "text": "VON",
+   "start": 22.58,
+   "end": 22.706,
+   "line": 4
+  },
+  {
+   "id": "w52",
+   "text": "MILLIARDEN",
+   "start": 22.74,
+   "end": 23.312,
+   "line": 4
+  },
+  {
+   "id": "w53",
+   "text": "HIROSHIMA-BOMBEN",
+   "start": 23.37,
+   "end": 24.488,
+   "line": 4
+  },
+  {
+   "id": "w54",
+   "text": "DIE",
+   "start": 24.75,
+   "end": 24.95,
+   "line": 4
+  },
+  {
+   "id": "w55",
+   "text": "GANZE",
+   "start": 25.01,
+   "end": 25.418,
+   "line": 4
+  },
+  {
+   "id": "w56",
+   "text": "ERDE",
+   "start": 25.48,
+   "end": 25.789,
+   "line": 4
+  },
+  {
+   "id": "w57",
+   "text": "BEBT",
+   "start": 25.83,
+   "end": 26.093,
+   "line": 4
+  },
+  {
+   "id": "w58",
+   "text": "GLÜHENDES",
+   "start": 26.72,
+   "end": 27.032,
+   "line": 5
+  },
+  {
+   "id": "w59",
+   "text": "GESTEIN",
+   "start": 27.06,
+   "end": 27.506,
+   "line": 5
+  },
+  {
+   "id": "w60",
+   "text": "REGNET",
+   "start": 27.53,
+   "end": 27.939,
+   "line": 5
+  },
+  {
+   "id": "w61",
+   "text": "VOM",
+   "start": 27.97,
+   "end": 28.057,
+   "line": 5
+  },
+  {
+   "id": "w62",
+   "text": "HIMMEL",
+   "start": 28.14,
+   "end": 28.43,
+   "line": 5
+  },
+  {
+   "id": "w63",
+   "text": "DIE",
+   "start": 28.81,
+   "end": 28.919,
+   "line": 5
+  },
+  {
+   "id": "w64",
+   "text": "LUFT",
+   "start": 28.95,
+   "end": 29.154,
+   "line": 5
+  },
+  {
+   "id": "w65",
+   "text": "WIRD",
+   "start": 29.18,
+   "end": 29.353,
+   "line": 5
+  },
+  {
+   "id": "w66",
+   "text": "HEISS",
+   "start": 29.38,
+   "end": 29.798,
+   "line": 5
+  },
+  {
+   "id": "w67",
+   "text": "WÄLDER",
+   "start": 30.03,
+   "end": 30.361,
+   "line": 5
+  },
+  {
+   "id": "w68",
+   "text": "BRENNEN",
+   "start": 30.37,
+   "end": 30.945,
+   "line": 5
+  },
+  {
+   "id": "w69",
+   "text": "AN",
+   "start": 31.32,
+   "end": 31.399,
+   "line": 6
+  },
+  {
+   "id": "w70",
+   "text": "DEN",
+   "start": 31.41,
+   "end": 31.538,
+   "line": 6
+  },
+  {
+   "id": "w71",
+   "text": "KÜSTEN",
+   "start": 31.57,
+   "end": 32.045,
+   "line": 6
+  },
+  {
+   "id": "w72",
+   "text": "TÜRMT",
+   "start": 32.06,
+   "end": 32.308,
+   "line": 6
+  },
+  {
+   "id": "w73",
+   "text": "SICH",
+   "start": 32.33,
+   "end": 32.46,
+   "line": 6
+  },
+  {
+   "id": "w74",
+   "text": "EIN",
+   "start": 32.5,
+   "end": 32.652,
+   "line": 6
+  },
+  {
+   "id": "w75",
+   "text": "TSUNAMI",
+   "start": 32.68,
+   "end": 33.174,
+   "line": 6
+  },
+  {
+   "id": "w76",
+   "text": "AUF",
+   "start": 33.27,
+   "end": 33.445,
+   "line": 6
+  },
+  {
+   "id": "w77",
+   "text": "HUNDERTE",
+   "start": 33.72,
+   "end": 34.323,
+   "line": 6
+  },
+  {
+   "id": "w78",
+   "text": "METER",
+   "start": 34.35,
+   "end": 34.734,
+   "line": 6
+  },
+  {
+   "id": "w79",
+   "text": "HOCH",
+   "start": 34.77,
+   "end": 35.033,
+   "line": 6
+  },
+  {
+   "id": "w80",
+   "text": "DANN",
+   "start": 35.4,
+   "end": 35.759,
+   "line": 7
+  },
+  {
+   "id": "w81",
+   "text": "WIRD",
+   "start": 35.79,
+   "end": 35.988,
+   "line": 7
+  },
+  {
+   "id": "w82",
+   "text": "ES",
+   "start": 36.01,
+   "end": 36.176,
+   "line": 7
+  },
+  {
+   "id": "w83",
+   "text": "DUNKEL",
+   "start": 36.27,
+   "end": 36.743,
+   "line": 7
+  },
+  {
+   "id": "w84",
+   "text": "RUSS",
+   "start": 37.04,
+   "end": 37.462,
+   "line": 7
+  },
+  {
+   "id": "w85",
+   "text": "UND",
+   "start": 37.47,
+   "end": 37.67,
+   "line": 7
+  },
+  {
+   "id": "w86",
+   "text": "STAUB",
+   "start": 37.73,
+   "end": 38.075,
+   "line": 7
+  },
+  {
+   "id": "w87",
+   "text": "VERDECKEN",
+   "start": 38.09,
+   "end": 38.466,
+   "line": 7
+  },
+  {
+   "id": "w88",
+   "text": "DIE",
+   "start": 38.49,
+   "end": 38.638,
+   "line": 7
+  },
+  {
+   "id": "w89",
+   "text": "SONNE",
+   "start": 38.7,
+   "end": 38.954,
+   "line": 7
+  },
+  {
+   "id": "w90",
+   "text": "NICHT",
+   "start": 39.29,
+   "end": 39.544,
+   "line": 7
+  },
+  {
+   "id": "w91",
+   "text": "FÜR",
+   "start": 39.56,
+   "end": 39.726,
+   "line": 7
+  },
+  {
+   "id": "w92",
+   "text": "TAGE",
+   "start": 39.81,
+   "end": 40.266,
+   "line": 7
+  },
+  {
+   "id": "w93",
+   "text": "SONDERN",
+   "start": 40.45,
+   "end": 40.83,
+   "line": 7
+  },
+  {
+   "id": "w94",
+   "text": "FÜR",
+   "start": 40.85,
+   "end": 41.036,
+   "line": 7
+  },
+  {
+   "id": "w95",
+   "text": "JAHRE",
+   "start": 41.09,
+   "end": 41.566,
+   "line": 7
+  },
+  {
+   "id": "w96",
+   "text": "PFLANZEN",
+   "start": 42.23,
+   "end": 42.557,
+   "line": 8
+  },
+  {
+   "id": "w97",
+   "text": "STERBEN",
+   "start": 42.58,
+   "end": 42.972,
+   "line": 8
+  },
+  {
+   "id": "w98",
+   "text": "DANN",
+   "start": 43.44,
+   "end": 43.58,
+   "line": 8
+  },
+  {
+   "id": "w99",
+   "text": "DIE",
+   "start": 43.64,
+   "end": 43.808,
+   "line": 8
+  },
+  {
+   "id": "w100",
+   "text": "TIERE",
+   "start": 43.84,
+   "end": 44.065,
+   "line": 8
+  },
+  {
+   "id": "w101",
+   "text": "DIE",
+   "start": 44.12,
+   "end": 44.267,
+   "line": 8
+  },
+  {
+   "id": "w102",
+   "text": "SIE",
+   "start": 44.29,
+   "end": 44.422,
+   "line": 8
+  },
+  {
+   "id": "w103",
+   "text": "FRESSEN",
+   "start": 44.43,
+   "end": 44.94,
+   "line": 8
+  },
+  {
+   "id": "w104",
+   "text": "DREI",
+   "start": 45.26,
+   "end": 45.532,
+   "line": 8
+  },
+  {
+   "id": "w105",
+   "text": "VIERTEL",
+   "start": 45.6,
+   "end": 46.07,
+   "line": 8
+  },
+  {
+   "id": "w106",
+   "text": "ALLER",
+   "start": 46.13,
+   "end": 46.402,
+   "line": 8
+  },
+  {
+   "id": "w107",
+   "text": "ARTEN",
+   "start": 46.43,
+   "end": 46.746,
+   "line": 8
+  },
+  {
+   "id": "w108",
+   "text": "VERSCHWINDEN",
+   "start": 46.8,
+   "end": 47.502,
+   "line": 8
+  },
+  {
+   "id": "w109",
+   "text": "GENAU",
+   "start": 47.87,
+   "end": 48.406,
+   "line": 9
+  },
+  {
+   "id": "w110",
+   "text": "DAS",
+   "start": 48.44,
+   "end": 48.728,
+   "line": 9
+  },
+  {
+   "id": "w111",
+   "text": "IST",
+   "start": 48.76,
+   "end": 48.938,
+   "line": 9
+  },
+  {
+   "id": "w112",
+   "text": "SCHON",
+   "start": 48.95,
+   "end": 49.088,
+   "line": 9
+  },
+  {
+   "id": "w113",
+   "text": "EINMAL",
+   "start": 49.13,
+   "end": 49.481,
+   "line": 9
+  },
+  {
+   "id": "w114",
+   "text": "PASSIERT",
+   "start": 49.49,
+   "end": 50.015,
+   "line": 9
+  },
+  {
+   "id": "w115",
+   "text": "VOR",
+   "start": 50.27,
+   "end": 50.512,
+   "line": 9
+  },
+  {
+   "id": "w116",
+   "text": "66",
+   "start": 50.54,
+   "end": 51.344,
+   "line": 9
+  },
+  {
+   "id": "w117",
+   "text": "MILLIONEN",
+   "start": 51.39,
+   "end": 51.842,
+   "line": 9
+  },
+  {
+   "id": "w118",
+   "text": "JAHREN",
+   "start": 51.85,
+   "end": 52.338,
+   "line": 9
+  },
+  {
+   "id": "w119",
+   "text": "DIE",
+   "start": 52.6,
+   "end": 52.721,
+   "line": 9
+  },
+  {
+   "id": "w120",
+   "text": "DINOSAURIER",
+   "start": 52.74,
+   "end": 53.518,
+   "line": 9
+  },
+  {
+   "id": "w121",
+   "text": "HATTEN",
+   "start": 53.58,
+   "end": 53.848,
+   "line": 9
+  },
+  {
+   "id": "w122",
+   "text": "KEINE",
+   "start": 53.9,
+   "end": 54.272,
+   "line": 9
+  },
+  {
+   "id": "w123",
+   "text": "CHANCE",
+   "start": 54.31,
+   "end": 54.645,
+   "line": 9
+  },
+  {
+   "id": "w124",
+   "text": "UND",
+   "start": 55.0,
+   "end": 55.26,
+   "line": 10
+  },
+  {
+   "id": "w125",
+   "text": "WIR",
+   "start": 55.32,
+   "end": 55.55,
+   "line": 10
+  },
+  {
+   "id": "w126",
+   "text": "DIE",
+   "start": 56.04,
+   "end": 56.198,
+   "line": 10
+  },
+  {
+   "id": "w127",
+   "text": "NASA",
+   "start": 56.23,
+   "end": 56.632,
+   "line": 10
+  },
+  {
+   "id": "w128",
+   "text": "KENNT",
+   "start": 56.67,
+   "end": 56.891,
+   "line": 10
+  },
+  {
+   "id": "w129",
+   "text": "DIE",
+   "start": 56.92,
+   "end": 57.015,
+   "line": 10
+  },
+  {
+   "id": "w130",
+   "text": "MEISTEN",
+   "start": 57.03,
+   "end": 57.465,
+   "line": 10
+  },
+  {
+   "id": "w131",
+   "text": "GROSSEN",
+   "start": 57.48,
+   "end": 57.754,
+   "line": 10
+  },
+  {
+   "id": "w132",
+   "text": "ASTEROIDEN",
+   "start": 57.79,
+   "end": 58.544,
+   "line": 10
+  },
+  {
+   "id": "w133",
+   "text": "KEINER",
+   "start": 58.82,
+   "end": 59.262,
+   "line": 10
+  },
+  {
+   "id": "w134",
+   "text": "DER",
+   "start": 59.29,
+   "end": 59.372,
+   "line": 10
+  },
+  {
+   "id": "w135",
+   "text": "BEKANNTEN",
+   "start": 59.39,
+   "end": 59.883,
+   "line": 10
+  },
+  {
+   "id": "w136",
+   "text": "TRIFFT",
+   "start": 59.9,
+   "end": 60.201,
+   "line": 10
+  },
+  {
+   "id": "w137",
+   "text": "UNS",
+   "start": 60.22,
+   "end": 60.351,
+   "line": 10
+  },
+  {
+   "id": "w138",
+   "text": "IN",
+   "start": 60.36,
+   "end": 60.399,
+   "line": 10
+  },
+  {
+   "id": "w139",
+   "text": "DEN",
+   "start": 60.44,
+   "end": 60.569,
+   "line": 10
+  },
+  {
+   "id": "w140",
+   "text": "NÄCHSTEN",
+   "start": 60.6,
+   "end": 60.932,
+   "line": 10
+  },
+  {
+   "id": "w141",
+   "text": "HUNDERT",
+   "start": 60.98,
+   "end": 61.284,
+   "line": 10
+  },
+  {
+   "id": "w142",
+   "text": "JAHREN",
+   "start": 61.3,
+   "end": 61.728,
+   "line": 10
+  },
+  {
+   "id": "w143",
+   "text": "UND",
+   "start": 62.27,
+   "end": 62.469,
+   "line": 11
+  },
+  {
+   "id": "w144",
+   "text": "2022",
+   "start": 62.56,
+   "end": 64.011,
+   "line": 11
+  },
+  {
+   "id": "w145",
+   "text": "HAT",
+   "start": 64.03,
+   "end": 64.096,
+   "line": 11
+  },
+  {
+   "id": "w146",
+   "text": "SIE",
+   "start": 64.11,
+   "end": 64.289,
+   "line": 11
+  },
+  {
+   "id": "w147",
+   "text": "ZUM",
+   "start": 64.3,
+   "end": 64.385,
+   "line": 11
+  },
+  {
+   "id": "w148",
+   "text": "ERSTEN",
+   "start": 64.4,
+   "end": 64.62,
+   "line": 11
+  },
+  {
+   "id": "w149",
+   "text": "MAL",
+   "start": 64.64,
+   "end": 64.834,
+   "line": 11
+  },
+  {
+   "id": "w150",
+   "text": "EINEN",
+   "start": 64.89,
+   "end": 65.256,
+   "line": 11
+  },
+  {
+   "id": "w151",
+   "text": "ASTEROIDEN",
+   "start": 65.27,
+   "end": 65.868,
+   "line": 11
+  },
+  {
+   "id": "w152",
+   "text": "AUS",
+   "start": 65.89,
+   "end": 66.122,
+   "line": 11
+  },
+  {
+   "id": "w153",
+   "text": "DER",
+   "start": 66.21,
+   "end": 66.329,
+   "line": 11
+  },
+  {
+   "id": "w154",
+   "text": "BAHN",
+   "start": 66.34,
+   "end": 66.569,
+   "line": 11
+  },
+  {
+   "id": "w155",
+   "text": "GESCHUBST",
+   "start": 66.62,
+   "end": 67.101,
+   "line": 11
+  },
+  {
+   "id": "w156",
+   "text": "WAS",
+   "start": 67.44,
+   "end": 67.692,
+   "line": 12
+  },
+  {
+   "id": "w157",
+   "text": "WÜRDEST",
+   "start": 67.73,
+   "end": 68.094,
+   "line": 12
+  },
+  {
+   "id": "w158",
+   "text": "DU",
+   "start": 68.11,
+   "end": 68.272,
+   "line": 12
+  },
+  {
+   "id": "w159",
+   "text": "IN",
+   "start": 68.32,
+   "end": 68.466,
+   "line": 12
+  },
+  {
+   "id": "w160",
+   "text": "DEINER",
+   "start": 68.51,
+   "end": 68.665,
+   "line": 12
+  },
+  {
+   "id": "w161",
+   "text": "LETZTEN",
+   "start": 68.68,
+   "end": 69.091,
+   "line": 12
+  },
+  {
+   "id": "w162",
+   "text": "STUNDE",
+   "start": 69.13,
+   "end": 69.446,
+   "line": 12
+  },
+  {
+   "id": "w163",
+   "text": "TUN",
+   "start": 69.48,
+   "end": 69.762,
+   "line": 12
+  }
+ ]
+}

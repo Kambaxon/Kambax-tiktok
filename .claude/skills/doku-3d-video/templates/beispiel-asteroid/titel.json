@@ -1,0 +1,13 @@
+[
+ {"start":0,"end":7.0,"kicker":"Ein ganz normaler Abend","titel":"Noch 1 Std.","sub":"Ein neuer Stern"},
+ {"start":7.0,"end":13.1,"kicker":"Asteroid · 10 km","titel":"Noch 10 Min.","sub":"70.000 km/h"},
+ {"start":13.1,"end":16.55,"kicker":"Feuerkugel","titel":"Noch 10 Sek.","sub":"Heller als die Sonne","farbe":"#ffb35a"},
+ {"start":16.55,"end":21.75,"kicker":"Einschlag","titel":"Sekunde 0","sub":"Tausende Kilometer entfernt","farbe":"#ff5a4a"},
+ {"start":21.75,"end":26.5,"kicker":"Milliarden Hiroshima-Bomben","titel":"Minute 15","sub":"Die Erde bebt","farbe":"#ff5a4a"},
+ {"start":26.5,"end":31.15,"kicker":"Glühende Trümmer","titel":"Stunde 1","sub":"Wälder brennen"},
+ {"start":31.15,"end":35.25,"kicker":"Küsten weltweit","titel":"Stunde 3","sub":"Hunderte Meter hoch"},
+ {"start":35.25,"end":41.95,"kicker":"Ruß und Staub","titel":"Monat 1","sub":"Die Sonne verschwindet"},
+ {"start":41.95,"end":47.7,"kicker":"Impakt-Winter","titel":"Jahr 1","sub":"3 von 4 Arten sterben aus"},
+ {"start":47.7,"end":54.85,"kicker":"Chicxulub · Mexiko","titel":"Vor 66 Mio. J.","sub":"Das Ende der Dinosaurier"},
+ {"start":67.25,"end":74.0,"kicker":"Ein ganz normaler Abend","titel":"Und du?","sub":"Deine letzte Stunde?"}
+]

@@ -184,7 +184,50 @@ def sfx2(outdir):
         kr[a:a + ln] += bp(sq, 300, 2500) * np.sin(np.pi * tt / d0)
     save("knarren", reverb(kr, 2.5, 0.5), 0.6)
 
+
+def sfx3(outdir):
+    """Effekte Projekt 4: Grillen, Stadt, Meteor, Beben, Flut, Aschewind."""
+    os.makedirs(outdir, exist_ok=True)
+    def save(name, x, peak=0.85): write(os.path.join(outdir, name + ".wav"), norm(x, peak)); print(name)
+    def T(sec): return np.arange(int(sec * SR)) / SR
+    # Grillen: Zirp-Pakete (4,5 kHz), mehrere Tiere versetzt
+    t = T(12); gr = np.zeros(len(t))
+    for anim, (f0, per, ph) in enumerate([(4400, 0.62, 0.0), (4700, 0.71, 0.2), (4100, 0.83, 0.45)]):
+        k = ph
+        while k < 11.5:
+            for p3 in range(3):
+                a = int((k + p3 * 0.045) * SR); ln = int(0.03 * SR); tt = np.arange(ln) / SR
+                if a + ln < len(t): gr[a:a + ln] += np.sin(2 * np.pi * f0 * tt) * np.sin(np.pi * tt / 0.03) * (0.6 if anim else 1)
+            k += per
+    save("grillen", reverb(gr, 1.2, 0.35) * env_lin([(0, 0), (1, 1), (11, 1), (12, 0)], len(t)), 0.5)
+    # Ferne Stadt: Verkehrsbrummen + gelegentliche Hupe ganz leise
+    t = T(12); st = lp(rng.standard_normal(len(t)), 350, 3) * (0.8 + 0.2 * np.sin(2 * np.pi * t / 5))
+    save("stadt", st * env_lin([(0, 0), (1, 1), (11, 1), (12, 0)], len(t)), 0.5)
+    # Meteor: zischender Feuerstreifen (Rausch-Sweep abwaerts) + Knistern, 3 Varianten
+    for v in range(3):
+        t = T(2.6); f = 4000 * np.exp(-t * (1.2 + v * 0.3)) + 300
+        sw = np.zeros(len(t)); noise = rng.standard_normal(len(t))
+        for i0 in range(0, len(t), 2400):
+            fc = f[i0]; seg = noise[i0:i0 + 2400]
+            sw[i0:i0 + 2400] = bp(seg, max(120, fc * 0.6), min(20000, fc * 1.4))
+        cr = (rng.random(len(t)) > 0.996) * rng.standard_normal(len(t)) * 3
+        me = (sw + hp(cr, 2000)) * env_lin([(0, 0), (0.3, 1), (2.0, 0.8), (2.6, 0)], len(t))
+        boom = lp(rng.standard_normal(len(t)), 120, 3) * np.exp(-np.maximum(t - 1.9, 0) * 3) * (t > 1.9)
+        save(f"meteor{v + 1}", reverb(me + boom * 1.5, 1.8, 0.35), 0.8)
+    # Erdbeben: tiefes Grollen + Klirren/Rattern
+    t = T(9); rum = lp(rng.standard_normal(len(t)), 70, 4) * (0.6 + 0.4 * np.sin(2 * np.pi * t * 1.3)) + np.sin(2 * np.pi * 24 * t) * 0.4
+    rat = bp(rng.standard_normal(len(t)), 1500, 6000) * (rng.random(len(t)) > 0.97) * 0.8
+    save("beben", reverb((rum + rat) * env_lin([(0, 0), (0.8, 1), (7, 1), (9, 0)], len(t)), 2.0, 0.3), 0.9)
+    # Flut: tosendes Wasser, anschwellend
+    t = T(8); fl = bp(np.cumsum(rng.standard_normal(len(t))) * 0.03 + rng.standard_normal(len(t)), 80, 2500)
+    fl += bp(rng.standard_normal(len(t)), 2000, 8000) * 0.15
+    save("flut", fl * env_lin([(0, 0.1), (5, 1), (7.4, 1), (8, 0)], len(t)), 0.9)
+    # Aschewind: dumpf, leer
+    t = T(12); aw = lp(np.cumsum(rng.standard_normal(len(t))) * 0.02, 400, 2) * (0.6 + 0.4 * np.sin(2 * np.pi * t / 6.3))
+    save("aschewind", aw * env_lin([(0, 0), (1.5, 1), (10.5, 1), (12, 0)], len(t)), 0.6)
+
 if __name__ == "__main__":
     if sys.argv[1] == "musik": musik(json.load(open(sys.argv[2])), sys.argv[3])
     elif sys.argv[1] == "sfx2": sfx2(sys.argv[2])
+    elif sys.argv[1] == "sfx3": sfx3(sys.argv[2])
     else: sfx(sys.argv[2])

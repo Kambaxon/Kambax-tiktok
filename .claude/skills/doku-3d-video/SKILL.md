@@ -135,6 +135,16 @@ Jedes Projekt soll Atmosphäre, Effekte, Animation und Klang über das vorige he
 - **Keine traurigen Szenen:** Jede Einstellung braucht Tiefe und Details (Vorder-, Mittel-, Hintergrund), lebendige Figuren (Gesten, versetzte Bewegung) und stimmiges Licht. Szenen wie der Spielplatz waren zu leer und flach. Mehr Requisiten (Bänke, Bäume, Zäune, Laternen, Wäscheleinen, Autos), Bodentextur statt Einheitsfarbe, Licht mit Richtung (Gegenlicht/Morgensonne) und mehr Figuren in Aktion einsetzen.
 - Kontrastreiche Untertitel auf hellen Szenen prüfen.
 
+## Gelernt in Projekt 4 (Asteroid)
+
+- **Glühende Objekte** (Feuerkugel, Lichterketten, Lichtsäulen) brauchen `toneMapped: false`, sonst macht ACES sie grau.
+- **Schweife/Streifen** entlang der Flugbahn: Kegel nach +Y verschieben und die Gruppe mit `quaternion.setFromUnitVectors(Y, -Flugrichtung)` drehen.
+- **Rauchsäulen/Pilze** aus Partikeln bauen (heißer Kern additiv + dunkler Rauch normal), nie aus Zylinder/Kugel (sieht aus wie ein UFO-Strahl).
+- **Figuren ins Bild rechnen:** Portrait hat nur ±13,5° horizontal. Vor jedem Kamerawechsel den Winkel Kamera→Figur prüfen.
+- **Tiere im Profil zeigen** (seitlich zur Blickachse), von hinten werden sie zu Klumpen.
+- **Stadtkulisse:** keine Gebäude in den ersten 70–150 m vor der Kamera, sonst blockiert ein Hochhaus das Bild. Vordere Gebäude höher, damit eine Skyline entsteht.
+- **Texturen von GitHub raw** (z. B. NASA Blue Marble aus `vasturiano/three-globe`) mit `window.__hf.buildReady` laden.
+
 ## Fallen
 
 - `cam()` hat nur 400 m Sichtweite. Für alles, was weiter weg steht (Horizont, Kraftwerk, Bögen), `camFar(3000+)` nehmen und den Nebel weit genug setzen, sonst ist es unsichtbar.

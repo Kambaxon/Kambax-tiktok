@@ -1,0 +1,79 @@
+<template>
+  <style>
+    @font-face { font-family: "Open Sans Doku"; src: url("assets/fonts/open-sans-latin-700-normal.woff2") format("woff2"); font-weight: 700; }
+    @font-face { font-family: "Open Sans Doku"; src: url("assets/fonts/open-sans-latin-600-normal.woff2") format("woff2"); font-weight: 600; }
+    #root { position: absolute; inset: 0; pointer-events: none; }
+    .ti { position: absolute; left: 72px; top: 228px; width: 940px; color: #fff; font-family: "Open Sans Doku", sans-serif;
+           text-shadow: 0 2px 16px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.5); }
+    .ti .k, .ti .s { font-weight: 600; font-size: 32px; letter-spacing: .13em; text-transform: uppercase; line-height: 1.2; }
+    .ti .h { font-weight: 700; font-size: 132px; letter-spacing: -0.01em; line-height: 1.08; margin: 6px 0 8px -4px; }
+  </style>
+  <div id="root" data-composition-id="titel" data-width="1080" data-height="1920">
+    <div id="ti-0" class="clip ti" data-start="0" data-duration="7.0" data-track-index="1">
+      <div class="k">Ein ganz normaler Abend</div>
+      <div class="h" style="color:#ffffff">Noch 1 Std.</div>
+      <div class="s">Ein neuer Stern</div>
+    </div>
+    <div id="ti-1" class="clip ti" data-start="7.0" data-duration="6.1" data-track-index="1">
+      <div class="k">Asteroid · 10 km</div>
+      <div class="h" style="color:#ffffff">Noch 10 Min.</div>
+      <div class="s">70.000 km/h</div>
+    </div>
+    <div id="ti-2" class="clip ti" data-start="13.1" data-duration="3.45" data-track-index="1">
+      <div class="k">Feuerkugel</div>
+      <div class="h" style="color:#ffb35a">Noch 10 Sek.</div>
+      <div class="s">Heller als die Sonne</div>
+    </div>
+    <div id="ti-3" class="clip ti" data-start="16.55" data-duration="5.2" data-track-index="1">
+      <div class="k">Einschlag</div>
+      <div class="h" style="color:#ff5a4a">Sekunde 0</div>
+      <div class="s">Tausende Kilometer entfernt</div>
+    </div>
+    <div id="ti-4" class="clip ti" data-start="21.75" data-duration="4.75" data-track-index="1">
+      <div class="k">Milliarden Hiroshima-Bomben</div>
+      <div class="h" style="color:#ff5a4a">Minute 15</div>
+      <div class="s">Die Erde bebt</div>
+    </div>
+    <div id="ti-5" class="clip ti" data-start="26.5" data-duration="4.65" data-track-index="1">
+      <div class="k">Glühende Trümmer</div>
+      <div class="h" style="color:#ffffff">Stunde 1</div>
+      <div class="s">Wälder brennen</div>
+    </div>
+    <div id="ti-6" class="clip ti" data-start="31.15" data-duration="4.1" data-track-index="1">
+      <div class="k">Küsten weltweit</div>
+      <div class="h" style="color:#ffffff">Stunde 3</div>
+      <div class="s">Hunderte Meter hoch</div>
+    </div>
+    <div id="ti-7" class="clip ti" data-start="35.25" data-duration="6.7" data-track-index="1">
+      <div class="k">Ruß und Staub</div>
+      <div class="h" style="color:#ffffff">Monat 1</div>
+      <div class="s">Die Sonne verschwindet</div>
+    </div>
+    <div id="ti-8" class="clip ti" data-start="41.95" data-duration="5.75" data-track-index="1">
+      <div class="k">Impakt-Winter</div>
+      <div class="h" style="color:#ffffff">Jahr 1</div>
+      <div class="s">3 von 4 Arten sterben aus</div>
+    </div>
+    <div id="ti-9" class="clip ti" data-start="47.7" data-duration="7.15" data-track-index="1">
+      <div class="k">Chicxulub · Mexiko</div>
+      <div class="h" style="color:#ffffff">Vor 66 Mio. J.</div>
+      <div class="s">Das Ende der Dinosaurier</div>
+    </div>
+    <div id="ti-10" class="clip ti" data-start="67.25" data-duration="6.75" data-track-index="1">
+      <div class="k">Ein ganz normaler Abend</div>
+      <div class="h" style="color:#ffffff">Und du?</div>
+      <div class="s">Deine letzte Stunde?</div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    document.querySelectorAll(".ti").forEach((b) => {
+      const s = parseFloat(b.dataset.start);
+      const [k, h, sub] = b.children;
+      tl.fromTo(k, { opacity: 0 }, { opacity: 1, duration: 0.2 }, s);
+      tl.fromTo(h, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power2.out" }, s + 0.04);
+      tl.fromTo(sub, { opacity: 0 }, { opacity: 1, duration: 0.2 }, s + 0.1);
+    });
+    window.__timelines["titel"] = tl;
+  </script>
+</template>
