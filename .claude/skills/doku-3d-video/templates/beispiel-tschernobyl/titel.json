@@ -1,0 +1,13 @@
+[
+ {"start":0,"end":5.8,"kicker":"Pripjat · 26. April 1986","titel":"Noch 1 Std.","sub":"Die Stadt schläft"},
+ {"start":5.8,"end":11.15,"kicker":"Pripjat · 0:40 Uhr","titel":"Noch 43 Min.","sub":"3 km bis zum Kraftwerk"},
+ {"start":11.15,"end":17.15,"kicker":"Block 4 · Kontrollraum","titel":"1:23 Uhr","sub":"Der Test läuft aus dem Ruder"},
+ {"start":17.15,"end":21.7,"kicker":"Block 4 · 1:23:45 Uhr","titel":"Minute 0","sub":"Der Reaktor explodiert","farbe":"#ff5a4a"},
+ {"start":21.7,"end":26.0,"kicker":"Dach von Block 3","titel":"Minute 5","sub":"Feuerwehr ohne Schutzanzug","farbe":"#ff5a4a"},
+ {"start":26.0,"end":30.35,"kicker":"Pripjat · Samstagmorgen","titel":"Stunde 8","sub":"Niemand wird gewarnt"},
+ {"start":30.35,"end":36.6,"kicker":"27. April · 14:00 Uhr","titel":"Stunde 36","sub":"„Nur für drei Tage“"},
+ {"start":36.6,"end":38.3,"kicker":"Rummelplatz Pripjat","titel":"Nie zurück","sub":"Eröffnung war am 1. Mai geplant"},
+ {"start":43.85,"end":49.5,"kicker":"Bayern","titel":"Mai 1986","sub":"Cäsium im Regen"},
+ {"start":63.3,"end":69.05,"kicker":"Sperrzone · 2.600 km²","titel":"Heute","sub":"Eine Geisterstadt"},
+ {"start":69.05,"end":76.5,"kicker":"Tschernobyl · 1986","titel":"Und du?","sub":"Wenn niemand die Wahrheit sagt"}
+]

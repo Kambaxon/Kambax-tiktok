@@ -1,0 +1,79 @@
+<template>
+  <style>
+    @font-face { font-family: "Open Sans Doku"; src: url("assets/fonts/open-sans-latin-700-normal.woff2") format("woff2"); font-weight: 700; }
+    @font-face { font-family: "Open Sans Doku"; src: url("assets/fonts/open-sans-latin-600-normal.woff2") format("woff2"); font-weight: 600; }
+    #root { position: absolute; inset: 0; pointer-events: none; }
+    .ti { position: absolute; left: 72px; top: 228px; width: 940px; color: #fff; font-family: "Open Sans Doku", sans-serif;
+           text-shadow: 0 2px 16px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.5); }
+    .ti .k, .ti .s { font-weight: 600; font-size: 32px; letter-spacing: .13em; text-transform: uppercase; line-height: 1.2; }
+    .ti .h { font-weight: 700; font-size: 132px; letter-spacing: -0.01em; line-height: 1.08; margin: 6px 0 8px -4px; }
+  </style>
+  <div id="root" data-composition-id="titel" data-width="1080" data-height="1920">
+    <div id="ti-0" class="clip ti" data-start="0" data-duration="5.8" data-track-index="1">
+      <div class="k">Pripjat · 26. April 1986</div>
+      <div class="h" style="color:#ffffff">Noch 1 Std.</div>
+      <div class="s">Die Stadt schläft</div>
+    </div>
+    <div id="ti-1" class="clip ti" data-start="5.8" data-duration="5.35" data-track-index="1">
+      <div class="k">Pripjat · 0:40 Uhr</div>
+      <div class="h" style="color:#ffffff">Noch 43 Min.</div>
+      <div class="s">3 km bis zum Kraftwerk</div>
+    </div>
+    <div id="ti-2" class="clip ti" data-start="11.15" data-duration="6.0" data-track-index="1">
+      <div class="k">Block 4 · Kontrollraum</div>
+      <div class="h" style="color:#ffffff">1:23 Uhr</div>
+      <div class="s">Der Test läuft aus dem Ruder</div>
+    </div>
+    <div id="ti-3" class="clip ti" data-start="17.15" data-duration="4.55" data-track-index="1">
+      <div class="k">Block 4 · 1:23:45 Uhr</div>
+      <div class="h" style="color:#ff5a4a">Minute 0</div>
+      <div class="s">Der Reaktor explodiert</div>
+    </div>
+    <div id="ti-4" class="clip ti" data-start="21.7" data-duration="4.3" data-track-index="1">
+      <div class="k">Dach von Block 3</div>
+      <div class="h" style="color:#ff5a4a">Minute 5</div>
+      <div class="s">Feuerwehr ohne Schutzanzug</div>
+    </div>
+    <div id="ti-5" class="clip ti" data-start="26.0" data-duration="4.35" data-track-index="1">
+      <div class="k">Pripjat · Samstagmorgen</div>
+      <div class="h" style="color:#ffffff">Stunde 8</div>
+      <div class="s">Niemand wird gewarnt</div>
+    </div>
+    <div id="ti-6" class="clip ti" data-start="30.35" data-duration="6.25" data-track-index="1">
+      <div class="k">27. April · 14:00 Uhr</div>
+      <div class="h" style="color:#ffffff">Stunde 36</div>
+      <div class="s">„Nur für drei Tage“</div>
+    </div>
+    <div id="ti-7" class="clip ti" data-start="36.6" data-duration="1.7" data-track-index="1">
+      <div class="k">Rummelplatz Pripjat</div>
+      <div class="h" style="color:#ffffff">Nie zurück</div>
+      <div class="s">Eröffnung war am 1. Mai geplant</div>
+    </div>
+    <div id="ti-8" class="clip ti" data-start="43.85" data-duration="5.65" data-track-index="1">
+      <div class="k">Bayern</div>
+      <div class="h" style="color:#ffffff">Mai 1986</div>
+      <div class="s">Cäsium im Regen</div>
+    </div>
+    <div id="ti-9" class="clip ti" data-start="63.3" data-duration="5.75" data-track-index="1">
+      <div class="k">Sperrzone · 2.600 km²</div>
+      <div class="h" style="color:#ffffff">Heute</div>
+      <div class="s">Eine Geisterstadt</div>
+    </div>
+    <div id="ti-10" class="clip ti" data-start="69.05" data-duration="7.45" data-track-index="1">
+      <div class="k">Tschernobyl · 1986</div>
+      <div class="h" style="color:#ffffff">Und du?</div>
+      <div class="s">Wenn niemand die Wahrheit sagt</div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    document.querySelectorAll(".ti").forEach((b) => {
+      const s = parseFloat(b.dataset.start);
+      const [k, h, sub] = b.children;
+      tl.fromTo(k, { opacity: 0 }, { opacity: 1, duration: 0.2 }, s);
+      tl.fromTo(h, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power2.out" }, s + 0.04);
+      tl.fromTo(sub, { opacity: 0 }, { opacity: 1, duration: 0.2 }, s + 0.1);
+    });
+    window.__timelines["titel"] = tl;
+  </script>
+</template>

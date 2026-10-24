@@ -116,7 +116,21 @@ Der User will immer eine leise Hintergrundmusik und Effektgeräusche. Openverse,
 - Lager und Gewalt nur andeuten (Zaun, Wachturm, Nebel), keine Opfer zeigen. Ton sachlich und kritisch.
 - Bei Was-wäre-wenn-Szenarien am Ende die Wirklichkeit einordnen („Die Realität“ / „Warum fast unmöglich“) und die Befreiung zeigen.
 
+## Immer steigern (Wunsch des Users)
+
+Jedes Projekt soll Atmosphäre, Effekte, Animation und Klang über das vorige heben. Der aktuelle Stand steht in `templates/beispiel-tschernobyl/`:
+
+- **Partikel** `particles(scene, n, seed, {x,y,z,v,drift,grav,life,color,size,opacity,add,fog})`: deterministisch und immer mit der weichen Rund-Textur `SOFT` (ohne sie erscheinen Quadrate). Eingesetzt für Feuer, Glut, Rauch, Regen, Staub, Wasserstrahl und Laub.
+- **Licht als Erzählung:** Alarmlampen blinken, Feuer-PointLights flackern, die Lichtsäule ist additiv, das Glühen am Horizont ist eine Gradient-Ebene (keine Kugel).
+- **Kamera:** Wackeln bei Einschlägen (`exp(-u*2.2)`), langsame Dollys pro Einstellung.
+- **Look-Ebene** `look.html` (z-index über der Welt, unter Titel/Untertiteln): Filmkorn (15 fps, deterministisch), Vignette, weißer Blitz bei Explosionen, Abblende ins Schwarze für Schweigemomente, Schluss-Abblende.
+- **Klang:** `klang.py sfx2` für Geiger (3 Dichten), Alarm, Explosion, Feuer, Sirene2, Bus, Regen und Knarren. In `musik-plan.json` gibt es `luft` (Obertöne), `sub` (Tiefbass) und `stille` (harte Stille-Fenster, z. B. direkt nach dem Knall). Dazu ein Riser, der genau auf den Wendepunkt zuläuft (Start = Treffer − 10,03 s).
+- **Struktur, die trägt:** Anfang und Ende spiegeln sich (du schläfst ↔ du stehst wach am Fenster), Karte und Schema dazwischen.
+
 ## Fallen
+
+- `cam()` hat nur 400 m Sichtweite. Für alles, was weiter weg steht (Horizont, Kraftwerk, Bögen), `camFar(3000+)` nehmen und den Nebel weit genug setzen, sonst ist es unsichtbar.
+- Portrait-Fenster: Hintergrundobjekte genau durch die Öffnung planen (Winkel = atan(Höhe/Entfernung)).
 
 - **Qualität vor Tempo** (Wunsch des Users): immer 1080×1920, `-q delivery`, volle Schatten und Kantenglättung. Ein 70-s-Render dauert in der Cloud (CPU-WebGL) etwa 40–60 Min. Das vorher ansagen und nicht herunterregeln.
 

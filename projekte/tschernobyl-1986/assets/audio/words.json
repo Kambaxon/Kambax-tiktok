@@ -1,0 +1,1171 @@
+{
+ "duration": 72.516,
+ "lines": [
+  {
+   "start": 0.3,
+   "end": 10.909,
+   "text": "Pripjat, Sowjetunion. Sechsundzwanzigster April neunzehnhundertsechsundachtzig. Du schläfst. Drei Kilometer entfernt läuft ein Test im Kernkraftwerk Tschernobyl."
+  },
+  {
+   "start": 11.35,
+   "end": 16.863,
+   "text": "Ein Uhr dreiundzwanzig. Im Reaktor vier steigt die Leistung in Sekunden auf ein Vielfaches."
+  },
+  {
+   "start": 17.33,
+   "end": 21.639,
+   "text": "Dann explodiert er. Das Dach fliegt weg. Der Kern liegt offen."
+  },
+  {
+   "start": 21.87,
+   "end": 25.83,
+   "text": "Die Feuerwehr kommt ohne Schutz. Niemand sagt ihnen, was da brennt."
+  },
+  {
+   "start": 26.2,
+   "end": 30.078,
+   "text": "Am Morgen spielen Kinder draußen. Die Strahlung ist unsichtbar."
+  },
+  {
+   "start": 30.53,
+   "end": 36.484,
+   "text": "Sechsunddreißig Stunden später kommen Busse. Fast fünfzigtausend Menschen sollen für drei Tage gehen."
+  },
+  {
+   "start": 36.78,
+   "end": 38.059,
+   "text": "Sie kommen nie zurück."
+  },
+  {
+   "start": 38.47,
+   "end": 43.756,
+   "text": "Zwei Tage danach schlagen Messgeräte in Schweden Alarm. Erst jetzt erfährt die Welt davon."
+  },
+  {
+   "start": 44.03,
+   "end": 49.254,
+   "text": "Auch über Deutschland zieht die Wolke. Regen bringt radioaktives Cäsium bis nach Bayern."
+  },
+  {
+   "start": 49.69,
+   "end": 56.813,
+   "text": "Warum? Der Reaktor hatte einen Konstruktionsfehler. Entsteht mehr Dampf im Kühlwasser, steigt seine Leistung weiter."
+  },
+  {
+   "start": 57.11,
+   "end": 63.11,
+   "text": "Und als die Steuerstäbe einfahren, beschleunigen ihre Spitzen die Reaktion zuerst – statt sie zu bremsen."
+  },
+  {
+   "start": 63.45,
+   "end": 68.787,
+   "text": "Heute ist Pripjat eine Geisterstadt. Die Sperrzone wird noch Jahrhunderte belastet sein."
+  },
+  {
+   "start": 69.23,
+   "end": 72.398,
+   "text": "Was hättest du getan, wenn dir niemand die Wahrheit sagt?"
+  }
+ ],
+ "words": [
+  {
+   "id": "w0",
+   "text": "PRIPJAT",
+   "start": 0.35,
+   "end": 0.96,
+   "line": 0
+  },
+  {
+   "id": "w1",
+   "text": "SOWJETUNION",
+   "start": 1.06,
+   "end": 1.818,
+   "line": 0
+  },
+  {
+   "id": "w2",
+   "text": "26.",
+   "start": 2.35,
+   "end": 3.353,
+   "line": 0
+  },
+  {
+   "id": "w3",
+   "text": "APRIL",
+   "start": 3.37,
+   "end": 3.728,
+   "line": 0
+  },
+  {
+   "id": "w4",
+   "text": "1986",
+   "start": 3.79,
+   "end": 5.556,
+   "line": 0
+  },
+  {
+   "id": "w5",
+   "text": "DU",
+   "start": 5.94,
+   "end": 6.132,
+   "line": 0
+  },
+  {
+   "id": "w6",
+   "text": "SCHLÄFST",
+   "start": 6.26,
+   "end": 6.707,
+   "line": 0
+  },
+  {
+   "id": "w7",
+   "text": "DREI",
+   "start": 7.19,
+   "end": 7.437,
+   "line": 0
+  },
+  {
+   "id": "w8",
+   "text": "KILOMETER",
+   "start": 7.46,
+   "end": 8.038,
+   "line": 0
+  },
+  {
+   "id": "w9",
+   "text": "ENTFERNT",
+   "start": 8.16,
+   "end": 8.512,
+   "line": 0
+  },
+  {
+   "id": "w10",
+   "text": "LÄUFT",
+   "start": 8.55,
+   "end": 8.782,
+   "line": 0
+  },
+  {
+   "id": "w11",
+   "text": "EIN",
+   "start": 8.79,
+   "end": 8.952,
+   "line": 0
+  },
+  {
+   "id": "w12",
+   "text": "TEST",
+   "start": 8.97,
+   "end": 9.324,
+   "line": 0
+  },
+  {
+   "id": "w13",
+   "text": "IM",
+   "start": 9.39,
+   "end": 9.438,
+   "line": 0
+  },
+  {
+   "id": "w14",
+   "text": "KERNKRAFTWERK",
+   "start": 9.49,
+   "end": 10.256,
+   "line": 0
+  },
+  {
+   "id": "w15",
+   "text": "TSCHERNOBYL",
+   "start": 10.27,
+   "end": 10.909,
+   "line": 0
+  },
+  {
+   "id": "w16",
+   "text": "EIN",
+   "start": 11.4,
+   "end": 11.606,
+   "line": 1
+  },
+  {
+   "id": "w17",
+   "text": "UHR",
+   "start": 11.62,
+   "end": 11.686,
+   "line": 1
+  },
+  {
+   "id": "w18",
+   "text": "DREIUNDZWANZIG",
+   "start": 11.72,
+   "end": 12.934,
+   "line": 1
+  },
+  {
+   "id": "w19",
+   "text": "IM",
+   "start": 13.31,
+   "end": 13.444,
+   "line": 1
+  },
+  {
+   "id": "w20",
+   "text": "REAKTOR",
+   "start": 13.46,
+   "end": 13.962,
+   "line": 1
+  },
+  {
+   "id": "w21",
+   "text": "VIER",
+   "start": 14.02,
+   "end": 14.316,
+   "line": 1
+  },
+  {
+   "id": "w22",
+   "text": "STEIGT",
+   "start": 14.38,
+   "end": 14.605,
+   "line": 1
+  },
+  {
+   "id": "w23",
+   "text": "DIE",
+   "start": 14.62,
+   "end": 14.744,
+   "line": 1
+  },
+  {
+   "id": "w24",
+   "text": "LEISTUNG",
+   "start": 14.76,
+   "end": 15.252,
+   "line": 1
+  },
+  {
+   "id": "w25",
+   "text": "IN",
+   "start": 15.27,
+   "end": 15.324,
+   "line": 1
+  },
+  {
+   "id": "w26",
+   "text": "SEKUNDEN",
+   "start": 15.34,
+   "end": 15.886,
+   "line": 1
+  },
+  {
+   "id": "w27",
+   "text": "AUF",
+   "start": 15.97,
+   "end": 16.079,
+   "line": 1
+  },
+  {
+   "id": "w28",
+   "text": "EIN",
+   "start": 16.09,
+   "end": 16.242,
+   "line": 1
+  },
+  {
+   "id": "w29",
+   "text": "VIELFACHES",
+   "start": 16.3,
+   "end": 16.863,
+   "line": 1
+  },
+  {
+   "id": "w30",
+   "text": "DANN",
+   "start": 17.38,
+   "end": 17.764,
+   "line": 2
+  },
+  {
+   "id": "w31",
+   "text": "EXPLODIERT",
+   "start": 17.86,
+   "end": 18.503,
+   "line": 2
+  },
+  {
+   "id": "w32",
+   "text": "ER",
+   "start": 18.57,
+   "end": 18.722,
+   "line": 2
+  },
+  {
+   "id": "w33",
+   "text": "DAS",
+   "start": 19.15,
+   "end": 19.308,
+   "line": 2
+  },
+  {
+   "id": "w34",
+   "text": "DACH",
+   "start": 19.41,
+   "end": 19.562,
+   "line": 2
+  },
+  {
+   "id": "w35",
+   "text": "FLIEGT",
+   "start": 19.59,
+   "end": 19.877,
+   "line": 2
+  },
+  {
+   "id": "w36",
+   "text": "WEG",
+   "start": 19.91,
+   "end": 20.173,
+   "line": 2
+  },
+  {
+   "id": "w37",
+   "text": "DER",
+   "start": 20.51,
+   "end": 20.654,
+   "line": 2
+  },
+  {
+   "id": "w38",
+   "text": "KERN",
+   "start": 20.74,
+   "end": 20.958,
+   "line": 2
+  },
+  {
+   "id": "w39",
+   "text": "LIEGT",
+   "start": 20.99,
+   "end": 21.216,
+   "line": 2
+  },
+  {
+   "id": "w40",
+   "text": "OFFEN",
+   "start": 21.25,
+   "end": 21.639,
+   "line": 2
+  },
+  {
+   "id": "w41",
+   "text": "DIE",
+   "start": 21.92,
+   "end": 22.074,
+   "line": 3
+  },
+  {
+   "id": "w42",
+   "text": "FEUERWEHR",
+   "start": 22.14,
+   "end": 22.661,
+   "line": 3
+  },
+  {
+   "id": "w43",
+   "text": "KOMMT",
+   "start": 22.69,
+   "end": 22.932,
+   "line": 3
+  },
+  {
+   "id": "w44",
+   "text": "OHNE",
+   "start": 22.97,
+   "end": 23.25,
+   "line": 3
+  },
+  {
+   "id": "w45",
+   "text": "SCHUTZ",
+   "start": 23.29,
+   "end": 23.65,
+   "line": 3
+  },
+  {
+   "id": "w46",
+   "text": "NIEMAND",
+   "start": 23.97,
+   "end": 24.428,
+   "line": 3
+  },
+  {
+   "id": "w47",
+   "text": "SAGT",
+   "start": 24.52,
+   "end": 24.723,
+   "line": 3
+  },
+  {
+   "id": "w48",
+   "text": "IHNEN",
+   "start": 24.79,
+   "end": 25.1,
+   "line": 3
+  },
+  {
+   "id": "w49",
+   "text": "WAS",
+   "start": 25.24,
+   "end": 25.342,
+   "line": 3
+  },
+  {
+   "id": "w50",
+   "text": "DA",
+   "start": 25.36,
+   "end": 25.443,
+   "line": 3
+  },
+  {
+   "id": "w51",
+   "text": "BRENNT",
+   "start": 25.46,
+   "end": 25.83,
+   "line": 3
+  },
+  {
+   "id": "w52",
+   "text": "AM",
+   "start": 26.25,
+   "end": 26.533,
+   "line": 4
+  },
+  {
+   "id": "w53",
+   "text": "MORGEN",
+   "start": 26.55,
+   "end": 26.844,
+   "line": 4
+  },
+  {
+   "id": "w54",
+   "text": "SPIELEN",
+   "start": 26.87,
+   "end": 27.214,
+   "line": 4
+  },
+  {
+   "id": "w55",
+   "text": "KINDER",
+   "start": 27.28,
+   "end": 27.641,
+   "line": 4
+  },
+  {
+   "id": "w56",
+   "text": "DRAUSSEN",
+   "start": 27.67,
+   "end": 28.098,
+   "line": 4
+  },
+  {
+   "id": "w57",
+   "text": "DIE",
+   "start": 28.39,
+   "end": 28.552,
+   "line": 4
+  },
+  {
+   "id": "w58",
+   "text": "STRAHLUNG",
+   "start": 28.58,
+   "end": 29.157,
+   "line": 4
+  },
+  {
+   "id": "w59",
+   "text": "IST",
+   "start": 29.18,
+   "end": 29.404,
+   "line": 4
+  },
+  {
+   "id": "w60",
+   "text": "UNSICHTBAR",
+   "start": 29.42,
+   "end": 30.078,
+   "line": 4
+  },
+  {
+   "id": "w61",
+   "text": "36",
+   "start": 30.58,
+   "end": 31.361,
+   "line": 5
+  },
+  {
+   "id": "w62",
+   "text": "STUNDEN",
+   "start": 31.39,
+   "end": 31.716,
+   "line": 5
+  },
+  {
+   "id": "w63",
+   "text": "SPÄTER",
+   "start": 31.75,
+   "end": 32.232,
+   "line": 5
+  },
+  {
+   "id": "w64",
+   "text": "KOMMEN",
+   "start": 32.28,
+   "end": 32.514,
+   "line": 5
+  },
+  {
+   "id": "w65",
+   "text": "BUSSE",
+   "start": 32.54,
+   "end": 32.952,
+   "line": 5
+  },
+  {
+   "id": "w66",
+   "text": "FAST",
+   "start": 33.27,
+   "end": 33.58,
+   "line": 5
+  },
+  {
+   "id": "w67",
+   "text": "50.000",
+   "start": 33.64,
+   "end": 34.533,
+   "line": 5
+  },
+  {
+   "id": "w68",
+   "text": "MENSCHEN",
+   "start": 34.55,
+   "end": 35.002,
+   "line": 5
+  },
+  {
+   "id": "w69",
+   "text": "SOLLEN",
+   "start": 35.02,
+   "end": 35.256,
+   "line": 5
+  },
+  {
+   "id": "w70",
+   "text": "FÜR",
+   "start": 35.27,
+   "end": 35.458,
+   "line": 5
+  },
+  {
+   "id": "w71",
+   "text": "DREI",
+   "start": 35.49,
+   "end": 35.715,
+   "line": 5
+  },
+  {
+   "id": "w72",
+   "text": "TAGE",
+   "start": 35.76,
+   "end": 35.952,
+   "line": 5
+  },
+  {
+   "id": "w73",
+   "text": "GEHEN",
+   "start": 35.98,
+   "end": 36.484,
+   "line": 5
+  },
+  {
+   "id": "w74",
+   "text": "SIE",
+   "start": 36.83,
+   "end": 37.025,
+   "line": 6
+  },
+  {
+   "id": "w75",
+   "text": "KOMMEN",
+   "start": 37.05,
+   "end": 37.32,
+   "line": 6
+  },
+  {
+   "id": "w76",
+   "text": "NIE",
+   "start": 37.38,
+   "end": 37.61,
+   "line": 6
+  },
+  {
+   "id": "w77",
+   "text": "ZURÜCK",
+   "start": 37.64,
+   "end": 38.059,
+   "line": 6
+  },
+  {
+   "id": "w78",
+   "text": "ZWEI",
+   "start": 38.52,
+   "end": 39.122,
+   "line": 7
+  },
+  {
+   "id": "w79",
+   "text": "TAGE",
+   "start": 39.15,
+   "end": 39.264,
+   "line": 7
+  },
+  {
+   "id": "w80",
+   "text": "DANACH",
+   "start": 39.31,
+   "end": 39.574,
+   "line": 7
+  },
+  {
+   "id": "w81",
+   "text": "SCHLAGEN",
+   "start": 39.66,
+   "end": 39.876,
+   "line": 7
+  },
+  {
+   "id": "w82",
+   "text": "MESSGERÄTE",
+   "start": 39.93,
+   "end": 40.652,
+   "line": 7
+  },
+  {
+   "id": "w83",
+   "text": "IN",
+   "start": 40.68,
+   "end": 40.758,
+   "line": 7
+  },
+  {
+   "id": "w84",
+   "text": "SCHWEDEN",
+   "start": 40.79,
+   "end": 41.173,
+   "line": 7
+  },
+  {
+   "id": "w85",
+   "text": "ALARM",
+   "start": 41.25,
+   "end": 41.594,
+   "line": 7
+  },
+  {
+   "id": "w86",
+   "text": "ERST",
+   "start": 41.95,
+   "end": 42.272,
+   "line": 7
+  },
+  {
+   "id": "w87",
+   "text": "JETZT",
+   "start": 42.31,
+   "end": 42.68,
+   "line": 7
+  },
+  {
+   "id": "w88",
+   "text": "ERFÄHRT",
+   "start": 42.71,
+   "end": 43.0,
+   "line": 7
+  },
+  {
+   "id": "w89",
+   "text": "DIE",
+   "start": 43.01,
+   "end": 43.102,
+   "line": 7
+  },
+  {
+   "id": "w90",
+   "text": "WELT",
+   "start": 43.11,
+   "end": 43.298,
+   "line": 7
+  },
+  {
+   "id": "w91",
+   "text": "DAVON",
+   "start": 43.33,
+   "end": 43.756,
+   "line": 7
+  },
+  {
+   "id": "w92",
+   "text": "AUCH",
+   "start": 44.08,
+   "end": 44.543,
+   "line": 8
+  },
+  {
+   "id": "w93",
+   "text": "ÜBER",
+   "start": 44.55,
+   "end": 44.685,
+   "line": 8
+  },
+  {
+   "id": "w94",
+   "text": "DEUTSCHLAND",
+   "start": 44.7,
+   "end": 45.124,
+   "line": 8
+  },
+  {
+   "id": "w95",
+   "text": "ZIEHT",
+   "start": 45.15,
+   "end": 45.324,
+   "line": 8
+  },
+  {
+   "id": "w96",
+   "text": "DIE",
+   "start": 45.34,
+   "end": 45.418,
+   "line": 8
+  },
+  {
+   "id": "w97",
+   "text": "WOLKE",
+   "start": 45.43,
+   "end": 45.836,
+   "line": 8
+  },
+  {
+   "id": "w98",
+   "text": "REGEN",
+   "start": 46.18,
+   "end": 46.683,
+   "line": 8
+  },
+  {
+   "id": "w99",
+   "text": "BRINGT",
+   "start": 46.69,
+   "end": 47.005,
+   "line": 8
+  },
+  {
+   "id": "w100",
+   "text": "RADIOAKTIVES",
+   "start": 47.04,
+   "end": 47.812,
+   "line": 8
+  },
+  {
+   "id": "w101",
+   "text": "CÄSIUM",
+   "start": 47.84,
+   "end": 48.356,
+   "line": 8
+  },
+  {
+   "id": "w102",
+   "text": "BIS",
+   "start": 48.42,
+   "end": 48.589,
+   "line": 8
+  },
+  {
+   "id": "w103",
+   "text": "NACH",
+   "start": 48.62,
+   "end": 48.851,
+   "line": 8
+  },
+  {
+   "id": "w104",
+   "text": "BAYERN",
+   "start": 48.86,
+   "end": 49.254,
+   "line": 8
+  },
+  {
+   "id": "w105",
+   "text": "WARUM",
+   "start": 49.74,
+   "end": 50.135,
+   "line": 9
+  },
+  {
+   "id": "w106",
+   "text": "DER",
+   "start": 50.68,
+   "end": 50.895,
+   "line": 9
+  },
+  {
+   "id": "w107",
+   "text": "REAKTOR",
+   "start": 50.91,
+   "end": 51.368,
+   "line": 9
+  },
+  {
+   "id": "w108",
+   "text": "HATTE",
+   "start": 51.44,
+   "end": 51.611,
+   "line": 9
+  },
+  {
+   "id": "w109",
+   "text": "EINEN",
+   "start": 51.62,
+   "end": 51.875,
+   "line": 9
+  },
+  {
+   "id": "w110",
+   "text": "KONSTRUKTIONSFEHLER",
+   "start": 51.92,
+   "end": 53.057,
+   "line": 9
+  },
+  {
+   "id": "w111",
+   "text": "ENTSTEHT",
+   "start": 53.38,
+   "end": 53.794,
+   "line": 9
+  },
+  {
+   "id": "w112",
+   "text": "MEHR",
+   "start": 53.83,
+   "end": 54.118,
+   "line": 9
+  },
+  {
+   "id": "w113",
+   "text": "DAMPF",
+   "start": 54.14,
+   "end": 54.394,
+   "line": 9
+  },
+  {
+   "id": "w114",
+   "text": "IM",
+   "start": 54.44,
+   "end": 54.503,
+   "line": 9
+  },
+  {
+   "id": "w115",
+   "text": "KÜHLWASSER",
+   "start": 54.54,
+   "end": 55.227,
+   "line": 9
+  },
+  {
+   "id": "w116",
+   "text": "STEIGT",
+   "start": 55.36,
+   "end": 55.712,
+   "line": 9
+  },
+  {
+   "id": "w117",
+   "text": "SEINE",
+   "start": 55.72,
+   "end": 55.958,
+   "line": 9
+  },
+  {
+   "id": "w118",
+   "text": "LEISTUNG",
+   "start": 55.97,
+   "end": 56.38,
+   "line": 9
+  },
+  {
+   "id": "w119",
+   "text": "WEITER",
+   "start": 56.41,
+   "end": 56.813,
+   "line": 9
+  },
+  {
+   "id": "w120",
+   "text": "UND",
+   "start": 57.16,
+   "end": 57.696,
+   "line": 10
+  },
+  {
+   "id": "w121",
+   "text": "ALS",
+   "start": 57.81,
+   "end": 57.919,
+   "line": 10
+  },
+  {
+   "id": "w122",
+   "text": "DIE",
+   "start": 57.94,
+   "end": 58.075,
+   "line": 10
+  },
+  {
+   "id": "w123",
+   "text": "STEUERSTÄBE",
+   "start": 58.09,
+   "end": 58.531,
+   "line": 10
+  },
+  {
+   "id": "w124",
+   "text": "EINFAHREN",
+   "start": 58.55,
+   "end": 58.964,
+   "line": 10
+  },
+  {
+   "id": "w125",
+   "text": "BESCHLEUNIGEN",
+   "start": 59.18,
+   "end": 59.81,
+   "line": 10
+  },
+  {
+   "id": "w126",
+   "text": "IHRE",
+   "start": 59.85,
+   "end": 60.016,
+   "line": 10
+  },
+  {
+   "id": "w127",
+   "text": "SPITZEN",
+   "start": 60.03,
+   "end": 60.415,
+   "line": 10
+  },
+  {
+   "id": "w128",
+   "text": "DIE",
+   "start": 60.46,
+   "end": 60.54,
+   "line": 10
+  },
+  {
+   "id": "w129",
+   "text": "REAKTION",
+   "start": 60.57,
+   "end": 61.112,
+   "line": 10
+  },
+  {
+   "id": "w130",
+   "text": "ZUERST",
+   "start": 61.15,
+   "end": 61.818,
+   "line": 10
+  },
+  {
+   "id": "w131",
+   "text": "STATT",
+   "start": 62.08,
+   "end": 62.305,
+   "line": 10
+  },
+  {
+   "id": "w132",
+   "text": "SIE",
+   "start": 62.35,
+   "end": 62.434,
+   "line": 10
+  },
+  {
+   "id": "w133",
+   "text": "ZU",
+   "start": 62.48,
+   "end": 62.648,
+   "line": 10
+  },
+  {
+   "id": "w134",
+   "text": "BREMSEN",
+   "start": 62.74,
+   "end": 63.11,
+   "line": 10
+  },
+  {
+   "id": "w135",
+   "text": "HEUTE",
+   "start": 63.5,
+   "end": 64.008,
+   "line": 11
+  },
+  {
+   "id": "w136",
+   "text": "IST",
+   "start": 64.07,
+   "end": 64.206,
+   "line": 11
+  },
+  {
+   "id": "w137",
+   "text": "PRIPJAT",
+   "start": 64.26,
+   "end": 64.689,
+   "line": 11
+  },
+  {
+   "id": "w138",
+   "text": "EINE",
+   "start": 64.7,
+   "end": 64.839,
+   "line": 11
+  },
+  {
+   "id": "w139",
+   "text": "GEISTERSTADT",
+   "start": 64.87,
+   "end": 65.763,
+   "line": 11
+  },
+  {
+   "id": "w140",
+   "text": "DIE",
+   "start": 66.06,
+   "end": 66.209,
+   "line": 11
+  },
+  {
+   "id": "w141",
+   "text": "SPERRZONE",
+   "start": 66.23,
+   "end": 66.862,
+   "line": 11
+  },
+  {
+   "id": "w142",
+   "text": "WIRD",
+   "start": 66.88,
+   "end": 67.064,
+   "line": 11
+  },
+  {
+   "id": "w143",
+   "text": "NOCH",
+   "start": 67.08,
+   "end": 67.248,
+   "line": 11
+  },
+  {
+   "id": "w144",
+   "text": "JAHRHUNDERTE",
+   "start": 67.28,
+   "end": 67.94,
+   "line": 11
+  },
+  {
+   "id": "w145",
+   "text": "BELASTET",
+   "start": 67.95,
+   "end": 68.492,
+   "line": 11
+  },
+  {
+   "id": "w146",
+   "text": "SEIN",
+   "start": 68.5,
+   "end": 68.787,
+   "line": 11
+  },
+  {
+   "id": "w147",
+   "text": "WAS",
+   "start": 69.28,
+   "end": 69.534,
+   "line": 12
+  },
+  {
+   "id": "w148",
+   "text": "HÄTTEST",
+   "start": 69.55,
+   "end": 69.83,
+   "line": 12
+  },
+  {
+   "id": "w149",
+   "text": "DU",
+   "start": 69.86,
+   "end": 70.026,
+   "line": 12
+  },
+  {
+   "id": "w150",
+   "text": "GETAN",
+   "start": 70.06,
+   "end": 70.517,
+   "line": 12
+  },
+  {
+   "id": "w151",
+   "text": "WENN",
+   "start": 70.69,
+   "end": 70.761,
+   "line": 12
+  },
+  {
+   "id": "w152",
+   "text": "DIR",
+   "start": 70.79,
+   "end": 71.056,
+   "line": 12
+  },
+  {
+   "id": "w153",
+   "text": "NIEMAND",
+   "start": 71.12,
+   "end": 71.478,
+   "line": 12
+  },
+  {
+   "id": "w154",
+   "text": "DIE",
+   "start": 71.54,
+   "end": 71.704,
+   "line": 12
+  },
+  {
+   "id": "w155",
+   "text": "WAHRHEIT",
+   "start": 71.73,
+   "end": 72.026,
+   "line": 12
+  },
+  {
+   "id": "w156",
+   "text": "SAGT",
+   "start": 72.08,
+   "end": 72.398,
+   "line": 12
+  }
+ ]
+}
