@@ -69,7 +69,7 @@
         }
         // ---- Arme, Ellbogen, Hände mit Fingern ----
         const shL = new THREE.Group(), shR = new THREE.Group(); shL.position.set(-0.235 * wide, 1.44, 0); shR.position.set(0.235 * wide, 1.44, 0); g.add(shL, shR);
-        const elL = new THREE.Group(), elR = new THREE.Group(); const kurzarm = topType === "tshirt" && !jacke;
+        const elL = new THREE.Group(), elR = new THREE.Group(); const kurzarm = topType === "tshirt" && !jacke; const hands = [];
         for (const [sh, el, sx] of [[shL, elL, -1], [shR, elR, 1]]) {
           mk(new THREE.SphereGeometry(0.062, 16, 12), armMat, 0, 0, 0, sh);
           if (kurzarm) { mk(new THREE.CylinderGeometry(0.064, 0.058, 0.15, 24), armMat, 0, -0.075, 0, sh); mk(new THREE.CylinderGeometry(0.05, 0.0465, 0.16, 24), skin, 0, -0.22, 0, sh); }
@@ -82,7 +82,7 @@
           const palm = mk(new THREE.BoxGeometry(0.06, 0.07, 0.025), skin, 0, -0.03, 0, hand); palm.geometry.translate(0, 0, 0);
           for (let f = 0; f < 4; f++) { const fl = 0.034 + (f === 1 || f === 2 ? 0.008 : 0); const fi = mk(new THREE.CapsuleGeometry(0.0075, fl, 3, 6), skin, -0.021 + f * 0.014, -0.07 - fl / 2, 0.002, hand); fi.rotation.x = 0.25 + (f % 2) * 0.08; }
           const th = mk(new THREE.CapsuleGeometry(0.0085, 0.03, 3, 6), skin, -sx * 0.034, -0.035, 0.012, hand); th.rotation.z = -sx * 0.7; th.rotation.x = 0.3;
-          hand.rotation.y = sx * 0.15;
+          hand.rotation.y = sx * 0.15; hands.push(hand);
         }
         // ---- Hals, Kopf, Gesicht ----
         mk(new THREE.CylinderGeometry(0.05, 0.055, 0.1, 12), skin, 0, 1.57, 0);
@@ -126,9 +126,10 @@
         if (bart === "schnurrbart") { const b = mk(new THREE.CapsuleGeometry(0.008, 0.045, 4, 8), hair, 0, -0.046, 0.109, face); b.rotation.z = Math.PI / 2; }
         if (bart === "kinnbart") { mk(new THREE.SphereGeometry(0.03, 12, 10), hair, 0, -0.105, 0.075, head).scale.set(1, 1.2, 0.8); const m2 = mk(new THREE.CapsuleGeometry(0.007, 0.04, 4, 8), hair, 0, -0.047, 0.108, face); m2.rotation.z = Math.PI / 2; }
         if (o.brille ?? r() < 0.18) { const gm = S(pick([0x1a1a1a, 0x6a4a2a, 0xb8b8c0]), 0.3); for (const sx of [-1, 1]) mk(new THREE.TorusGeometry(0.024, 0.0035, 6, 18), gm, sx * 0.042, 0.018, 0.112, face); mk(new THREE.BoxGeometry(0.03, 0.004, 0.004), gm, 0, 0.022, 0.114, face); }
-        const sc = o.scale ?? (kind === "m" ? 0.96 + r() * 0.12 : 0.9 + r() * 0.1);
+        const kindlich = o.alter === "kind"; if (kindlich) head.scale.setScalar(1.28);
+        const sc = o.scale ?? (kindlich ? 0.5 + r() * 0.14 : kind === "m" ? 0.96 + r() * 0.12 : 0.9 + r() * 0.1);
         g.scale.setScalar(sc);
-        g.userData = { hipL, hipR, kneeL, kneeR, shL, shR, elL, elR, head, face, eyes, phase: r() * 6.28, r };
+        g.userData = { hipL, hipR, kneeL, kneeR, shL, shR, elL, elR, head, face, eyes, handL: hands[0], handR: hands[1], phase: r() * 6.28, r };
         return g;
       }
       function idle(p, t) { // Atmen, Gewicht verlagern, Blinzeln, Blick - nie synchron
@@ -145,3 +146,27 @@
         u.elL.rotation.x = -0.3 - Math.max(0, -a) * 0.5; u.elR.rotation.x = -0.3 - Math.max(0, a) * 0.5;
         p.position.y = Math.abs(Math.cos(k)) * 0.03;
       }
+
+      // ---------- Requisiten & Posen ----------
+      function regenschirm(p, farbe = 0x1e2a44) { // Schirm über dem Kopf, rechte Hand am Griff
+        const u = p.userData, g = new THREE.Group(); p.add(g); const stoff = new THREE.MeshStandardMaterial({ color: farbe, roughness: 0.55, side: THREE.DoubleSide });
+        const dachS = new THREE.Mesh(new THREE.ConeGeometry(0.62, 0.26, 8, 1, true), stoff); dachS.position.set(0.1, 2.08, 0.12); dachS.castShadow = true; g.add(dachS);
+        for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; const rip = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.66, 4), new THREE.MeshStandardMaterial({ color: 0x2a2a2a })); rip.position.set(0.1 + Math.cos(a) * 0.3, 2.0, 0.12 + Math.sin(a) * 0.3); rip.rotation.set(Math.sin(a) * 1.15, 0, -Math.cos(a) * 1.15); g.add(rip); }
+        const stock = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 1.0, 6), new THREE.MeshStandardMaterial({ color: 0x9a9ea2, metalness: 0.7 })); stock.position.set(0.1, 1.62, 0.12); g.add(stock);
+        const griff = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.01, 6, 12, Math.PI), new THREE.MeshStandardMaterial({ color: 0x3a2418 })); griff.position.set(0.1, 1.11, 0.12); griff.rotation.z = Math.PI; g.add(griff);
+        u.pose = "schirm"; return g;
+      }
+      function zigarette(p) { // in der rechten Hand, glühende Spitze; rauchen(p,t) hebt sie zum Mund
+        const u = p.userData, c = new THREE.Group(); u.handR.add(c); c.position.set(0.012, -0.075, 0.02);
+        const papier = new THREE.Mesh(new THREE.CylinderGeometry(0.0045, 0.0045, 0.06, 6), new THREE.MeshStandardMaterial({ color: 0xf4f2ec })); papier.rotation.z = Math.PI / 2; c.add(papier);
+        const glut = new THREE.Mesh(new THREE.SphereGeometry(0.005, 6, 4), new THREE.MeshBasicMaterial({ color: 0xff5a1a, toneMapped: false })); glut.position.x = 0.032; c.add(glut);
+        u.zig = { c, glut }; u.pose = "rauchen"; return c;
+      }
+      function pose(p, t) { // nach idle()/walk() aufrufen
+        const u = p.userData;
+        if (u.pose === "schirm") { u.shR.rotation.x = -0.75; u.shR.rotation.z = 0.25; u.elR.rotation.x = -1.25; }
+        if (u.pose === "rauchen") { const zug = Math.max(0, Math.sin((t + u.phase) * 0.9)) ** 6; u.shR.rotation.x = -0.4 - 0.95 * zug; u.shR.rotation.z = 0.12 + 0.2 * zug; u.elR.rotation.x = -1.2 - 0.95 * zug; u.zig.glut.material.color.setHSL(0.04, 1, 0.45 + 0.2 * zug); }
+        if (u.pose === "handy") { u.shR.rotation.x = -0.5; u.elR.rotation.x = -1.3; u.head.rotation.x = 0.45; }
+      }
+      function handy(p) { const u = p.userData; const h = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.14, 0.008), new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0x4a7aaa, emissiveIntensity: 0.6 })); u.handR.add(h); h.position.set(0, -0.09, 0.03); h.rotation.x = -0.6; u.pose = "handy"; return h; }
+      function rennen(p, t, speed = 1.6) { walk(p, t, speed); const u = p.userData; u.shL.rotation.x *= 1.4; u.shR.rotation.x *= 1.4; p.position.y = Math.abs(Math.cos(t * 6 * speed + u.phase)) * 0.07; }

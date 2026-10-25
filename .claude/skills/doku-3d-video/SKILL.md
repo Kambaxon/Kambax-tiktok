@@ -162,6 +162,11 @@ Jedes Projekt soll Atmosphäre, Effekte, Animation und Klang über das vorige he
   - `strasse(s, länge)` (Asphalt mit Rissen, Markierungen, Zebrastreifen, Bordstein, Pflaster, Gullys), `laterne`, `schild`, `bank`, `muelleimer`.
   - `laubbaum`, `nadelbaum`, `birke`, `busch` (organische Blätter mit Farbverlauf), `gras` (InstancedMesh-Halme), `blumen`.
   - Fassaden zeigen nach +z: für Straßenzeilen `rotation.y = ±π/2`.
+- **Requisiten und Posen** (`figuren.js`): `regenschirm(p, farbe)`, `zigarette(p)` (glühende Spitze; Rauch mit `particles(p, …)` am Mund), `handy(p)`; danach in jedem Frame `pose(p, t)` aufrufen. Kinder mit `person(seed, { alter: "kind" })`, Bewegung mit `rennen(p, t)`, dazu `ball(s)`.
+- **Boden nie einfarbig flach!** In der Natur immer `gelaende(s, w, d, seed, { weg, amp, erde, kiesFlecken })` (uneben, gemalter Rasen mit Erde- und Kiesflecken, optional Kiesweg) plus `grasAufGelaende` (Halme folgen der Höhe), `kies(...)` (Steinchen), Steine, Büsche und Blumen. Objekte mit `ter.h(x, z)` auf die Höhe setzen. In der Stadt Pflaster/Asphalt-Texturen, Pfützen mit `pfuetze()`.
+- **Kleine Lebewesen:** `schmetterlinge(...)` und `schwarm(...)` (Bienen/Fliegen) mit `update(t)`.
+- **Fahrzeuge:** Autos haben getönte, durchsichtige Scheiben mit Innenraum (Sitze, Lenkrad, Armaturenbrett), Dachsäulen, Türfugen und Griffe; dazu `motorrad(seed)` und `fahrrad(seed)`.
+- **Nacht:** `laterne(s, x, z, seite, true)` leuchtet mit Lichtschein, Lichtkegel und PointLight; `altbau(…, { licht: true })` mit beleuchteten Fenstern; Regen als Streifen mit `regen(s, x0, x1, z0, z1, h, n)` und `update(t)`.
 - Alle runden Teile mit ≥ 16–24 Segmenten, sonst entstehen gezackte Gelenknähte.
 - Detail-Regel: Jede Einstellung braucht Vorder-, Mittel- und Hintergrund mit echten Objekten (Fahrzeuge, Pflanzen, Straßenmöbel, Menschen), keine leeren Flächen.
 
