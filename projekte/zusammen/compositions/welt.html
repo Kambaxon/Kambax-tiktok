@@ -2865,7 +2865,7 @@
       const POST_STANDARD = {}; Object.entries(POST.uniforms).forEach(([k, u]) => { if (typeof u.value === "number") POST_STANDARD[k] = u.value; });
       const POST_AUS = {}; // (alt) – alle Effekte werden pro Shot automatisch auf Standard zurückgesetzt
       // ===== „ZUSAMMEN“: Straße zwischen den Epochen – links Fachwerk & Industrieziegel, rechts Brutalismus, Kopfstein, Oldtimer, Morgennebel, Goldene Stunde =====
-      const SHOTS = [{ id: "weit", t0: 0, t1: 4 }, { id: "tief", t0: 4, t1: 8 }]; const DUR = 8;
+      const SHOTS = [{ id: "weit", t0: 0, t1: 3.5 }, { id: "tief", t0: 3.5, t1: 7 }]; const DUR = 7;
       (function () {
         const s = new THREE.Scene(); const sonneDir = [-0.13, 0.13, -0.98];
         const him = himmelShader(s, { zeit: "abend", wolken: 0.4, wolkenTyp: "altocumulus", sonne: sonneDir }); s.fog = new THREE.Fog(0xe8c8a0, 140, 520);
@@ -2899,11 +2899,11 @@
         const leerlauf = abgas(autos[1], 7, { staerke: 0.18, n: 18 }); const auspuffW = () => autos[1].userData.auspuff.map((p) => ({ pos: p.clone().add(new THREE.Vector3(0, 0.25, -0.3)).applyMatrix4(autos[1].matrixWorld), radius: 0.05, staerke: 0.5 }));
         const KLAR = { uSSAA: 1, uBloom: 0.38, uHalation: 0.04, uChroma: 0, uSchaerfe: 0.3, uKlarheit: 0.22, uRolloff: 0.2, uAO: 0.5, uNebel: 0.08, uNebelHoehe: 3, uKorn: 0 };
         W.weit = { scene: s, camera: c1, look: "golden", post: Object.assign({}, KLAR, { uStrahlen: 0.28, uFlare: 0.08, uDof: 1, uUnscharfAn: 1, uBlende: 1.8, uBokeh: 0.6, uVig: 0.32 }),
-          update(t, T) { kamera(c1, t, { art: "dollyIn", von: [0.9, 1.75, 7], nach: [0.4, 1.9, -1.5], blick: [0, 3.0, -40], blickNach: [0, 3.1, -30], dauer: 4, fov: 46, hand: 0.45 }); titel.update(t, { start: 0.6, dauer: 1.2 }); upd(T, t);
+          update(t, T) { kamera(c1, t, { art: "dollyIn", von: [0.9, 1.75, 7], nach: [0.4, 1.9, -1.5], blick: [0, 3.0, -40], blickNach: [0, 3.1, -30], dauer: 3.5, fov: 46, hand: 0.45 }); titel.update(t, { start: 0.6, dauer: 1.2 }); upd(T, t);
             POST.uniforms.uFokus.value = c1.position.distanceTo(textPos); POST.uniforms.uNebelFarbe.value.set(0.95, 0.78, 0.6); leerlauf.update(T); autos[1].updateMatrixWorld(); hitzePunkte(POST, c1, auspuffW()); } };
         W.tief = { scene: s, camera: c2, look: "golden", post: Object.assign({}, KLAR, { uStrahlen: 0.4, uDof: 1, uUnscharfAn: 1, uBlende: 2.2, uBokeh: 0.7, uVig: 0.34 }),
-          update(t, T) { kamera(c2, t, { art: "seitlich", von: [1.7, 0.5, -3.8], nach: [-1.1, 0.75, -4.4], blick: [0.4, 2.5, -15], blickNach: [-0.2, 2.8, -15], dauer: 4, fov: 50, hand: 0.3 }); titel.update(4 + t, { start: 0.6, dauer: 1.2 }); upd(T, t);
-            fokusZug(POST, t, { von: 4.8, nach: c2.position.distanceTo(textPos), start: 0.6, dauer: 1.6 }); POST.uniforms.uNebelFarbe.value.set(0.95, 0.78, 0.6); leerlauf.update(T); autos[1].updateMatrixWorld(); hitzePunkte(POST, c2, auspuffW()); } };
+          update(t, T) { kamera(c2, t, { art: "seitlich", von: [1.7, 0.5, -3.8], nach: [-1.1, 0.75, -4.4], blick: [0.4, 2.5, -15], blickNach: [-0.2, 2.8, -15], dauer: 3.5, fov: 50, hand: 0.3 }); titel.update(3.5 + t, { start: 0.6, dauer: 1.2 }); upd(T, t);
+            fokusZug(POST, t, { von: 4.8, nach: c2.position.distanceTo(textPos), start: 0.6, dauer: 1.4 }); POST.uniforms.uNebelFarbe.value.set(0.95, 0.78, 0.6); leerlauf.update(T); autos[1].updateMatrixWorld(); hitzePunkte(POST, c2, auspuffW()); } };
       })();
 
       const _vp = new THREE.Matrix4();
