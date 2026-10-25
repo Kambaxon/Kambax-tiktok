@@ -1133,7 +1133,7 @@
         console.log("tempoOptimieren", JSON.stringify(stat)); return stat; }
 
       // ===== Materialien v1: ~100 Oberflächen als prozedurale Texturen (Farbe + Relief/Bump + Rauheit/Metall) =====
-      // material(name, { wiederholen: [x, y], farbe, nass: 0..1 }) -> MeshStandard/PhysicalMaterial (gecacht pro Name+Optionen)
+      // material(name, { wiederholen: [x, y], farbe, nass: 0..1 })  Realismus-Strukturen: beton_verwittert, stahl_rost, asphalt_alt, asphalt_spur, moosstein_feucht, raureif, kabinenteppich, alu_eloxiert -> MeshStandard/PhysicalMaterial (gecacht pro Name+Optionen)
       // Namen: siehe MATERIAL_LISTE (Kleidung, Bau, Boden, Natur). Unbekannte Namen -> neutraler Putz.
       const MAT_CACHE = {}, MAT_TEX = {};
       const MAT_P = { // kleine Mal-Werkzeuge für Canvas-Texturen
@@ -1263,18 +1263,97 @@
         wasser: [(g, W, H, q) => { MAT_P.verlauf(g, W, H, "#3a6a8a", "#1a3a5a"); for (let i = 0; i < 200; i++) { g.strokeStyle = `rgba(255,255,255,${0.04 + q() * 0.06})`; g.beginPath(); const x = q() * W, y = q() * H; g.ellipse(x, y, 10 + q() * 20, 2, 0, 0, 7); g.stroke(); } }, 0.05, 0.3, 0.3, { transparent: true, opacity: 0.85, envMapIntensity: 1.8 }],
         nassschlamm: [(g, W, H, q) => { g.fillStyle = "#3a2c1e"; g.fillRect(0, 0, W, H); MAT_P.flecken(g, W, H, q, "rgba(10,8,6,.5)", 30, 10, 40); }, 0.2, 0, 1.0, { envMapIntensity: 1.4 }],
       };
+
+      // ---- Realismus-Strukturen (Standard für jedes Projekt): Verfall & Patina, organisch, Kabine/Interieur ----
+      // def[6] = { hoehe, rau, metall }: eigene Graustufen-Karten (hell = hoch / rau / metallisch)
+      const MAT_R = { // Helfer für feine Strukturen
+        poren(g, W, H, q, n, a = 0.5, r = 0.9) { for (let i = 0; i < n; i++) { g.fillStyle = `rgba(0,0,0,${a * (0.4 + q() * 0.6)})`; g.beginPath(); g.arc(q() * W, q() * H, r * (0.4 + q()), 0, 7); g.fill(); } },
+        haarriss(g, W, H, q, n, farbe, l = 60, w = 0.7) { g.strokeStyle = farbe; g.lineWidth = w; for (let i = 0; i < n; i++) { let x = q() * W, y = q() * H, ang = q() * 6.28; g.beginPath(); g.moveTo(x, y); const st = 6 + Math.floor(q() * 10); for (let k = 0; k < st; k++) { ang += (q() - 0.5) * 1.1; x += Math.cos(ang) * l / st * 2; y += Math.sin(ang) * l / st * 2; g.lineTo(x, y); if (q() < 0.15) { g.moveTo(x, y); } } g.stroke(); } },
+        laeufer(g, W, H, q, n, farbe, l0, l1) { g.save(); g.filter = "blur(3px)"; for (let i = 0; i < n; i++) { const x = q() * W, y0 = q() * H * 0.3, len = l0 + q() * (l1 - l0), w = 8 + q() * 22; const gr = g.createLinearGradient(0, y0, 0, y0 + len); gr.addColorStop(0, farbe); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(x, y0, w, len); g.fillRect(x + w * 0.3, y0, w * 0.4, len * 1.25); } g.restore(); },
+        frost(g, W, H, q, n, farbe) { g.strokeStyle = farbe; const ast = (x, y, a, l, d) => { if (d > 4 || l < 2) return; const x2 = x + Math.cos(a) * l, y2 = y + Math.sin(a) * l; g.lineWidth = Math.max(0.4, 1.6 - d * 0.35); g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke(); for (let k = 1; k <= 3; k++) { const t2 = k / 4, xa = x + (x2 - x) * t2, ya = y + (y2 - y) * t2; ast(xa, ya, a + 1.05, l * 0.38, d + 1); ast(xa, ya, a - 1.05, l * 0.38, d + 1); } ast(x2, y2, a + (q() - 0.5) * 0.3, l * 0.7, d + 1); };
+          for (let i = 0; i < n; i++) { const kante = q() < 0.5; ast(kante ? q() * W : (q() < 0.5 ? 0 : W), kante ? (q() < 0.5 ? 0 : H) : q() * H, q() * 6.28, 18 + q() * 30, 0); } },
+      };
+      // Gemeinsames Layout: Der Farb-Maler legt die Merkmale (Positionen) in L ab, Höhen-/Rauheits-/Metall-Maler zeichnen dieselben Stellen.
+      const matMitLayout = (bau) => { let L = null; return bau((q, W, H, erzeugen) => (L = erzeugen(q, W, H)), () => L); };
+      const pfad = (g, pts) => { g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) g.lineTo(pts[i][0], pts[i][1]); g.stroke(); };
+      const rissPunkte = (q, W, H, n, l) => Array.from({ length: n }, () => { let x = q() * W, y = q() * H, a = q() * 6.28; const st = 8 + Math.floor(q() * 8), pts = [[x, y]]; for (let k = 0; k < st; k++) { a += (q() - 0.5) * 1.1; x += Math.cos(a) * l / st * 2; y += Math.sin(a) * l / st * 2; pts.push([x, y]); } return pts; });
+      const punkte = (q, W, H, n, r0, r1) => Array.from({ length: n }, () => [q() * W, q() * H, r0 + q() * (r1 - r0)]);
+      const fleck = (g, x, y, r, farbe) => { const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, farbe); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r); };
+      const laeuferZ = (g, ls, farbe) => { g.save(); g.filter = "blur(3px)"; ls.forEach(([x, y0, len, w]) => { const gr = g.createLinearGradient(0, y0, 0, y0 + len); gr.addColorStop(0, farbe); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(x, y0, w, len); g.fillRect(x + w * 0.3, y0, w * 0.4, len * 1.25); }); g.restore(); };
+      Object.assign(MATERIAL_LISTE, {
+        // Schalungsbeton: Mikroporen, Schalungsfugen mit Ankerlöchern, Wasserläufer, Haarrisse, Salzausblühungen. Trocken = rau, Poren/Risse/Läufer = feucht glänzend
+        beton_verwittert: matMitLayout((neu, L) => [(g, W, H, q) => { const l = neu(q, W, H, (q, W, H) => ({ poren: punkte(q, W, H, 2400, 0.4, 1.3), risse: rissPunkte(q, W, H, 9, 70), laeufer: Array.from({ length: 14 }, () => [q() * W, q() * H * 0.25, 140 + q() * 300, 8 + q() * 22]), salz: punkte(q, W, H, 14, 10, 36), anker: [] }));
+            g.fillStyle = "#8e8b84"; g.fillRect(0, 0, W, H); MAT_P.flecken(g, W, H, q, "rgba(60,58,54,.14)", 40, 20, 90); MAT_P.alpha(g, W, H, q, 14000, 0.09, 1.2);
+            g.strokeStyle = "rgba(50,48,44,.45)"; g.lineWidth = 2; for (let y = 0; y <= H; y += H / 2) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); } for (let x = 0; x <= W; x += W / 2) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+            for (let y = H / 8; y < H; y += H / 4) for (let x = W / 8; x < W; x += W / 4) { g.fillStyle = "rgba(40,38,34,.7)"; g.beginPath(); g.arc(x, y, 3.5, 0, 7); g.fill(); g.strokeStyle = "rgba(150,148,140,.5)"; g.lineWidth = 1; g.stroke(); l.anker.push([x, y]); }
+            laeuferZ(g, l.laeufer, "rgba(46,44,40,.28)"); l.salz.forEach(([x, y, r]) => fleck(g, x, y + 120, r, "rgba(236,234,224,.22)")); l.poren.forEach(([x, y, r]) => { g.fillStyle = "rgba(0,0,0,.3)"; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); });
+            g.strokeStyle = "rgba(40,38,36,.55)"; g.lineWidth = 0.8; l.risse.forEach((p) => pfad(g, p)); },
+          1, 0, 1.0, { aufl: 512 }, null, {
+            hoehe: (g, W, H, q) => { const l = L(); g.fillStyle = "#808080"; g.fillRect(0, 0, W, H); MAT_P.alpha(g, W, H, q, 16000, 0.12, 1.2); g.strokeStyle = "rgba(0,0,0,.6)"; g.lineWidth = 2.5; for (let y = 0; y <= H; y += H / 2) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); } for (let x = 0; x <= W; x += W / 2) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+              l.anker.forEach(([x, y]) => { g.fillStyle = "#000"; g.beginPath(); g.arc(x, y, 3.5, 0, 7); g.fill(); }); l.poren.forEach(([x, y, r]) => { g.fillStyle = "rgba(0,0,0,.7)"; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }); g.strokeStyle = "rgba(0,0,0,.85)"; g.lineWidth = 1; l.risse.forEach((p) => pfad(g, p)); },
+            rau: (g, W, H, q) => { const l = L(); g.fillStyle = "#ececec"; g.fillRect(0, 0, W, H); laeuferZ(g, l.laeufer, "rgba(80,80,80,.55)"); l.poren.forEach(([x, y, r]) => { g.fillStyle = "rgba(60,60,60,.8)"; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }); g.strokeStyle = "rgba(50,50,50,.9)"; g.lineWidth = 1.2; l.risse.forEach((p) => pfad(g, p)); l.salz.forEach(([x, y, r]) => fleck(g, x, y + 120, r, "rgba(255,255,255,.6)")); } }]),
+        // Industriestahl: Nietreihen, Rost konzentrisch um Niete (stumpf), Ölschmutz in Fugen (glänzend), Kratzer bis aufs blanke Metall (glänzend), gebürstete Grundstruktur
+        stahl_rost: matMitLayout((neu, L) => [(g, W, H, q) => { const P = 128; const l = neu(q, W, H, (q, W, H) => { const niete = []; for (let y = 0; y < H; y += P) for (let x = 0; x < W; x += P) for (let k = 10; k < P; k += 16) for (const pt of [[x + k, y + 8], [x + k, y + P - 8], [x + 8, y + k], [x + P - 8, y + k]]) niete.push([pt[0], pt[1], q() < 0.45 ? 4 + q() * 9 : 0]);
+              return { P, niete, rost: punkte(q, W, H, 14, 6, 28), kratzer: Array.from({ length: 140 }, () => { const x = q() * W, y = q() * H, a = (q() - 0.5) * 0.6, len = 8 + q() * 30; return [x, y, x + Math.cos(a) * len, y + Math.sin(a) * len]; }) }; });
+            g.fillStyle = "#5e6266"; g.fillRect(0, 0, W, H); for (let y = 0; y < H; y += 0.7) { g.fillStyle = `rgba(${q() < 0.5 ? "255,255,255" : "0,0,0"},${q() * 0.07})`; g.fillRect(0, y, W, 0.6); }
+            for (let y = 0; y < H; y += P) for (let x = 0; x < W; x += P) { g.strokeStyle = "rgba(18,14,10,.75)"; g.lineWidth = 4; g.strokeRect(x + 2, y + 2, P - 4, P - 4); }
+            l.niete.forEach(([x, y, r]) => { if (r) { fleck(g, x, y, r * 1.6, "rgba(120,52,20,.35)"); fleck(g, x, y, r, "rgba(150,64,22,.65)"); } g.fillStyle = "#3a3632"; g.beginPath(); g.arc(x, y, 2.6, 0, 7); g.fill(); });
+            l.rost.forEach(([x, y, r]) => fleck(g, x, y, r, "rgba(130,56,22,.4)")); g.strokeStyle = "rgba(210,214,218,.6)"; g.lineWidth = 0.6; l.kratzer.forEach(([a, b, c, d]) => { g.beginPath(); g.moveTo(a, b); g.lineTo(c, d); g.stroke(); }); },
+          1, 1, 0.9, { aufl: 512, anisotropy: 0.6 }, null, {
+            metall: (g, W, H, q) => { const l = L(); g.fillStyle = "#d0d0d0"; g.fillRect(0, 0, W, H); l.niete.forEach(([x, y, r]) => r && fleck(g, x, y, r * 1.3, "rgba(0,0,0,.95)")); l.rost.forEach(([x, y, r]) => fleck(g, x, y, r, "rgba(0,0,0,.85)")); g.strokeStyle = "#ffffff"; g.lineWidth = 0.8; l.kratzer.forEach(([a, b, c, d]) => { g.beginPath(); g.moveTo(a, b); g.lineTo(c, d); g.stroke(); }); },
+            rau: (g, W, H, q) => { const l = L(), P = l.P; g.fillStyle = "#8c8c8c"; g.fillRect(0, 0, W, H); for (let y = 0; y < H; y += P) for (let x = 0; x < W; x += P) { g.strokeStyle = "rgba(40,40,40,1)"; g.lineWidth = 6; g.strokeRect(x + 2, y + 2, P - 4, P - 4); }
+              l.niete.forEach(([x, y, r]) => r && fleck(g, x, y, r * 1.4, "rgba(255,255,255,.95)")); l.rost.forEach(([x, y, r]) => fleck(g, x, y, r, "rgba(255,255,255,.9)")); g.strokeStyle = "rgba(30,30,30,1)"; g.lineWidth = 1; l.kratzer.forEach(([a, b, c, d]) => { g.beginPath(); g.moveTo(a, b); g.lineTo(c, d); g.stroke(); }); } }]),
+        // Uralter Asphalt: freiliegender Splitt (tiefes Relief), Bitumenrisse und Ölflecken (hochglänzend), Asphalt stumpf
+        asphalt_alt: matMitLayout((neu, L) => [(g, W, H, q) => { const l = neu(q, W, H, (q, W, H) => ({ risse: rissPunkte(q, W, H, 7, 110), oel: punkte(q, W, H, 6, 18, 55) }));
+            g.fillStyle = "#34363a"; g.fillRect(0, 0, W, H); MAT_P.rausch(g, W, H, q, ["#26282b", "#44464a", "#5a5c60", "#6e6a64", "#2e3033"], 26000, 1.6); MAT_P.flecken(g, W, H, q, "rgba(10,10,12,.18)", 18, 20, 70);
+            l.oel.forEach(([x, y, r]) => { fleck(g, x, y, r, "rgba(8,8,10,.55)"); fleck(g, x + r * 0.2, y, r * 0.5, "rgba(60,40,80,.12)"); }); g.strokeStyle = "rgba(12,12,14,.95)"; g.lineWidth = 3.2; l.risse.forEach((p) => pfad(g, p)); },
+          1, 0, 0.9, { aufl: 512 }, null, {
+            hoehe: (g, W, H, q) => { const l = L(); g.fillStyle = "#7a7a7a"; g.fillRect(0, 0, W, H); MAT_P.rausch(g, W, H, q, ["#a8a8a8", "#c4c4c4", "#4a4a4a"], 24000, 1.7); g.strokeStyle = "#000"; g.lineWidth = 3.2; l.risse.forEach((p) => pfad(g, p)); },
+            rau: (g, W, H, q) => { const l = L(); g.fillStyle = "#e4e4e4"; g.fillRect(0, 0, W, H); l.oel.forEach(([x, y, r]) => fleck(g, x, y, r, "rgba(30,30,30,.95)")); g.strokeStyle = "#383838"; g.lineWidth = 3.8; l.risse.forEach((p) => pfad(g, p)); } }]),
+        asphalt_spur: [(g, W, H, q) => { MATERIAL_LISTE.asphalt_alt[0](g, W, H, q); for (let y = 0; y < H; y += H / 2) { g.fillStyle = "rgba(232,230,220,.85)"; g.fillRect(W / 2 - 13, y + 10, 26, H / 4); for (let i = 0; i < 120; i++) { g.fillStyle = "rgba(52,54,58,.9)"; g.fillRect(W / 2 - 15 + (q() < 0.5 ? q() * 5 : 25 + q() * 5), y + 10 + q() * H / 4, 1 + q() * 3, 1 + q() * 3); } } },
+          1, 0, 0.9, { aufl: 512 }, null, { hoehe: (g, W, H, q) => MATERIAL_LISTE.asphalt_alt[6].hoehe(g, W, H, q), rau: (g, W, H, q) => { MATERIAL_LISTE.asphalt_alt[6].rau(g, W, H, q); for (let y = 0; y < H; y += H / 2) { g.fillStyle = "#b8b8b8"; g.fillRect(W / 2 - 13, y + 10, 26, H / 4); } } }],
+        // Feuchter Sedimentstein: Moos (stumpf, Samtschimmer statt SSS), Krustenflechten, nasse dunkle Fugen (glänzend)
+        moosstein_feucht: matMitLayout((neu, L) => [(g, W, H, q) => { const l = neu(q, W, H, (q, W, H) => ({ moos: punkte(q, W, H, 60, 10, 46), flechten: punkte(q, W, H, 14, 2, 8) }));
+            MAT_P.ziegel(g, W, H, q, "#3e3a34", ["#7a766c", "#6c685e", "#858073", "#5e5a52"], 128, 64, 0.5); for (let y = 0; y < H; y += 64) { const gr = g.createLinearGradient(0, y + 30, 0, y + 64); gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(1, "rgba(20,24,18,.5)"); g.fillStyle = gr; g.fillRect(0, y + 30, W, 34); }
+            l.moos.forEach(([x, y, r]) => { fleck(g, x, y, r, "rgba(84,112,50,.7)"); for (let i = 0; i < r * 3; i++) { g.fillStyle = ["#5a7a3a", "#6e9046", "#4a6230"][i % 3]; g.fillRect(x + (q() - 0.5) * r * 1.4, y + (q() - 0.5) * r * 1.4, 2, 2); } });
+            l.flechten.forEach(([x, y, r], i) => { g.fillStyle = i % 4 ? "rgba(160,170,140,.45)" : "rgba(180,130,60,.4)"; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }); },
+          1, 0, 1.0, { aufl: 512, sheen: 0.35, sheenColor: 0x9ab870, sheenRoughness: 0.7 }, null, {
+            rau: (g, W, H, q) => { const l = L(); g.fillStyle = "#d0d0d0"; g.fillRect(0, 0, W, H); for (let y = 0; y < H; y += 64) { const gr = g.createLinearGradient(0, y + 30, 0, y + 64); gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(1, "rgba(50,50,50,.9)"); g.fillStyle = gr; g.fillRect(0, y + 30, W, 34); } l.moos.forEach(([x, y, r]) => fleck(g, x, y, r, "rgba(255,255,255,1)")); } }]),
+        // Raureif: dendritische Frostnadeln von den Kanten über altes Metall; Klarlack + Irisieren für Mikro-Refraktion in tiefer Sonne
+        raureif: matMitLayout((neu, L) => [(g, W, H, q) => { const l = neu(q, W, H, (q, W, H) => { const linien = []; const ast = (x, y, a, len, d) => { if (d > 4 || len < 2) return; const x2 = x + Math.cos(a) * len, y2 = y + Math.sin(a) * len; linien.push([x, y, x2, y2, Math.max(0.4, 1.6 - d * 0.35)]); for (let k = 1; k <= 3; k++) { const t2 = k / 4; ast(x + (x2 - x) * t2, y + (y2 - y) * t2, a + 1.05, len * 0.38, d + 1); ast(x + (x2 - x) * t2, y + (y2 - y) * t2, a - 1.05, len * 0.38, d + 1); } ast(x2, y2, a + (q() - 0.5) * 0.3, len * 0.7, d + 1); };
+              for (let i = 0; i < 34; i++) { const kante = q() < 0.5; ast(kante ? q() * W : (q() < 0.5 ? 0 : W), kante ? (q() < 0.5 ? 0 : H) : q() * H, q() * 6.28, 18 + q() * 30, 0); } return { linien }; });
+            g.fillStyle = "#7c8890"; g.fillRect(0, 0, W, H); MAT_P.alpha(g, W, H, q, 6000, 0.08, 1); g.strokeStyle = "rgba(236,244,250,.85)"; l.linien.forEach(([a, b, c, d, w]) => { g.lineWidth = w; g.beginPath(); g.moveTo(a, b); g.lineTo(c, d); g.stroke(); }); },
+          1, 1, 0.5, { aufl: 512, clearcoat: 0.4, clearcoatRoughness: 0.15, iridescence: 0.25, iridescenceIOR: 1.31 }, null, {
+            metall: (g, W, H, q) => { const l = L(); g.fillStyle = "#ffffff"; g.fillRect(0, 0, W, H); g.strokeStyle = "#000"; l.linien.forEach(([a, b, c, d, w]) => { g.lineWidth = w + 0.6; g.beginPath(); g.moveTo(a, b); g.lineTo(c, d); g.stroke(); }); },
+            rau: (g, W, H, q) => { const l = L(); g.fillStyle = "#4a4a4a"; g.fillRect(0, 0, W, H); g.strokeStyle = "#d8d8d8"; l.linien.forEach(([a, b, c, d, w]) => { g.lineWidth = w + 0.6; g.beginPath(); g.moveTo(a, b); g.lineTo(c, d); g.stroke(); }); } }]),
+        // Kabinenteppich: Schlingenflor, Rautenmuster, Laufspur in der Gangmitte (u = 0.5); Faserglanz (Sheen)
+        kabinenteppich: [(g, W, H, q) => { g.fillStyle = "#3a4258"; g.fillRect(0, 0, W, H); for (let y = 0; y < H; y += 4) for (let x = (y / 4) % 2 * 2; x < W; x += 4) { g.fillStyle = `rgba(${q() < 0.5 ? "255,255,255" : "0,0,0"},${0.05 + q() * 0.08})`; g.fillRect(x, y, 2, 2); }
+            g.strokeStyle = "rgba(120,140,190,.22)"; g.lineWidth = 2; for (let y = 0; y < H; y += 32) for (let x = 0; x < W; x += 32) { g.beginPath(); g.moveTo(x + 16, y + 4); g.lineTo(x + 28, y + 16); g.lineTo(x + 16, y + 28); g.lineTo(x + 4, y + 16); g.closePath(); g.stroke(); }
+            const gr = g.createLinearGradient(0, 0, W, 0); gr.addColorStop(0.3, "rgba(255,255,255,0)"); gr.addColorStop(0.5, "rgba(200,205,215,.16)"); gr.addColorStop(0.7, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, W, H); },
+          1, 0, 0.6, { aufl: 256, sheen: 0.8, sheenColor: 0x8a9ac8, sheenRoughness: 0.6 }, null, { rau: (g, W, H, q) => { const gr = g.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, "#ffffff"); gr.addColorStop(0.5, "#cfcfcf"); gr.addColorStop(1, "#ffffff"); g.fillStyle = gr; g.fillRect(0, 0, W, H); } }],
+        // Eloxiertes Alu: feine diagonale Bürstrillen (anisotrope Glanzstreifen; echte Anisotropie ab Three r153, sonst über Rillen-Rauheit)
+        alu_eloxiert: matMitLayout((neu, L) => [(g, W, H, q) => { const l = neu(q, W, H, (q, W, H) => ({ rillen: Array.from({ length: 2600 }, () => [q() * 2 - 0.5, q()]) }));
+            g.fillStyle = "#8c9096"; g.fillRect(0, 0, W, H); g.save(); g.translate(W / 2, H / 2); g.rotate(-0.55); l.rillen.forEach(([y, a]) => { g.fillStyle = `rgba(${a < 0.5 ? "255,255,255" : "0,0,0"},${a * 0.14})`; g.fillRect(-W, (y - 0.5) * H * 1.6, W * 2, 0.6); }); g.restore(); },
+          1, 1, 0.15, { aufl: 512, anisotropy: 0.8 }, null, { rau: (g, W, H, q) => { const l = L(); g.fillStyle = "#5c5c5c"; g.fillRect(0, 0, W, H); g.save(); g.translate(W / 2, H / 2); g.rotate(-0.55); l.rillen.forEach(([y, a]) => { g.fillStyle = `rgba(${a < 0.5 ? "255,255,255" : "0,0,0"},${a * 0.28})`; g.fillRect(-W, (y - 0.5) * H * 1.6, W * 2, 1); }); g.restore(); } }]),
+      });
       function matTex(name) { if (MAT_TEX[name]) return MAT_TEX[name]; const def = MATERIAL_LISTE[name]; const q = rng(name.length * 977 + name.charCodeAt(0));
-        const t = canvasTex(256, 256, (g, W, H) => def[0](g, W, H, q)); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
-        const b = new THREE.CanvasTexture(t.image); b.wrapS = b.wrapT = THREE.RepeatWrapping; MAT_TEX[name] = { t, b }; return MAT_TEX[name]; }
+        const N = (def[4] && def[4].aufl) || 256, K = def[6] || {}, wrap = (x) => { x.wrapS = x.wrapT = THREE.RepeatWrapping; x.anisotropy = 8; return x; };
+        const t = wrap(canvasTex(N, N, (g, W, H) => def[0](g, W, H, q)));
+        const grau = (maler, seed) => { const q2 = rng(seed); const x = wrap(canvasTex(N, N, (g, W, H) => maler(g, W, H, q2))); x.encoding = THREE.LinearEncoding; return x; };
+        const b = K.hoehe ? grau(K.hoehe, name.length * 977 + name.charCodeAt(0)) : wrap(new THREE.CanvasTexture(t.image)); // eigene Höhenkarte (Poren, Risse) oder aus dem Farbbild
+        MAT_TEX[name] = { t, b, r: K.rau ? grau(K.rau, name.length * 977 + name.charCodeAt(0)) : null, m: K.metall ? grau(K.metall, name.length * 977 + name.charCodeAt(0)) : null }; return MAT_TEX[name]; }
       function material(name, o = {}) {
         if (!MATERIAL_LISTE[name]) name = "putzweiss";
         const key = name + JSON.stringify(o); if (MAT_CACHE[key]) return MAT_CACHE[key];
-        const def = MATERIAL_LISTE[name], { t, b } = matTex(name), ex = def[4] || {}; const map = t.clone(), bump = b.clone(); map.needsUpdate = bump.needsUpdate = true;
-        const wd = o.wiederholen ?? [1, 1]; map.repeat.set(wd[0], wd[1]); bump.repeat.set(wd[0], wd[1]);
+        const def = MATERIAL_LISTE[name], { t, b, r, m: mt } = matTex(name), ex = def[4] || {}; const map = t.clone(), bump = b.clone(); map.needsUpdate = bump.needsUpdate = true;
+        const rmap = r ? r.clone() : null, mmap = mt ? mt.clone() : null; [rmap, mmap].forEach((x) => x && (x.needsUpdate = true));
+        const wd = o.wiederholen ?? [1, 1]; [map, bump, rmap, mmap].forEach((x) => x && x.repeat.set(wd[0], wd[1]));
         const physical = Object.keys(ex).some((k) => ["clearcoat", "sheen", "transmission", "iridescence", "anisotropy"].includes(k)); const C = physical ? THREE.MeshPhysicalMaterial : THREE.MeshStandardMaterial;
-        const ext = Object.assign({}, ex); if (ext.anisotropy !== undefined && !("anisotropy" in new THREE.MeshPhysicalMaterial())) delete ext.anisotropy; if (ext.sheenColor !== undefined) ext.sheenColor = new THREE.Color(ext.sheenColor);
+        const ext = Object.assign({}, ex); delete ext.aufl; if (ext.anisotropy !== undefined && !("anisotropy" in new THREE.MeshPhysicalMaterial())) delete ext.anisotropy; if (ext.sheenColor !== undefined) ext.sheenColor = new THREE.Color(ext.sheenColor);
         const nass = o.nass ?? 0;
         const m = new C(Object.assign({ color: o.farbe ?? 0xffffff, map, bumpMap: def[3] > 0 ? bump : null, bumpScale: def[3] * (o.relief ?? 1) * 0.02, roughness: THREE.MathUtils.lerp(def[1], 0.1, nass), metalness: def[2] }, ext));
+        if (rmap) { m.roughnessMap = rmap; m.roughness = THREE.MathUtils.lerp(1, 0.25, nass); } // Rauheitskarte: Schmutz matt, Feuchte/Bitumen glänzend
+        if (mmap) { m.metalnessMap = mmap; m.metalness = 1; }
         if (nass) { m.color = new THREE.Color(o.farbe ?? 0xffffff).multiplyScalar(1 - 0.35 * nass); m.envMapIntensity = 1 + nass; }
         MAT_CACHE[key] = m; return m;
       }
@@ -2913,13 +2992,13 @@
         cyl(1.5, 4, h * 0.12, mat, 0, y + h * 0.06, 0, g, 8); return g; }
 
       // ---------- Hängebrücke (Silhouette der George-Washington-Brücke, vereinfacht) ----------
-      function haengebruecke(s, z) { const g = new THREE.Group(); g.position.set(0, 0, z); s.add(g); const stahl = M(0x7a8288, { roughness: 0.6, metalness: 0.4 });
+      function haengebruecke(s, z) { const g = new THREE.Group(); g.position.set(0, 0, z); s.add(g); const stahl = M(0x9aa2a8, { roughness: 0.55, metalness: 0.35 }), stahlDeck = stahl;
         const XT = 530, HT = 184, DECK = 65, cable = M(0x8a9298, { roughness: 0.5, metalness: 0.5 });
         for (const sx of [-1, 1]) { const tx = sx * XT;
           for (const sz of [-1, 1]) box(9, HT, 9, stahl, tx, HT / 2, sz * 20, g);
           for (let y = 30; y < HT; y += 32) { const b = box(6, 5, 42, stahl, tx, y, 0, g); const k1 = box(4, 40, 4, stahl, tx, y + 14, 0, g); k1.rotation.x = 0.85; const k2 = box(4, 40, 4, stahl, tx, y + 14, 0, g); k2.rotation.x = -0.85; }
-          box(40, 8, 60, M(0x9a9690), tx, 4, 0, g); }
-        box(2 * XT + 900, 9, 36, stahl, 0, DECK, 0, g); box(2 * XT + 900, 2, 38, M(0x4a4a4c), 0, DECK + 5.5, 0, g);
+          box(40, 8, 60, material("beton_verwittert", { wiederholen: [3, 0.6] }), tx, 4, 0, g); }
+        box(2 * XT + 900, 9, 36, stahlDeck, 0, DECK, 0, g); box(2 * XT + 900, 2, 38, M(0x4a4a4c), 0, DECK + 5.5, 0, g);
         const sag = (x) => { const a = Math.abs(x); return a <= XT ? DECK + 12 + (HT - DECK - 12) * (x / XT) ** 2 : HT - (HT - DECK - 8) * Math.min(1, (a - XT) / 450); };
         for (const sz of [-1, 1]) { const pts = []; for (let x = -XT - 450; x <= XT + 450; x += 15) pts.push(v3(x, sag(x), sz * 19)); const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 160, 0.9, 6), cable); g.add(tube);
           const n = Math.floor((2 * XT) / 12); const im = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.15, 0.15, 1, 4), cable, n); const m4 = new THREE.Matrix4(), q = new THREE.Quaternion();
@@ -2940,12 +3019,12 @@
       function kabine(jet) { const g = new THREE.Group(); jet.add(g); const R = 1.86, L = 22, Z0 = 2;
         const form = new THREE.Shape(); form.moveTo(Z0 - L / 2, -0.78); form.lineTo(Z0 + L / 2, -0.78); form.lineTo(Z0 + L / 2, 1.05); form.lineTo(Z0 - L / 2, 1.05); form.lineTo(Z0 - L / 2, -0.78);
         const fensterZ = []; for (let zw = Z0 - L / 2 + 0.6; zw < Z0 + L / 2 - 0.6; zw += 0.81) { fensterZ.push(zw); const h = new THREE.Path(); h.absellipse(zw, 0.3, 0.12, 0.17, 0, Math.PI * 2, true); form.holes.push(h); }
-        const wandM = M(0xbebcb6, { roughness: 0.75, side: THREE.DoubleSide }), rahmenM = M(0x8e8c86, { roughness: 0.6, side: THREE.DoubleSide }), wg = new THREE.ShapeGeometry(form, 10);
+        const wandM = M(0xbebcb6, { roughness: 0.75, side: THREE.DoubleSide }), rahmenM = (() => { const m = material("raureif", { farbe: 0xe2e6ea }).clone(); m.side = THREE.DoubleSide; m.metalnessMap = null; m.metalness = 0.15; return m; })(), wg = new THREE.ShapeGeometry(form, 10);
         const ring = new THREE.RingGeometry(1, 1.35, 28);
         for (const sx of [-1, 1]) { const w = new THREE.Mesh(wg, wandM); w.rotation.y = -Math.PI / 2; w.position.x = sx * 1.86; g.add(w);
           fensterZ.forEach((zw) => { const rg = new THREE.Mesh(ring, rahmenM); rg.rotation.y = -Math.PI / 2; rg.scale.set(0.12, 0.17, 1); rg.position.set(sx * 1.85, 0.3, zw); g.add(rg); }); }
         box(3.3, 0.06, L, M(0xeeece6, { roughness: 0.7 }), 0, 1.62, Z0, g);
-        box(3.5, 0.08, L, M(0x3a4258, { roughness: 0.95, map: texStoff("stoff") }), 0, -0.9, Z0, g);
+        box(3.5, 0.08, L, material("kabinenteppich", { wiederholen: [1, 30] }), 0, -0.9, Z0, g);
         for (const sx of [-1, 1]) { const bin = box(0.62, 0.42, L, M(0xeeece6, { roughness: 0.6 }), sx * 1.18, 1.08, Z0, g); bin.rotation.z = sx * 0.35; box(0.08, 0.04, L, new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.5, 1.3), toneMapped: false }), sx * 0.8, 1.3, Z0, g); }
         const sitzM = M(0x2a3a5e, { roughness: 0.9, map: texStoff("stoff") }), kopfM = M(0xe8e6e0, { roughness: 0.8 }), sitze = [];
         for (let row = 0; row < 22; row++) { const z = Z0 + L / 2 - 2.2 - row * 0.81; for (const sx of [-1, 1]) for (let k = 0; k < 3; k++) { const x = sx * (0.6 + k * 0.48);
@@ -2972,7 +3051,7 @@
           c.strokeStyle = "#ffffff"; c.lineWidth = 3; c.beginPath(); c.moveTo(60, 128); c.lineTo(196, 128); c.stroke(); c.fillStyle = farbe; c.font = "bold 26px monospace"; c.fillText(txt, 30, 230); c.strokeStyle = "#f2d22a"; c.lineWidth = 6; c.beginPath(); c.moveTo(100, 128); c.lineTo(156, 128); c.stroke(); });
         [[-1.05, "ENG 1 FAIL", "#ffb020"], [-0.55, "ALT 2800", "#30ff60"], [0.55, "ENG 2 FAIL", "#ffb020"], [1.05, "SPD 210", "#30ff60"]].forEach(([x, t, f]) => { const sc = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), new THREE.MeshBasicMaterial({ map: anzeige(t, f), toneMapped: false, color: new THREE.Color(1.3, 1.3, 1.3) })); sc.position.set(x, -0.2, Z + 1.14); sc.rotation.x = -0.25; sc.rotation.y = Math.PI; g.add(sc); });
         const warn = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.06), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 0.6, 0.1), toneMapped: false })); warn.position.set(0, 0.16, Z + 1.24); warn.rotation.y = Math.PI; g.add(warn);
-        box(0.5, 0.25, 1.2, dunkel, 0, -0.6, Z + 0.7, g); for (const sx of [-1, 1]) { box(0.12, 1.2, 0.12, dunkel, sx * 1.05, 0.75, Z + 1.95, g).rotation.z = sx * 0.35; box(0.1, 0.9, 0.1, dunkel, sx * 1.55, 0.55, Z + 1.2, g).rotation.z = sx * 0.6; }
+        box(0.5, 0.25, 1.2, (() => { const m = material("alu_eloxiert", { farbe: 0xb8bec6 }).clone(); m.metalness = 0.55; return m; })(), 0, -0.6, Z + 0.7, g); for (const sx of [-1, 1]) { box(0.12, 1.2, 0.12, dunkel, sx * 1.05, 0.75, Z + 1.95, g).rotation.z = sx * 0.35; box(0.1, 0.9, 0.1, dunkel, sx * 1.55, 0.55, Z + 1.2, g).rotation.z = sx * 0.6; }
         box(0.1, 1.0, 0.1, dunkel, 0, 0.75, Z + 2.05, g);
         const sitzM = M(0x2a2a2e, { roughness: 0.85 }); const piloten = [];
         [[-0.55, 7111, "halbglatze", 0xd8d8d4, "schnurrbart"], [0.55, 7112, "kurz", 0x6a4a2a, null]].forEach(([x, sd, fris, hf, bart], i) => { box(0.55, 0.15, 0.55, sitzM, x, -0.55, Z - 0.1, g); box(0.55, 1.0, 0.14, sitzM, x, -0.0, Z - 0.42, g);
@@ -2985,10 +3064,10 @@
       B.add(new THREE.HemisphereLight(0xd6e4ff, 0x4a4e56, 0.62)); const sonneB = sun(B, 0xffe0b4, 2.4, [-550, 300, 780], 40); sonneB.castShadow = false; umgebung(B, himB);
       box(60000, 1, 60000, M(0x3a3e40, { roughness: 1 }), 0, -30, 0, B);
       const landM = M(0x8a8882, { roughness: 0.95, map: texStoff("stoff") }), parkM = M(0x5a6248, { roughness: 1 });
-      box(3600, 12, 30000, landM, 700 + 1800, 0, -3000, B); box(5000, 12, 30000, landM, -700 - 2500, 0, -3000, B); for (const sx of [-1, 1]) box(12, 6.5, 30000, M(0x9a968e, { roughness: 0.9 }), sx * 703, 3, -3000, B);
+      box(3600, 12, 30000, landM, 700 + 1800, 0, -3000, B); box(5000, 12, 30000, landM, -700 - 2500, 0, -3000, B); for (const sx of [-1, 1]) box(12, 6.5, 30000, material("beton_verwittert", { wiederholen: [2500, 0.6] }), sx * 703, 3, -3000, B);
       const fels = box(60, 90, 13000, material("fels", { wiederholen: [2, 120] }), -730, 39, -9500, B); box(400, 80, 13000, parkM, -960, 40, -9500, B);
-      for (let z = -6000; z < 4500; z += 260) box(26, 3, 180, M(0x8a867e, { roughness: 0.9 }), 715 - 70, 1.5, z, B);
-      for (let z = 1500; z < 6000; z += 300) box(24, 3, 160, M(0x8a867e, { roughness: 0.9 }), -715 + 70, 1.5, z, B);
+      for (let z = -6000; z < 4500; z += 260) box(26, 3, 180, material("beton_verwittert", { wiederholen: [14, 0.3] }), 715 - 70, 1.5, z, B);
+      for (let z = 1500; z < 6000; z += 300) box(24, 3, 160, material("beton_verwittert", { wiederholen: [14, 0.3] }), -715 + 70, 1.5, z, B);
       stadt(B, 11, { x0: 760, x1: 3600, dx: 85, z0: -17000, z1: 9000, h: (x, z, r) => { const mid = Math.exp(-(((z - 900) / 2200) ** 2)), dt = Math.exp(-(((z - 7500) / 1500) ** 2)); const k = Math.max(mid, dt);
         return 18 + r() * 40 + k * (60 + r() * 230) * (r() < 0.75 ? 1 : 0.4) + (x < 900 ? -8 : 0); }, luecke: (x, z) => x > 1450 && x < 2300 && z > -4800 && z < -900 });
       box(850, 2, 3900, M(0x5e6a4a, { roughness: 1 }), 1875, 6.6, -2850, B);
@@ -3031,7 +3110,7 @@
       A.add(new THREE.HemisphereLight(0xd6e4ff, 0x8a8e96, 0.6)); const sA = sun(A, 0xffe2b8, 2.3, [-350, 300, -890], 120); sA.shadow.mapSize.set(2048, 2048); sA.target.position.set(0, 0, 0); umgebung(A, himA);
       box(16000, 1, 4600, material("schnee", { wiederholen: [400, 115], farbe: 0xc8d0d8 }), 0, -0.5, 2050, A);
       const bahnTex = canvasTex(64, 1024, (c) => { c.fillStyle = "#3a3c3e"; c.fillRect(0, 0, 64, 1024); c.fillStyle = "#e8e8e2"; c.fillRect(2, 0, 3, 1024); c.fillRect(59, 0, 3, 1024); for (let y = 0; y < 1024; y += 128) c.fillRect(30, y, 4, 64); }); bahnTex.wrapT = THREE.RepeatWrapping; bahnTex.repeat.set(1, 30); bahnTex.anisotropy = 4;
-      const bahn = new THREE.Mesh(new THREE.PlaneGeometry(45, 3200), new THREE.MeshStandardMaterial({ map: bahnTex, roughness: 0.75 })); bahn.rotation.x = -Math.PI / 2; bahn.rotation.z = Math.PI / 2; bahn.position.set(200, 0.03, 0); A.add(bahn);
+      const bahn = new THREE.Mesh(new THREE.PlaneGeometry(45, 3200), material("asphalt_spur", { wiederholen: [1, 50] })); bahn.rotation.x = -Math.PI / 2; bahn.rotation.z = Math.PI / 2; bahn.position.set(200, 0.03, 0); A.add(bahn);
       for (const sz of [-1, 1]) for (let x = -1300; x < 1700; x += 9) { const w = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), M(0xf4f6f8, { roughness: 0.7 })); w.scale.set(5.5, 0.7 + Math.sin(x * 0.13) * 0.25, 1.6); w.position.set(x, 0.2, sz * 31 + Math.sin(x * 0.07) * 0.8); A.add(w); }
       const kanten = []; for (const sz of [-1, 1]) for (let x = -1300; x < 1700; x += 60) { const g2 = glanzPunkt(0xfff4e0, 1.1); g2.position.set(x, 0.5, sz * 24); A.add(g2); kanten.push(g2); }
       box(16000, 1, 9000, M(0x5a7a8c, { roughness: 0.2, metalness: 0.0 }), 0, -1.5, -4800, A);

@@ -515,6 +515,9 @@ Das Tempo-Profil ist im Builder automatisch aktiv:
   - Spiegelflächen und Rauch nur dort, wo sie im Bild sind.
   - Lieber Shots mit Himmel oder Weite als volle Häuserschluchten.
 - Vor dem Render messen: Ein Benchmark mit 2–3 Bildern zeigt die Zeit pro Bild. Mit 2100 multiplizieren und dem User ansagen.
+- **Lange Renders (über 2 Stunden):** Hintergrundbefehle werden nach 2 Stunden beendet. Ein Prozess, der mit `setsid`/`nohup` gestartet wird, überlebt das Ende des Aufrufs nicht (Meldung `render_cancelled_parent_exited`).
+  - Deshalb segmentiert rendern: `HF_SEGMENTED_CAPTURE=true npx hyperframes render … --resume`.
+  - Nach einem Abbruch denselben Befehl erneut starten. Fertige Segmente werden wiederverwendet.
 - Render-Aufruf für schwere Szenen: `npx hyperframes render -o renders/x.mp4 -q delivery -w 1 --low-memory-mode --player-ready-timeout 600000 --protocol-timeout 900000 --browser-timeout 600`. Sonst bricht der Render beim Laden nach 45 s ab.
 
 ## Gelernt in Projekt Hudson (Luftfahrt, Stadt im echten Maßstab)

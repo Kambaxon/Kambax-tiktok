@@ -31,13 +31,13 @@
         cyl(1.5, 4, h * 0.12, mat, 0, y + h * 0.06, 0, g, 8); return g; }
 
       // ---------- Hängebrücke (Silhouette der George-Washington-Brücke, vereinfacht) ----------
-      function haengebruecke(s, z) { const g = new THREE.Group(); g.position.set(0, 0, z); s.add(g); const stahl = M(0x7a8288, { roughness: 0.6, metalness: 0.4 });
+      function haengebruecke(s, z) { const g = new THREE.Group(); g.position.set(0, 0, z); s.add(g); const stahl = M(0x9aa2a8, { roughness: 0.55, metalness: 0.35 }), stahlDeck = stahl;
         const XT = 530, HT = 184, DECK = 65, cable = M(0x8a9298, { roughness: 0.5, metalness: 0.5 });
         for (const sx of [-1, 1]) { const tx = sx * XT;
           for (const sz of [-1, 1]) box(9, HT, 9, stahl, tx, HT / 2, sz * 20, g);
           for (let y = 30; y < HT; y += 32) { const b = box(6, 5, 42, stahl, tx, y, 0, g); const k1 = box(4, 40, 4, stahl, tx, y + 14, 0, g); k1.rotation.x = 0.85; const k2 = box(4, 40, 4, stahl, tx, y + 14, 0, g); k2.rotation.x = -0.85; }
-          box(40, 8, 60, M(0x9a9690), tx, 4, 0, g); }
-        box(2 * XT + 900, 9, 36, stahl, 0, DECK, 0, g); box(2 * XT + 900, 2, 38, M(0x4a4a4c), 0, DECK + 5.5, 0, g);
+          box(40, 8, 60, material("beton_verwittert", { wiederholen: [3, 0.6] }), tx, 4, 0, g); }
+        box(2 * XT + 900, 9, 36, stahlDeck, 0, DECK, 0, g); box(2 * XT + 900, 2, 38, M(0x4a4a4c), 0, DECK + 5.5, 0, g);
         const sag = (x) => { const a = Math.abs(x); return a <= XT ? DECK + 12 + (HT - DECK - 12) * (x / XT) ** 2 : HT - (HT - DECK - 8) * Math.min(1, (a - XT) / 450); };
         for (const sz of [-1, 1]) { const pts = []; for (let x = -XT - 450; x <= XT + 450; x += 15) pts.push(v3(x, sag(x), sz * 19)); const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 160, 0.9, 6), cable); g.add(tube);
           const n = Math.floor((2 * XT) / 12); const im = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.15, 0.15, 1, 4), cable, n); const m4 = new THREE.Matrix4(), q = new THREE.Quaternion();
@@ -58,12 +58,12 @@
       function kabine(jet) { const g = new THREE.Group(); jet.add(g); const R = 1.86, L = 22, Z0 = 2;
         const form = new THREE.Shape(); form.moveTo(Z0 - L / 2, -0.78); form.lineTo(Z0 + L / 2, -0.78); form.lineTo(Z0 + L / 2, 1.05); form.lineTo(Z0 - L / 2, 1.05); form.lineTo(Z0 - L / 2, -0.78);
         const fensterZ = []; for (let zw = Z0 - L / 2 + 0.6; zw < Z0 + L / 2 - 0.6; zw += 0.81) { fensterZ.push(zw); const h = new THREE.Path(); h.absellipse(zw, 0.3, 0.12, 0.17, 0, Math.PI * 2, true); form.holes.push(h); }
-        const wandM = M(0xbebcb6, { roughness: 0.75, side: THREE.DoubleSide }), rahmenM = M(0x8e8c86, { roughness: 0.6, side: THREE.DoubleSide }), wg = new THREE.ShapeGeometry(form, 10);
+        const wandM = M(0xbebcb6, { roughness: 0.75, side: THREE.DoubleSide }), rahmenM = (() => { const m = material("raureif", { farbe: 0xe2e6ea }).clone(); m.side = THREE.DoubleSide; m.metalnessMap = null; m.metalness = 0.15; return m; })(), wg = new THREE.ShapeGeometry(form, 10);
         const ring = new THREE.RingGeometry(1, 1.35, 28);
         for (const sx of [-1, 1]) { const w = new THREE.Mesh(wg, wandM); w.rotation.y = -Math.PI / 2; w.position.x = sx * 1.86; g.add(w);
           fensterZ.forEach((zw) => { const rg = new THREE.Mesh(ring, rahmenM); rg.rotation.y = -Math.PI / 2; rg.scale.set(0.12, 0.17, 1); rg.position.set(sx * 1.85, 0.3, zw); g.add(rg); }); }
         box(3.3, 0.06, L, M(0xeeece6, { roughness: 0.7 }), 0, 1.62, Z0, g);
-        box(3.5, 0.08, L, M(0x3a4258, { roughness: 0.95, map: texStoff("stoff") }), 0, -0.9, Z0, g);
+        box(3.5, 0.08, L, material("kabinenteppich", { wiederholen: [1, 30] }), 0, -0.9, Z0, g);
         for (const sx of [-1, 1]) { const bin = box(0.62, 0.42, L, M(0xeeece6, { roughness: 0.6 }), sx * 1.18, 1.08, Z0, g); bin.rotation.z = sx * 0.35; box(0.08, 0.04, L, new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.5, 1.3), toneMapped: false }), sx * 0.8, 1.3, Z0, g); }
         const sitzM = M(0x2a3a5e, { roughness: 0.9, map: texStoff("stoff") }), kopfM = M(0xe8e6e0, { roughness: 0.8 }), sitze = [];
         for (let row = 0; row < 22; row++) { const z = Z0 + L / 2 - 2.2 - row * 0.81; for (const sx of [-1, 1]) for (let k = 0; k < 3; k++) { const x = sx * (0.6 + k * 0.48);
@@ -90,7 +90,7 @@
           c.strokeStyle = "#ffffff"; c.lineWidth = 3; c.beginPath(); c.moveTo(60, 128); c.lineTo(196, 128); c.stroke(); c.fillStyle = farbe; c.font = "bold 26px monospace"; c.fillText(txt, 30, 230); c.strokeStyle = "#f2d22a"; c.lineWidth = 6; c.beginPath(); c.moveTo(100, 128); c.lineTo(156, 128); c.stroke(); });
         [[-1.05, "ENG 1 FAIL", "#ffb020"], [-0.55, "ALT 2800", "#30ff60"], [0.55, "ENG 2 FAIL", "#ffb020"], [1.05, "SPD 210", "#30ff60"]].forEach(([x, t, f]) => { const sc = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), new THREE.MeshBasicMaterial({ map: anzeige(t, f), toneMapped: false, color: new THREE.Color(1.3, 1.3, 1.3) })); sc.position.set(x, -0.2, Z + 1.14); sc.rotation.x = -0.25; sc.rotation.y = Math.PI; g.add(sc); });
         const warn = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.06), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 0.6, 0.1), toneMapped: false })); warn.position.set(0, 0.16, Z + 1.24); warn.rotation.y = Math.PI; g.add(warn);
-        box(0.5, 0.25, 1.2, dunkel, 0, -0.6, Z + 0.7, g); for (const sx of [-1, 1]) { box(0.12, 1.2, 0.12, dunkel, sx * 1.05, 0.75, Z + 1.95, g).rotation.z = sx * 0.35; box(0.1, 0.9, 0.1, dunkel, sx * 1.55, 0.55, Z + 1.2, g).rotation.z = sx * 0.6; }
+        box(0.5, 0.25, 1.2, (() => { const m = material("alu_eloxiert", { farbe: 0xb8bec6 }).clone(); m.metalness = 0.55; return m; })(), 0, -0.6, Z + 0.7, g); for (const sx of [-1, 1]) { box(0.12, 1.2, 0.12, dunkel, sx * 1.05, 0.75, Z + 1.95, g).rotation.z = sx * 0.35; box(0.1, 0.9, 0.1, dunkel, sx * 1.55, 0.55, Z + 1.2, g).rotation.z = sx * 0.6; }
         box(0.1, 1.0, 0.1, dunkel, 0, 0.75, Z + 2.05, g);
         const sitzM = M(0x2a2a2e, { roughness: 0.85 }); const piloten = [];
         [[-0.55, 7111, "halbglatze", 0xd8d8d4, "schnurrbart"], [0.55, 7112, "kurz", 0x6a4a2a, null]].forEach(([x, sd, fris, hf, bart], i) => { box(0.55, 0.15, 0.55, sitzM, x, -0.55, Z - 0.1, g); box(0.55, 1.0, 0.14, sitzM, x, -0.0, Z - 0.42, g);
@@ -103,10 +103,10 @@
       B.add(new THREE.HemisphereLight(0xd6e4ff, 0x4a4e56, 0.62)); const sonneB = sun(B, 0xffe0b4, 2.4, [-550, 300, 780], 40); sonneB.castShadow = false; umgebung(B, himB);
       box(60000, 1, 60000, M(0x3a3e40, { roughness: 1 }), 0, -30, 0, B);
       const landM = M(0x8a8882, { roughness: 0.95, map: texStoff("stoff") }), parkM = M(0x5a6248, { roughness: 1 });
-      box(3600, 12, 30000, landM, 700 + 1800, 0, -3000, B); box(5000, 12, 30000, landM, -700 - 2500, 0, -3000, B); for (const sx of [-1, 1]) box(12, 6.5, 30000, M(0x9a968e, { roughness: 0.9 }), sx * 703, 3, -3000, B);
+      box(3600, 12, 30000, landM, 700 + 1800, 0, -3000, B); box(5000, 12, 30000, landM, -700 - 2500, 0, -3000, B); for (const sx of [-1, 1]) box(12, 6.5, 30000, material("beton_verwittert", { wiederholen: [2500, 0.6] }), sx * 703, 3, -3000, B);
       const fels = box(60, 90, 13000, material("fels", { wiederholen: [2, 120] }), -730, 39, -9500, B); box(400, 80, 13000, parkM, -960, 40, -9500, B);
-      for (let z = -6000; z < 4500; z += 260) box(26, 3, 180, M(0x8a867e, { roughness: 0.9 }), 715 - 70, 1.5, z, B);
-      for (let z = 1500; z < 6000; z += 300) box(24, 3, 160, M(0x8a867e, { roughness: 0.9 }), -715 + 70, 1.5, z, B);
+      for (let z = -6000; z < 4500; z += 260) box(26, 3, 180, material("beton_verwittert", { wiederholen: [14, 0.3] }), 715 - 70, 1.5, z, B);
+      for (let z = 1500; z < 6000; z += 300) box(24, 3, 160, material("beton_verwittert", { wiederholen: [14, 0.3] }), -715 + 70, 1.5, z, B);
       stadt(B, 11, { x0: 760, x1: 3600, dx: 85, z0: -17000, z1: 9000, h: (x, z, r) => { const mid = Math.exp(-(((z - 900) / 2200) ** 2)), dt = Math.exp(-(((z - 7500) / 1500) ** 2)); const k = Math.max(mid, dt);
         return 18 + r() * 40 + k * (60 + r() * 230) * (r() < 0.75 ? 1 : 0.4) + (x < 900 ? -8 : 0); }, luecke: (x, z) => x > 1450 && x < 2300 && z > -4800 && z < -900 });
       box(850, 2, 3900, M(0x5e6a4a, { roughness: 1 }), 1875, 6.6, -2850, B);
@@ -149,7 +149,7 @@
       A.add(new THREE.HemisphereLight(0xd6e4ff, 0x8a8e96, 0.6)); const sA = sun(A, 0xffe2b8, 2.3, [-350, 300, -890], 120); sA.shadow.mapSize.set(2048, 2048); sA.target.position.set(0, 0, 0); umgebung(A, himA);
       box(16000, 1, 4600, material("schnee", { wiederholen: [400, 115], farbe: 0xc8d0d8 }), 0, -0.5, 2050, A);
       const bahnTex = canvasTex(64, 1024, (c) => { c.fillStyle = "#3a3c3e"; c.fillRect(0, 0, 64, 1024); c.fillStyle = "#e8e8e2"; c.fillRect(2, 0, 3, 1024); c.fillRect(59, 0, 3, 1024); for (let y = 0; y < 1024; y += 128) c.fillRect(30, y, 4, 64); }); bahnTex.wrapT = THREE.RepeatWrapping; bahnTex.repeat.set(1, 30); bahnTex.anisotropy = 4;
-      const bahn = new THREE.Mesh(new THREE.PlaneGeometry(45, 3200), new THREE.MeshStandardMaterial({ map: bahnTex, roughness: 0.75 })); bahn.rotation.x = -Math.PI / 2; bahn.rotation.z = Math.PI / 2; bahn.position.set(200, 0.03, 0); A.add(bahn);
+      const bahn = new THREE.Mesh(new THREE.PlaneGeometry(45, 3200), material("asphalt_spur", { wiederholen: [1, 50] })); bahn.rotation.x = -Math.PI / 2; bahn.rotation.z = Math.PI / 2; bahn.position.set(200, 0.03, 0); A.add(bahn);
       for (const sz of [-1, 1]) for (let x = -1300; x < 1700; x += 9) { const w = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), M(0xf4f6f8, { roughness: 0.7 })); w.scale.set(5.5, 0.7 + Math.sin(x * 0.13) * 0.25, 1.6); w.position.set(x, 0.2, sz * 31 + Math.sin(x * 0.07) * 0.8); A.add(w); }
       const kanten = []; for (const sz of [-1, 1]) for (let x = -1300; x < 1700; x += 60) { const g2 = glanzPunkt(0xfff4e0, 1.1); g2.position.set(x, 0.5, sz * 24); A.add(g2); kanten.push(g2); }
       box(16000, 1, 9000, M(0x5a7a8c, { roughness: 0.2, metalness: 0.0 }), 0, -1.5, -4800, A);
