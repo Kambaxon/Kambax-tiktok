@@ -147,12 +147,36 @@
       const A = new THREE.Scene(); const sonneA = [-0.35, 0.3, -0.89];
       const himA = himmelShader(A, { zeit: "tag", wolken: 0.15, wolkenTyp: "cirrus", sonne: sonneA }); A.fog = new THREE.Fog(0xc2cfdd, 3500, 30000);
       A.add(new THREE.HemisphereLight(0xd6e4ff, 0x8a8e96, 0.6)); const sA = sun(A, 0xffe2b8, 2.3, [-350, 300, -890], 120); sA.shadow.mapSize.set(2048, 2048); sA.target.position.set(0, 0, 0); umgebung(A, himA);
-      box(16000, 1, 4600, material("schnee", { wiederholen: [400, 115], farbe: 0xc8d0d8 }), 0, -0.5, 2050, A);
-      const bahnTex = canvasTex(64, 1024, (c) => { c.fillStyle = "#3a3c3e"; c.fillRect(0, 0, 64, 1024); c.fillStyle = "#e8e8e2"; c.fillRect(2, 0, 3, 1024); c.fillRect(59, 0, 3, 1024); for (let y = 0; y < 1024; y += 128) c.fillRect(30, y, 4, 64); }); bahnTex.wrapT = THREE.RepeatWrapping; bahnTex.repeat.set(1, 30); bahnTex.anisotropy = 4;
-      const bahn = new THREE.Mesh(new THREE.PlaneGeometry(45, 3200), material("asphalt_spur", { wiederholen: [1, 50] })); bahn.rotation.x = -Math.PI / 2; bahn.rotation.z = Math.PI / 2; bahn.position.set(200, 0.03, 0); A.add(bahn);
-      for (const sz of [-1, 1]) for (let x = -1300; x < 1700; x += 9) { const w = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), M(0xf4f6f8, { roughness: 0.7 })); w.scale.set(5.5, 0.7 + Math.sin(x * 0.13) * 0.25, 1.6); w.position.set(x, 0.2, sz * 31 + Math.sin(x * 0.07) * 0.8); A.add(w); }
-      const kanten = []; for (const sz of [-1, 1]) for (let x = -1300; x < 1700; x += 60) { const g2 = glanzPunkt(0xfff4e0, 1.1); g2.position.set(x, 0.5, sz * 24); A.add(g2); kanten.push(g2); }
-      box(16000, 1, 9000, M(0x5a7a8c, { roughness: 0.2, metalness: 0.0 }), 0, -1.5, -4800, A);
+      sA.shadow.bias = -0.0004; sA.shadow.normalBias = 0.04;
+      // Gelände: leicht wellig; Makro-Textur (Schnee über Wintergras, Matsch, Fahrspuren) + feines Schneerelief
+      const feldTex = canvasTex(2048, 2048, (c, W, H) => { const q = rng(311); c.fillStyle = "#d4dae0"; c.fillRect(0, 0, W, H);
+        for (let i = 0; i < 1100; i++) { const x = q() * W, y = q() * H, r = 8 + q() * 70, k = q(); const gr = c.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, k < 0.5 ? "rgba(112,118,86,.55)" : k < 0.75 ? "rgba(146,140,124,.45)" : "rgba(244,247,250,.75)"); gr.addColorStop(1, "rgba(0,0,0,0)"); c.fillStyle = gr; c.fillRect(x - r, y - r, 2 * r, 2 * r); }
+        for (let i = 0; i < 70000; i++) { c.fillStyle = q() < 0.5 ? "rgba(255,255,255,.22)" : "rgba(86,92,74,.16)"; c.fillRect(q() * W, q() * H, 2, 2); }
+        c.strokeStyle = "rgba(118,114,100,.32)"; c.lineWidth = 4; for (let i = 0; i < 30; i++) { let x = q() * W, y = q() * H; c.beginPath(); c.moveTo(x, y); for (let k = 0; k < 8; k++) { x += (q() - 0.5) * 140; y += 40 + q() * 60; c.lineTo(x, y); } c.stroke(); } });
+      feldTex.wrapS = feldTex.wrapT = THREE.RepeatWrapping; feldTex.anisotropy = 8;
+      const schneeB = material("schnee").bumpMap.clone(); schneeB.needsUpdate = true; schneeB.repeat.set(1, 1);
+      const feldGeo = new THREE.PlaneGeometry(9000, 9000, 220, 220); feldGeo.rotateX(-Math.PI / 2);
+      { const p = feldGeo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i) + 4350; const ab = Math.min(Math.abs(z), Math.abs(z - 160) * 1.5, Math.abs(z - 400));
+          let h = (Math.sin(x * 0.011) * Math.cos(z * 0.009) * 1.4 + Math.sin(x * 0.031 + z * 0.023) * 0.5) * clamp((ab - 60) / 220, 0, 1); if (z < -60) h -= clamp((-60 - z) / 90, 0, 1) * 1.2; p.setY(i, h - 0.02); } feldGeo.computeVertexNormals(); }
+      const feldM = new THREE.MeshStandardMaterial({ map: feldTex, roughness: 0.85 }); feldM.map.repeat.set(4, 4); const detailTex = material("schnee").map; detailTex.anisotropy = 4;
+      feldM.onBeforeCompile = (sh) => { sh.uniforms.tDetail = { value: detailTex }; sh.fragmentShader = sh.fragmentShader.replace("void main() {", "uniform sampler2D tDetail;\nvoid main() {").replace("#include <map_fragment>", "#include <map_fragment>\n diffuseColor.rgb *= mix(vec3(1.0), texture2D(tDetail, vUv * 1800.0).rgb * 1.18, 0.55) * mix(vec3(1.0), texture2D(tDetail, vUv * 190.0).rgb * 1.12, 0.35);"); }; // feines Schneerelief mit eigenem Maßstab
+      const feld = new THREE.Mesh(feldGeo, feldM); feld.position.z = 4350; feld.receiveShadow = true; A.add(feld);
+      // Startbahn: gealterter Asphalt (Relief/Glanz), Markierungen als Overlay, nasse Pfützen mit echter Spiegelung
+      const bahnM = material("asphalt_alt", { wiederholen: [3, 220], nass: 0.25 }).clone(); bahnM.color.setScalar(1.25); bahnM.envMapIntensity = 0.9; // nasser Asphalt: Glanz + Umgebungsreflexion const bahn = new THREE.Mesh(new THREE.PlaneGeometry(45, 3200), bahnM); bahn.rotation.x = -Math.PI / 2; bahn.rotation.z = Math.PI / 2; bahn.position.set(200, 0.03, 0); bahn.receiveShadow = true; A.add(bahn);
+      const markTex = canvasTex(128, 4096, (c, W, H) => { c.clearRect(0, 0, W, H); c.fillStyle = "rgba(240,240,232,.92)"; c.fillRect(3, 0, 3, H); c.fillRect(W - 6, 0, 3, H); for (let y = 60; y < H - 60; y += 64) c.fillRect(W / 2 - 1.5, y, 3, 38);
+        for (const y0 of [8, H - 48]) { for (let k = 0; k < 12; k++) { if (k === 5 || k === 6) continue; c.fillRect(10 + k * 9.2, y0, 6, 40); } }
+        for (const y0 of [200, H - 240]) { c.fillRect(30, y0, 16, 40); c.fillRect(W - 46, y0, 16, 40); } for (const y0 of [120, 260, 330, H - 160, H - 300, H - 370]) { for (const dx of [18, 26, W - 32, W - 24]) c.fillRect(dx, y0, 4, 22); }
+        for (let i = 0; i < 9000; i++) { c.clearRect(Math.random() * W, Math.random() * H, 1.5, 1.5); } }); markTex.anisotropy = 8;
+      const mark = new THREE.Mesh(new THREE.PlaneGeometry(45, 3200), new THREE.MeshStandardMaterial({ map: markTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, roughness: 0.55 })); mark.rotation.x = -Math.PI / 2; mark.rotation.z = Math.PI / 2; mark.position.set(200, 0.045, 0); mark.receiveShadow = true; A.add(mark);
+      // Rollweg mit gelber Mittellinie und blauen Randlichtern
+      const rollM = material("asphalt_alt", { wiederholen: [1.5, 200] }).clone(); rollM.color.setScalar(1.6); const roll = new THREE.Mesh(new THREE.PlaneGeometry(23, 3000), rollM); roll.rotation.x = -Math.PI / 2; roll.rotation.z = Math.PI / 2; roll.position.set(200, 0.02, 160); A.add(roll);
+      const gelb = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 3000), new THREE.MeshStandardMaterial({ color: 0xe8c020, roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -2 })); gelb.rotation.x = -Math.PI / 2; gelb.rotation.z = Math.PI / 2; gelb.position.set(200, 0.04, 160); A.add(gelb);
+      for (const sz of [-1, 1]) for (let x = -1300; x < 1700; x += 45) { const bl = glanzPunkt(0x4a7aff, 0.35); bl.position.set(x, 0.4, 160 + sz * 12.5); A.add(bl); }
+      for (let x = -1200; x < 1700; x += 400) { const v = new THREE.Mesh(new THREE.PlaneGeometry(18, 120), material("asphalt_alt", { wiederholen: [1, 8] })); v.rotation.x = -Math.PI / 2; v.position.set(x, 0.025, 92); A.add(v); }
+      for (const sz of [-1, 1]) for (let x = -1300; x < 1700; x += 9) { const w = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), material("schnee", { wiederholen: [2, 1] })); w.scale.set(5.5 + Math.sin(x * 0.37) * 1.5, 0.45 + Math.sin(x * 0.13) * 0.2 + Math.sin(x * 0.71) * 0.1, 1.5 + Math.sin(x * 0.23) * 0.4); w.position.set(x, 0.2, sz * 31 + Math.sin(x * 0.07) * 0.8); A.add(w); }
+      const kanten = []; for (const sz of [-1, 1]) for (let x = -1300; x < 1700; x += 60) { const g2 = glanzPunkt(0xfff4e0, 0.45); g2.position.set(x, 0.45, sz * 24); A.add(g2); kanten.push(g2); }
+      for (let x = -1100; x < 1600; x += 380) { const sch = box(4, 1.2, 0.4, M(0x1a1a1a, { roughness: 0.6 }), x, 0.9, 52, A); box(1.6, 1.0, 0.42, M(0xe8c020, { roughness: 0.6 }), x - 0.9, 0.9, 52.01, A); }
+      spiegelflaeche(A, 16000, 9000, { x: 0, z: -4650, y: -0.7, maske: "voll", staerke: 0.8, rau: 0.18, aufl: 0.5, wasser: { farbe: 0x2c4652, wellen: 0.4 } });
       box(300, 22, 80, material("glasfassade"), 900, 11, 380, A); box(260, 8, 120, M(0xb8bcc0, { roughness: 0.7 }), 600, 4, 400, A);
       cyl(5, 7, 50, M(0xc8c8c4, { roughness: 0.7 }), 420, 25, 300, A, 16); cyl(11, 9, 8, material("getoentglas"), 420, 54, 300, A, 16);
       stadt(A, 21, { x0: -9000, x1: -1500, dx: 160, z0: -11500, z1: -8800, y: 0, h: (x, z, r) => { const k = Math.exp(-(((x + 5000) / 1800) ** 2)); return 20 + r() * 50 + k * r() * 280; } });
@@ -168,15 +192,15 @@
       function hitzeA(cam) { jetA.updateMatrixWorld(true); hitzePunkte(POST, cam, abgasA.map((p) => ({ pos: v3(p.x, p.y, p.z - 3).applyMatrix4(jetA.matrixWorld), radius: 0.07, staerke: 0.8 }))); }
 
       // 1) Am Fenster: Rollen zur Startbahn, Blick nach rechts über die Tragfläche zur Skyline
-      W.fenster = { scene: A, camera: c.fenster, look: "tealOrange", post: Object.assign({}, KLAR, { uDof: 0, uUnscharfAn: 0, uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55] }),
-        update(t, T) { himA.update(T); jetA.position.set(200 - t * 6, 2.6, 0); jetA.rotation.set(0, -Math.PI / 2, 0); jetA.updateMatrixWorld(true); a320A.userData.fanWinkel = T * 1.6; flugzeugUpdate(a320A, T);
+      W.fenster = { scene: A, camera: c.fenster, look: "tealOrange", post: Object.assign({}, KLAR, { uKon: 1.2, uDof: 0, uUnscharfAn: 0, uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55] }),
+        update(t, T) { himA.update(T); jetA.position.set(200 - t * 6, 2.6, 0); sA.target.position.copy(jetA.position); sA.position.set(jetA.position.x - 350, 300, jetA.position.z - 890); sA.target.updateMatrixWorld(); jetA.rotation.set(0, -Math.PI / 2, 0); jetA.updateMatrixWorld(true); a320A.userData.fanWinkel = T * 1.6; flugzeugUpdate(a320A, T);
           nachbarn.forEach((n, i) => n.setze(0, T + i)); const cam = c.fenster; const pz = kabA.Z0 + kabA.L / 2 - 2.2 - 18 * 0.81 - 0.1;
           const lokal = v3(-1.36, 0.36 + Math.sin(t * 0.7) * 0.004, pz + 0.04), ziel = v3(-5, 0.6, pz + 1.5 + t * 0.06); zielen(cam, lokal.applyMatrix4(jetA.matrixWorld), ziel.applyMatrix4(jetA.matrixWorld), 54); cam.rotation.z += Math.sin(t * 9) * 0.0015; } };
       // 2) Start: Abheben über der Bucht, Kamera am Rand der Bahn schwenkt mit
-      W.start = { scene: A, camera: c.start, look: "tealOrange", post: Object.assign({}, KLAR, { uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55], uStrahlen: 0.15 }),
+      W.start = { scene: A, camera: c.start, look: "tealOrange", post: Object.assign({}, KLAR, { uKon: 1.22, uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55], uStrahlen: 0.15 }),
         update(t, T) { himA.update(T); const v = 30 + t * 22, x = -500 + 30 * t + 11 * t * t, roh = Math.max(0, t - 3.2), y = 2.6 + roh * roh * 4.5 + roh * 2, nick = Math.min(0.2, Math.max(0, t - 2.9) * 0.18);
-          jetA.position.set(x, y, 0); jetA.rotation.set(0, Math.PI / 2, 0); jetA.rotation.order = "YXZ"; jetA.rotation.x = -nick; jetA.updateMatrixWorld(true); a320A.userData.fanWinkel = T * 1.6; flugzeugUpdate(a320A, T);
-          const cam = c.start; zielen(cam, v3(-140 + t * 8, 1.6, 95), v3(x + 10, y + 3, 0), 40); hitzeA(cam); } };
+          jetA.position.set(x, y, 0); jetA.rotation.set(0, Math.PI / 2, 0); sA.target.position.set(x, 0, 0); sA.position.set(x - 350, 300, -890); sA.target.updateMatrixWorld(); jetA.rotation.order = "YXZ"; jetA.rotation.x = -nick; jetA.updateMatrixWorld(true); a320A.userData.fanWinkel = T * 1.6; flugzeugUpdate(a320A, T);
+          const cam = c.start; zielen(cam, v3(-90 + t * 18, 2.1, 36.5), v3(x + 8, y + 2.5, 0), 32); hitzeA(cam); } };
 
       // Flugbahn in B: Vogelschlag nördlich, dann Linkskurve nach Süden über den Hudson, Wasserung bei z = 0
       // 3) Gänse: Kamera vor dem Flugzeug, der Schwarm kreuzt – Knall, Feuer, Stille
