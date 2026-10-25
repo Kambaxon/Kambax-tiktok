@@ -53,6 +53,19 @@ const KLAR = { uSSAA: 1, uBloom: 0.35, uHalation: 0.03, uChroma: 0, uKorn: 0, uV
 - Nie Filmkorn.
 - Das Tempo-Profil bleibt aktiv. Die Kosten der Effekte vor dem Render ansagen.
 
+**3. Realismus-Strukturen sind Standard** (`materialien.js`, mit eigenen Höhen-, Rauheits- und Metallkarten). Schmutz reagiert matt, Feuchte und Bitumen glänzend. Statt glatter Einheitsfarben immer einsetzen, wo es passt:
+- **Verfall und Patina:**
+  - `beton_verwittert`: Mikroporen, Haarrisse, Wasserläufer von Kanten, Salzausblühungen. Für Brutalismus, Industrie, Brückenpfeiler, Kaimauern.
+  - `stahl_rost`: Plattenfelder mit Nietreihen, Rost an den Nieten, Ölschmutz in den Fugen, Kratzer bis aufs blanke Metall. Für Brücken, alte Fahrzeuge, Industrie.
+  - `asphalt_alt` / `asphalt_spur`: freiliegender Zuschlag, gezackte Risse mit glänzendem Bitumen, abgefahrener Mittelstrich.
+- **Organisch:**
+  - `moosstein_feucht`: Moos, Krustenflechten, nasser in den unteren Fugen. Für Ufer, Mauern, Treppen.
+  - `raureif`: Frostnadeln von den Kanten über kaltem Metall, mit Klarlack-Funkeln in der tiefen Sonne. Für Fensterrahmen und Geländer im Winter.
+- **Interieur:**
+  - `kabinenteppich`: Schlingenflor mit Rautenmuster und Laufspur bei u = 0,5. Mit `wiederholen: [1, n]` entlang des Gangs legen.
+  - `alu_eloxiert`: gebürstete Rillen mit anisotropem Glanz. Für Cockpit, Konsolen, Geräte.
+- **Eigene Strukturen:** Neue Materialien bekommen als `def[6]` die Maler `{ hoehe, rau, metall }` (Graustufen, hell = hoch, rau, metallisch). Dazu in `def[4]` `aufl: 512` für feine Details.
+
 ## Gestaltung
 
 **3D-Welt (Three.js r149, `assets/vendor/three.min.js`, im Szenen-`<template>` laden):**

@@ -1,5 +1,5 @@
       // ===== Materialien v1: ~100 Oberflächen als prozedurale Texturen (Farbe + Relief/Bump + Rauheit/Metall) =====
-      // material(name, { wiederholen: [x, y], farbe, nass: 0..1 }) -> MeshStandard/PhysicalMaterial (gecacht pro Name+Optionen)
+      // material(name, { wiederholen: [x, y], farbe, nass: 0..1 })  Realismus-Strukturen: beton_verwittert, stahl_rost, asphalt_alt, asphalt_spur, moosstein_feucht, raureif, kabinenteppich, alu_eloxiert -> MeshStandard/PhysicalMaterial (gecacht pro Name+Optionen)
       // Namen: siehe MATERIAL_LISTE (Kleidung, Bau, Boden, Natur). Unbekannte Namen -> neutraler Putz.
       const MAT_CACHE = {}, MAT_TEX = {};
       const MAT_P = { // kleine Mal-Werkzeuge für Canvas-Texturen
@@ -129,18 +129,71 @@
         wasser: [(g, W, H, q) => { MAT_P.verlauf(g, W, H, "#3a6a8a", "#1a3a5a"); for (let i = 0; i < 200; i++) { g.strokeStyle = `rgba(255,255,255,${0.04 + q() * 0.06})`; g.beginPath(); const x = q() * W, y = q() * H; g.ellipse(x, y, 10 + q() * 20, 2, 0, 0, 7); g.stroke(); } }, 0.05, 0.3, 0.3, { transparent: true, opacity: 0.85, envMapIntensity: 1.8 }],
         nassschlamm: [(g, W, H, q) => { g.fillStyle = "#3a2c1e"; g.fillRect(0, 0, W, H); MAT_P.flecken(g, W, H, q, "rgba(10,8,6,.5)", 30, 10, 40); }, 0.2, 0, 1.0, { envMapIntensity: 1.4 }],
       };
+
+      // ---- Realismus-Strukturen (Standard für jedes Projekt): Verfall & Patina, organisch, Kabine/Interieur ----
+      // def[6] = { hoehe, rau, metall }: eigene Graustufen-Karten (hell = hoch / rau / metallisch)
+      const MAT_R = { // Helfer für feine Strukturen
+        poren(g, W, H, q, n, a = 0.5, r = 0.9) { for (let i = 0; i < n; i++) { g.fillStyle = `rgba(0,0,0,${a * (0.4 + q() * 0.6)})`; g.beginPath(); g.arc(q() * W, q() * H, r * (0.4 + q()), 0, 7); g.fill(); } },
+        haarriss(g, W, H, q, n, farbe, l = 60, w = 0.7) { g.strokeStyle = farbe; g.lineWidth = w; for (let i = 0; i < n; i++) { let x = q() * W, y = q() * H, ang = q() * 6.28; g.beginPath(); g.moveTo(x, y); const st = 6 + Math.floor(q() * 10); for (let k = 0; k < st; k++) { ang += (q() - 0.5) * 1.1; x += Math.cos(ang) * l / st * 2; y += Math.sin(ang) * l / st * 2; g.lineTo(x, y); if (q() < 0.15) { g.moveTo(x, y); } } g.stroke(); } },
+        laeufer(g, W, H, q, n, farbe, l0, l1) { g.save(); g.filter = "blur(3px)"; for (let i = 0; i < n; i++) { const x = q() * W, y0 = q() * H * 0.3, len = l0 + q() * (l1 - l0), w = 8 + q() * 22; const gr = g.createLinearGradient(0, y0, 0, y0 + len); gr.addColorStop(0, farbe); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(x, y0, w, len); g.fillRect(x + w * 0.3, y0, w * 0.4, len * 1.25); } g.restore(); },
+        frost(g, W, H, q, n, farbe) { g.strokeStyle = farbe; const ast = (x, y, a, l, d) => { if (d > 4 || l < 2) return; const x2 = x + Math.cos(a) * l, y2 = y + Math.sin(a) * l; g.lineWidth = Math.max(0.4, 1.6 - d * 0.35); g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke(); for (let k = 1; k <= 3; k++) { const t2 = k / 4, xa = x + (x2 - x) * t2, ya = y + (y2 - y) * t2; ast(xa, ya, a + 1.05, l * 0.38, d + 1); ast(xa, ya, a - 1.05, l * 0.38, d + 1); } ast(x2, y2, a + (q() - 0.5) * 0.3, l * 0.7, d + 1); };
+          for (let i = 0; i < n; i++) { const kante = q() < 0.5; ast(kante ? q() * W : (q() < 0.5 ? 0 : W), kante ? (q() < 0.5 ? 0 : H) : q() * H, q() * 6.28, 18 + q() * 30, 0); } },
+      };
+      Object.assign(MATERIAL_LISTE, {
+        // Wettergegerbter Beton: Mikroporen, Haarrisse, Wasserläufer von Kanten, Salzausblühungen
+        beton_verwittert: [(g, W, H, q) => { g.fillStyle = "#8e8b84"; g.fillRect(0, 0, W, H); MAT_P.flecken(g, W, H, q, "rgba(60,58,54,.14)", 40, 20, 90); MAT_P.alpha(g, W, H, q, 14000, 0.09, 1.2);
+            MAT_R.laeufer(g, W, H, q, 14, "rgba(46,44,40,.28)", 140, 420); MAT_P.flecken(g, W, H, q, "rgba(240,238,228,.22)", 16, 10, 40); MAT_R.poren(g, W, H, q, 2200, 0.35, 0.8); MAT_R.haarriss(g, W, H, q, 9, "rgba(40,38,36,.55)", 70, 0.8); },
+          0.92, 0, 1.0, { aufl: 512 }, null, { hoehe: (g, W, H, q) => { g.fillStyle = "#808080"; g.fillRect(0, 0, W, H); MAT_P.alpha(g, W, H, q, 16000, 0.12, 1.2); MAT_R.poren(g, W, H, q, 2600, 0.7, 0.9); MAT_R.haarriss(g, W, H, q, 9, "rgba(0,0,0,.8)", 70, 1.0); },
+            rau: (g, W, H, q) => { g.fillStyle = "#ebebeb"; g.fillRect(0, 0, W, H); MAT_R.laeufer(g, W, H, q, 14, "rgba(90,90,90,.5)", 140, 420); MAT_P.flecken(g, W, H, q, "rgba(255,255,255,.4)", 16, 10, 40); } }],
+        // Verwitterte Stahlplatten: Nietreihen, abblätternder Rost, Ölschmutz in Fugen, Kratzer mit blankem Metall
+        stahl_rost: [(g, W, H, q) => { g.fillStyle = "#5e6266"; g.fillRect(0, 0, W, H); MAT_P.alpha(g, W, H, q, 9000, 0.1, 1.5); const P = 128;
+            for (let y = 0; y < H; y += P) for (let x = 0; x < W; x += P) { g.strokeStyle = "rgba(20,16,12,.7)"; g.lineWidth = 3; g.strokeRect(x + 1.5, y + 1.5, P - 3, P - 3); }
+            for (let y = 0; y < H; y += P) for (let x = 0; x < W; x += P) for (let k = 10; k < P; k += 16) for (const [rx, ry] of [[x + k, y + 8], [x + k, y + P - 8], [x + 8, y + k], [x + P - 8, y + k]]) { if (q() < 0.45) { const gr = g.createRadialGradient(rx, ry, 0, rx, ry, 4 + q() * 8); gr.addColorStop(0, "rgba(140,60,20,.6)"); gr.addColorStop(1, "rgba(120,50,15,0)"); g.fillStyle = gr; g.fillRect(rx - 20, ry - 20, 40, 40); } g.fillStyle = "#3a3632"; g.beginPath(); g.arc(rx, ry, 2.6, 0, 7); g.fill(); }
+            MAT_P.flecken(g, W, H, q, "rgba(130,56,22,.4)", 14, 6, 28); MAT_P.flecken(g, W, H, q, "rgba(15,12,8,.35)", 20, 10, 40); g.strokeStyle = "rgba(205,210,215,.55)"; g.lineWidth = 0.6; for (let i = 0; i < 140; i++) { const x = q() * W, y = q() * H, a = (q() - 0.5) * 0.6; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * (8 + q() * 30), y + Math.sin(a) * (8 + q() * 30)); g.stroke(); } },
+          1, 1, 0.9, { aufl: 512 }, null, { metall: (g, W, H, q) => { g.fillStyle = "#c8c8c8"; g.fillRect(0, 0, W, H); MAT_P.flecken(g, W, H, q, "rgba(0,0,0,.9)", 70, 8, 30); },
+            rau: (g, W, H, q) => { g.fillStyle = "#9a9a9a"; g.fillRect(0, 0, W, H); MAT_P.flecken(g, W, H, q, "rgba(255,255,255,.8)", 70, 8, 30); g.strokeStyle = "rgba(40,40,40,.9)"; g.lineWidth = 0.8; for (let i = 0; i < 140; i++) { const x = q() * W, y = q() * H; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 20, y + (q() - 0.5) * 6); g.stroke(); } } }],
+        // Alter Asphalt: freiliegender Zuschlag, gezackte Risse mit Bitumen (glänzend), optional Fahrbahnstrich
+        asphalt_alt: [(g, W, H, q) => { g.fillStyle = "#34363a"; g.fillRect(0, 0, W, H); MAT_P.rausch(g, W, H, q, ["#26282b", "#44464a", "#5a5c60", "#6e6a64", "#2e3033"], 26000, 1.6); MAT_P.flecken(g, W, H, q, "rgba(10,10,12,.18)", 18, 20, 70);
+            MAT_R.haarriss(g, W, H, q, 7, "rgba(12,12,14,.95)", 110, 3.2); },
+          1, 0, 0.9, { aufl: 512 }, null, { hoehe: (g, W, H, q) => { g.fillStyle = "#7a7a7a"; g.fillRect(0, 0, W, H); MAT_P.rausch(g, W, H, q, ["#9a9a9a", "#b8b8b8", "#5a5a5a"], 22000, 1.6); MAT_R.haarriss(g, W, H, q, 7, "rgba(0,0,0,.9)", 110, 3.2); },
+            rau: (g, W, H, q) => { g.fillStyle = "#e0e0e0"; g.fillRect(0, 0, W, H); MAT_R.haarriss(g, W, H, q, 7, "rgba(70,70,70,1)", 110, 3.6); } }],
+        asphalt_spur: [(g, W, H, q) => { MATERIAL_LISTE.asphalt_alt[0](g, W, H, q); for (let y = 0; y < H; y += H / 2) { g.fillStyle = "rgba(232,230,220,.85)"; g.fillRect(W / 2 - 13, y + 10, 26, H / 4); for (let i = 0; i < 120; i++) { g.fillStyle = "rgba(52,54,58,.9)"; g.fillRect(W / 2 - 15 + (q() < 0.5 ? q() * 5 : 25 + q() * 5), y + 10 + q() * H / 4, 1 + q() * 3, 1 + q() * 3); } } },
+          1, 0, 0.9, { aufl: 512 }, null, { rau: (g, W, H, q) => { g.fillStyle = "#e0e0e0"; g.fillRect(0, 0, W, H); for (let y = 0; y < H; y += H / 2) { g.fillStyle = "#b0b0b0"; g.fillRect(W / 2 - 13, y + 10, 26, H / 4); } } }],
+        // Feuchter Stein mit Moos und Krustenflechten, nasser in den unteren Fugen
+        moosstein_feucht: [(g, W, H, q) => { MAT_P.ziegel(g, W, H, q, "#3e3a34", ["#7a766c", "#6c685e", "#858073", "#5e5a52"], 128, 64, 0.5); for (let y = 0; y < H; y += 64) { const gr = g.createLinearGradient(0, y + 30, 0, y + 64); gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(1, "rgba(20,24,18,.45)"); g.fillStyle = gr; g.fillRect(0, y + 30, W, 34); }
+            MAT_P.flecken(g, W, H, q, "rgba(78,98,52,.65)", 60, 10, 46); MAT_P.rausch(g, W, H, q, ["#5a7a3a", "#6a8a44", "#4a6230"], 6000, 2); for (let i = 0; i < 14; i++) { const x = q() * W, y = q() * H, r = 2 + q() * 6; g.fillStyle = q() < 0.7 ? "rgba(160,170,140,.45)" : "rgba(180,130,60,.4)"; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.strokeStyle = "rgba(240,240,220,.4)"; g.stroke(); } },
+          1, 0, 1.0, { aufl: 512 }, null, { rau: (g, W, H, q) => { g.fillStyle = "#e6e6e6"; g.fillRect(0, 0, W, H); for (let y = 0; y < H; y += 64) { const gr = g.createLinearGradient(0, y + 30, 0, y + 64); gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(1, "rgba(60,60,60,.85)"); g.fillStyle = gr; g.fillRect(0, y + 30, W, 34); } } }],
+        // Raureif: Frostnadeln wachsen von den Kanten über kaltes Metall, funkeln in der tiefen Sonne
+        raureif: [(g, W, H, q) => { g.fillStyle = "#7c8890"; g.fillRect(0, 0, W, H); MAT_P.alpha(g, W, H, q, 6000, 0.08, 1); MAT_R.frost(g, W, H, q, 34, "rgba(236,244,250,.85)"); MAT_P.flecken(g, W, H, q, "rgba(230,240,248,.25)", 20, 10, 40); },
+          1, 1, 0.5, { aufl: 512, clearcoat: 0.35, clearcoatRoughness: 0.2 }, null, { metall: (g, W, H, q) => { g.fillStyle = "#ffffff"; g.fillRect(0, 0, W, H); MAT_R.frost(g, W, H, q, 34, "rgba(0,0,0,1)"); },
+            rau: (g, W, H, q) => { g.fillStyle = "#4a4a4a"; g.fillRect(0, 0, W, H); MAT_R.frost(g, W, H, q, 34, "rgba(230,230,230,1)"); } }],
+        // Kabinenteppich: dichter Schlingenflor mit geometrischem Muster, Laufspur in der Mitte (u = 0.5 entlang des Gangs)
+        kabinenteppich: [(g, W, H, q) => { g.fillStyle = "#3a4258"; g.fillRect(0, 0, W, H); for (let y = 0; y < H; y += 4) for (let x = (y / 4) % 2 * 2; x < W; x += 4) { g.fillStyle = `rgba(${q() < 0.5 ? "255,255,255" : "0,0,0"},${0.05 + q() * 0.08})`; g.fillRect(x, y, 2, 2); }
+            g.strokeStyle = "rgba(120,140,190,.22)"; g.lineWidth = 2; for (let y = 0; y < H; y += 32) for (let x = 0; x < W; x += 32) { g.beginPath(); g.moveTo(x + 16, y + 4); g.lineTo(x + 28, y + 16); g.lineTo(x + 16, y + 28); g.lineTo(x + 4, y + 16); g.closePath(); g.stroke(); }
+            const gr = g.createLinearGradient(0, 0, W, 0); gr.addColorStop(0.3, "rgba(255,255,255,0)"); gr.addColorStop(0.5, "rgba(200,205,215,.16)"); gr.addColorStop(0.7, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, W, H); },
+          1, 0, 0.6, { aufl: 256 }, null, { rau: (g, W, H, q) => { const gr = g.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, "#ffffff"); gr.addColorStop(0.5, "#cfcfcf"); gr.addColorStop(1, "#ffffff"); g.fillStyle = gr; g.fillRect(0, 0, W, H); } }],
+        // Eloxiertes, gebürstetes Aluminium: feine Rillen in eine Richtung (anisotrope Glanzlichter)
+        alu_eloxiert: [(g, W, H, q) => { g.fillStyle = "#8c9096"; g.fillRect(0, 0, W, H); for (let y = 0; y < H; y += 0.5) { g.fillStyle = `rgba(${q() < 0.5 ? "255,255,255" : "0,0,0"},${q() * 0.14})`; g.fillRect(0, y, W, 0.6); } },
+          1, 1, 0.15, { aufl: 512, anisotropy: 0.8 }, null, { rau: (g, W, H, q) => { g.fillStyle = "#5c5c5c"; g.fillRect(0, 0, W, H); for (let y = 0; y < H; y += 1) { g.fillStyle = `rgba(${q() < 0.5 ? "255,255,255" : "0,0,0"},${q() * 0.25})`; g.fillRect(0, y, W, 1); } } }],
+      });
       function matTex(name) { if (MAT_TEX[name]) return MAT_TEX[name]; const def = MATERIAL_LISTE[name]; const q = rng(name.length * 977 + name.charCodeAt(0));
-        const t = canvasTex(256, 256, (g, W, H) => def[0](g, W, H, q)); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
-        const b = new THREE.CanvasTexture(t.image); b.wrapS = b.wrapT = THREE.RepeatWrapping; MAT_TEX[name] = { t, b }; return MAT_TEX[name]; }
+        const N = (def[4] && def[4].aufl) || 256, K = def[6] || {}, wrap = (x) => { x.wrapS = x.wrapT = THREE.RepeatWrapping; x.anisotropy = 8; return x; };
+        const t = wrap(canvasTex(N, N, (g, W, H) => def[0](g, W, H, q)));
+        const grau = (maler, seed) => { const q2 = rng(seed); const x = wrap(canvasTex(N, N, (g, W, H) => maler(g, W, H, q2))); x.encoding = THREE.LinearEncoding; return x; };
+        const b = K.hoehe ? grau(K.hoehe, name.length * 977 + name.charCodeAt(0)) : wrap(new THREE.CanvasTexture(t.image)); // eigene Höhenkarte (Poren, Risse) oder aus dem Farbbild
+        MAT_TEX[name] = { t, b, r: K.rau ? grau(K.rau, name.length * 977 + name.charCodeAt(0)) : null, m: K.metall ? grau(K.metall, name.length * 977 + name.charCodeAt(0)) : null }; return MAT_TEX[name]; }
       function material(name, o = {}) {
         if (!MATERIAL_LISTE[name]) name = "putzweiss";
         const key = name + JSON.stringify(o); if (MAT_CACHE[key]) return MAT_CACHE[key];
-        const def = MATERIAL_LISTE[name], { t, b } = matTex(name), ex = def[4] || {}; const map = t.clone(), bump = b.clone(); map.needsUpdate = bump.needsUpdate = true;
-        const wd = o.wiederholen ?? [1, 1]; map.repeat.set(wd[0], wd[1]); bump.repeat.set(wd[0], wd[1]);
+        const def = MATERIAL_LISTE[name], { t, b, r, m: mt } = matTex(name), ex = def[4] || {}; const map = t.clone(), bump = b.clone(); map.needsUpdate = bump.needsUpdate = true;
+        const rmap = r ? r.clone() : null, mmap = mt ? mt.clone() : null; [rmap, mmap].forEach((x) => x && (x.needsUpdate = true));
+        const wd = o.wiederholen ?? [1, 1]; [map, bump, rmap, mmap].forEach((x) => x && x.repeat.set(wd[0], wd[1]));
         const physical = Object.keys(ex).some((k) => ["clearcoat", "sheen", "transmission", "iridescence", "anisotropy"].includes(k)); const C = physical ? THREE.MeshPhysicalMaterial : THREE.MeshStandardMaterial;
-        const ext = Object.assign({}, ex); if (ext.anisotropy !== undefined && !("anisotropy" in new THREE.MeshPhysicalMaterial())) delete ext.anisotropy; if (ext.sheenColor !== undefined) ext.sheenColor = new THREE.Color(ext.sheenColor);
+        const ext = Object.assign({}, ex); delete ext.aufl; if (ext.anisotropy !== undefined && !("anisotropy" in new THREE.MeshPhysicalMaterial())) delete ext.anisotropy; if (ext.sheenColor !== undefined) ext.sheenColor = new THREE.Color(ext.sheenColor);
         const nass = o.nass ?? 0;
         const m = new C(Object.assign({ color: o.farbe ?? 0xffffff, map, bumpMap: def[3] > 0 ? bump : null, bumpScale: def[3] * (o.relief ?? 1) * 0.02, roughness: THREE.MathUtils.lerp(def[1], 0.1, nass), metalness: def[2] }, ext));
+        if (rmap) { m.roughnessMap = rmap; m.roughness = THREE.MathUtils.lerp(1, 0.25, nass); } // Rauheitskarte: Schmutz matt, Feuchte/Bitumen glänzend
+        if (mmap) { m.metalnessMap = mmap; m.metalness = 1; }
         if (nass) { m.color = new THREE.Color(o.farbe ?? 0xffffff).multiplyScalar(1 - 0.35 * nass); m.envMapIntensity = 1 + nass; }
         MAT_CACHE[key] = m; return m;
       }
