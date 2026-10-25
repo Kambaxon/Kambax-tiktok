@@ -10,6 +10,17 @@
       const OBEN3 = [0x2f4f8f, 0xb8352e, 0x3f7d4f, 0xd8a838, 0x5a4a8a, 0x2b2b30, 0xeee8dc, 0x1f6f8b, 0xc8708a, 0x6a5038, 0x8a9aa8, 0xe07a2a, 0x2a6a6a, 0xf2f2f2, 0x9a2a4a];
       const UNTEN3 = [0x283246, 0x353535, 0x4f4232, 0x1f2f46, 0x5a5a5e, 0x6a5a40, 0x3a4a3a, 0x1a1a22, 0x7a6a5a];
       const JACKE3 = [0x2a2e36, 0x4a3a2a, 0x3a4a3a, 0x6a6a70, 0x7a2a22, 0x1e2a44, 0xb89a6a];
+      const STOFF = {};
+      function texStoff(art) { // weiß-graue Webstruktur, wird mit der Kleidungsfarbe multipliziert
+        if (STOFF[art]) return STOFF[art];
+        const t = canvasTex(128, 128, (g) => { const q = rng(art.length * 31); g.fillStyle = "#f2f2f2"; g.fillRect(0, 0, 128, 128);
+          if (art === "jeans") { for (let i = -128; i < 256; i += 3) { g.strokeStyle = `rgba(${q() < 0.5 ? "255,255,255,.35" : "0,0,0,.12"})`; g.lineWidth = 1.2; g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 128, 128); g.stroke(); }
+            for (let i = 0; i < 260; i++) { g.fillStyle = `rgba(255,255,255,${q() * 0.25})`; g.fillRect(q() * 128, q() * 128, 1 + q() * 4, 1); } }
+          else if (art === "strick") { for (let y = 0; y < 128; y += 4) for (let x = 0; x < 128; x += 4) { g.fillStyle = `rgba(0,0,0,${0.04 + q() * 0.05})`; g.fillRect(x, y, 2, 3); } }
+          else { for (let i = 0; i < 1600; i++) { g.fillStyle = `rgba(0,0,0,${q() * 0.07})`; g.fillRect(q() * 128, q() * 128, 2, 2); } }
+        });
+        t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); STOFF[art] = t; return t;
+      }
       function person(seed, o = {}) {
         const r = rng(seed * 7919 + 13), g = new THREE.Group();
         const pick = (a) => a[Math.floor(r() * a.length)];
@@ -20,7 +31,7 @@
         const topType = o.top ?? pick(kind === "f" ? ["tshirt", "langarm", "pulli", "hemd", "hoodie", "tshirt"] : ["tshirt", "hemd", "pulli", "hoodie", "langarm", "tshirt"]);
         const unten = o.unten ?? (kind === "f" ? pick(["hose", "hose", "rock", "kleid", "shorts"]) : pick(["hose", "hose", "hose", "shorts"]));
         const topC = o.farbeOben ?? pick(OBEN3), untenC = unten === "kleid" ? topC : (o.farbeUnten ?? pick(UNTEN3));
-        const top = S(topC, 0.8), bottom = S(untenC, 0.85);
+        const top = S(topC, 0.8, { map: texStoff("strick") }), bottom = S(untenC, 0.85, { map: texStoff(unten === "hose" && r() < 0.6 ? "jeans" : "stoff") });
         const schuhe = o.schuhe ?? pick(["sneaker", "sneaker", "stiefel", "halbschuh"]);
         const shoeM = S(schuhe === "sneaker" ? pick([0xf2f2f2, 0x2a2a2a, 0x3a5a9a, 0xc43a2b]) : pick([0x1a1a1a, 0x3a2a1e, 0x5a3a28]), 0.5);
         const wide = (kind === "m" ? 1.0 + r() * 0.14 : 0.86 + r() * 0.1) * (1 + (o.bauch ?? 0) * 0.1);
@@ -30,18 +41,49 @@
         // ---- Beine: Oberschenkel / Knie / Unterschenkel, Schuhe ----
         const hipL = new THREE.Group(), hipR = new THREE.Group(), kneeL = new THREE.Group(), kneeR = new THREE.Group();
         hipL.position.set(-0.095 * wide, 0.9, 0); hipR.position.set(0.095 * wide, 0.9, 0); g.add(hipL, hipR);
-        for (const [hp, kn] of [[hipL, kneeL], [hipR, kneeR]]) {
-          mk(new THREE.SphereGeometry(0.07, 24, 16), bottom, 0, -0.01, -0.005, hp);
-          mk(new THREE.CylinderGeometry(0.078, 0.062, 0.44, 24), unten === "rock" || unten === "kleid" ? skin : bottom, 0, -0.22, 0, hp);
+        const dunkler = (c, k = -0.07) => new THREE.Color(c).offsetHSL(0, 0, k).getHex();
+        const naht = S(unten === "hose" && new THREE.Color(untenC).b > new THREE.Color(untenC).r * 1.3 ? 0xc89048 : dunkler(untenC, -0.12), 0.9); // Jeans: orange Steppnaht
+        for (const [hp, kn, aussen] of [[hipL, kneeL, -1], [hipR, kneeR, 1]]) {
+          mk(new THREE.SphereGeometry(0.078, 28, 18), bottom, 0, 0, 0, hp); // gleicher Radius wie Oberschenkel -> keine Stufe
+          mk(new THREE.CylinderGeometry(0.078, 0.061, 0.44, 28), unten === "rock" || unten === "kleid" ? skin : bottom, 0, -0.22, 0, hp);
           kn.position.y = -0.44; hp.add(kn);
-          mk(new THREE.SphereGeometry(0.0595, 24, 16), unten === "hose" ? bottom : skin, 0, 0, 0, kn);
-          mk(new THREE.CylinderGeometry(0.058, 0.045, 0.4, 24), unten === "hose" ? bottom : skin, 0, -0.2, 0, kn);
-          if (schuhe === "stiefel") mk(new THREE.CylinderGeometry(0.06, 0.058, 0.2, 14), shoeM, 0, -0.32, 0, kn);
-          const shoe = mk(new THREE.CapsuleGeometry(0.048, 0.15, 4, 10), shoeM, 0, -0.42, 0.04, kn); shoe.rotation.x = Math.PI / 2; shoe.scale.set(1.05, 1, 0.75);
-          if (schuhe === "sneaker") { const sole = mk(new THREE.BoxGeometry(0.1, 0.022, 0.25), S(0xf6f6f2, 0.6), 0, -0.448, 0.04, kn); }
+          const kneeMat = unten === "hose" ? bottom : skin;
+          mk(new THREE.SphereGeometry(0.0612, 28, 18), kneeMat, 0, 0, 0, kn);
+          mk(new THREE.CylinderGeometry(0.06, unten === "hose" ? 0.05 : 0.04, 0.4, 28), kneeMat, 0, -0.2, 0, kn);
+          if (!shortLeg) { // Hosen-Details: Seitennaht, Kniefalten, Saum
+            box(0.006, 0.43, 0.012, naht, aussen * 0.072, -0.22, 0, hp); box(0.006, 0.38, 0.012, naht, aussen * 0.053, -0.2, 0, kn);
+            for (let k = 0; k < 2; k++) { const f = mk(new THREE.TorusGeometry(0.0595 - k * 0.002, 0.0022, 6, 20, Math.PI * 0.7), S(dunkler(untenC, -0.06), 0.9), 0, -0.04 - k * 0.05, 0.002, kn); f.rotation.set(Math.PI / 2 + 0.25 - k * 0.4, 0, 0.5 + k * 0.6); } // weiche Kniefalten
+            if (schuhe !== "stiefel") { const saum = mk(new THREE.CylinderGeometry(0.053, 0.054, 0.035, 28, 1, true), S(dunkler(untenC, -0.04), 0.9, { side: THREE.DoubleSide }), 0, -0.385, 0, kn); }
+          } else if (unten === "shorts") { const saum = mk(new THREE.CylinderGeometry(0.066, 0.066, 0.03, 28), bottom, 0, -0.44, 0, hp); box(0.006, 0.4, 0.012, naht, aussen * 0.072, -0.22, 0, hp); }
+          schuh(kn);
+        }
+        // Schuhe: Sohle als Fußabdruck-Form, Obermaterial, Zehenkappe, Schnürung, Fersenkappe
+        function schuh(kn) {
+          const fuss = new THREE.Shape(); fuss.moveTo(0, -0.1);
+          fuss.bezierCurveTo(0.05, -0.1, 0.052, -0.02, 0.048, 0.04); fuss.bezierCurveTo(0.054, 0.13, 0.03, 0.175, 0, 0.175);
+          fuss.bezierCurveTo(-0.03, 0.175, -0.05, 0.13, -0.046, 0.05); fuss.bezierCurveTo(-0.046, -0.02, -0.05, -0.1, 0, -0.1);
+          const dick = schuhe === "sneaker" ? 0.024 : schuhe === "stiefel" ? 0.026 : 0.014;
+          const sg = new THREE.ExtrudeGeometry(fuss, { depth: dick, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.004, bevelSegments: 2, curveSegments: 16 }); sg.rotateX(Math.PI / 2);
+          const sohleM = S(schuhe === "sneaker" ? 0xf4f2ec : 0x1a1614, schuhe === "sneaker" ? 0.6 : 0.7);
+          mk(sg, sohleM, 0, -0.432, 0.02, kn);
+          if (schuhe !== "sneaker") mk(new THREE.BoxGeometry(0.085, 0.022, 0.06), sohleM, 0, -0.45, -0.06, kn); // Absatz
+          const ober = mk(new THREE.CapsuleGeometry(0.047, 0.16, 6, 16), shoeM, 0, -0.415, 0.045, kn); ober.rotation.x = Math.PI / 2; ober.scale.set(1.03, 1, schuhe === "halbschuh" ? 0.62 : 0.72);
+          const kappe = mk(new THREE.SphereGeometry(0.046, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), schuhe === "sneaker" ? sohleM : S(dunkler(shoeM.color.getHex(), -0.04), 0.3), 0, -0.432, 0.13, kn); kappe.rotation.x = Math.PI / 2; kappe.scale.set(1.04, 0.9, 0.5);
+          box(0.07, 0.04, 0.03, shoeM, 0, -0.395, -0.08, kn); // Fersenkappe
+          const lace = S(schuhe === "sneaker" ? 0xf8f8f6 : 0x2a1e16, 0.8);
+          for (let k = 0; k < 4; k++) box(0.05 - k * 0.003, 0.006, 0.008, lace, 0, -0.383 - k * 0.006, 0.0 + k * 0.026, kn);
+          box(0.03, 0.01, 0.1, S(dunkler(shoeM.color.getHex(), 0.04), 0.8), 0, -0.386, 0.04, kn); // Zunge
+          if (schuhe === "sneaker") for (const sx of [-1, 1]) { const st = box(0.004, 0.012, 0.09, S(pick([0x2a2a2a, 0xc43a2b, 0x3a6aa8, 0xd8d8d8]), 0.6), sx * 0.049, -0.41, 0.02, kn); st.rotation.x = -0.35; }
+          if (schuhe === "stiefel") { mk(new THREE.CylinderGeometry(0.062, 0.06, 0.2, 20), shoeM, 0, -0.32, 0, kn); for (let k = 0; k < 5; k++) box(0.04, 0.005, 0.006, lace, 0, -0.23 - k * 0.03, 0.06, kn); }
         }
         // ---- Becken, Rumpf, Brust, Bauch ----
         mk(new THREE.CylinderGeometry(0.142 * wide, 0.165 * wide, 0.17, 18), unten === "kleid" ? top : bottom, 0, 0.94, 0).scale.z = 0.64;
+        mk(new THREE.SphereGeometry(0.12 * wide, 24, 12), unten === "kleid" || unten === "rock" ? top : bottom, 0, 0.86, 0).scale.set(1, 0.55, 0.62); // Schritt: weicher Übergang zu den Beinen
+        if (unten === "hose" || unten === "shorts") { // Gesäßtaschen, Hosenschlitz, Gürtel (bei Hemd)
+          for (const sx of [-1, 1]) { const ta = box(0.075, 0.07, 0.006, S(dunkler(untenC, -0.05), 0.9), sx * 0.07 * wide, 0.9, -0.1 * wide, g); ta.rotation.y = Math.PI + sx * 0.3; }
+          box(0.006, 0.09, 0.006, naht, 0.012, 0.9, 0.103 * wide, g);
+          if (topType === "hemd") { const gu = mk(new THREE.CylinderGeometry(0.147 * wide, 0.149 * wide, 0.035, 24), S(0x2a1e16, 0.45), 0, 1.005, 0); gu.scale.z = 0.66; box(0.04, 0.03, 0.01, M(0xc8c8c0, { metalness: 0.9, roughness: 0.3 }), 0, 1.005, 0.1 * wide, g); }
+        }
         const torso = mk(new THREE.CylinderGeometry(0.188 * wide, 0.152 * wide, 0.5, 20), top, 0, 1.24, 0); torso.scale.z = 0.6;
         const shoulders = mk(new THREE.SphereGeometry(0.207 * wide, 22, 12, 0, Math.PI * 2, 0, Math.PI / 2), top, 0, 1.455, 0); shoulders.scale.set(1, 0.44, 0.62);
         if (oberweite > 0.05) { const br = 0.052 + oberweite * 0.026; for (const sx of [-1, 1]) { const b = mk(new THREE.SphereGeometry(br, 24, 18), top, sx * 0.046 * wide, 1.325, 0.058 + oberweite * 0.018); b.scale.set(1.0, 0.9, 0.66 + oberweite * 0.12); } } // ueberlappend, weich eingebettet

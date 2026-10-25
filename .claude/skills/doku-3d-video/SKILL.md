@@ -170,6 +170,46 @@ Jedes Projekt soll Atmosphäre, Effekte, Animation und Klang über das vorige he
 - Alle runden Teile mit ≥ 16–24 Segmenten, sonst entstehen gezackte Gelenknähte.
 - Detail-Regel: Jede Einstellung braucht Vorder-, Mittel- und Hintergrund mit echten Objekten (Fahrzeuge, Pflanzen, Straßenmöbel, Menschen), keine leeren Flächen.
 
+## Realismus-Stufe 2 (Feedback nach den Figuren-Tests): HDR, Fassaden, Effekte, Tiere
+
+Gilt ab dem nächsten Video. Reihenfolge der Bausteine im `<script>`: Basis-Helfer → fx-helpers → `figuren.js` → `bausteine.js` → `render.js` → `fassaden.js` → `effekte.js` → `tiere.js`. Vorlage für den Zusammenbau: `scripts/builder/mkreal.py` (baut die Testszene in `projekte/_figurentest`).
+
+- **HDR-Render** (`render.js`): `const POST = nachbearbeitung(renderer, { bloom: 0.6 })`. In `renderAt()` steht dann `POST.render(w.scene, w.camera)` statt `renderer.render(...)`. Das Ziel ist HalfFloat mit 4× MSAA und 24-bit-Tiefe. Danach folgen Bloom in 3 Stufen, ACES (wie Three, Belichtung 0.62), Sättigung, Kontrast, kühle Schatten und Vignette. Glühende Dinge (Lampen, Feuer, Scheinwerfer, Blinklicht) bekommen Farbwerte > 1 und `toneMapped: false`, dann blühen sie.
+- **Himmel** statt `skyTex`: `himmelShader(s, { zeit: "tag"|"abend"|"nacht"|"dunst", wolken: 0..1, sonne: [x,y,z], stadtLicht })`.
+  - Das ist eine Kuppel mit Verlauf, Sonne bzw. Mond, ziehenden fbm-Wolken, funkelnden farbigen Sternen und Milchstraße.
+  - In `update` muss `him.update(T)` laufen. Die Sonnenrichtung = Richtung des DirectionalLight.
+- **Spiegelungen:** `umgebung(s, him)` legt den Himmel als PMREM-Umgebung in `scene.environment`. Glas, Autolack und nasse Straße spiegeln dann. Ohne diesen Aufruf ist Glas schwarz.
+- **Hochhäuser** (`fassaden.js`): `hochhaus(seed, { typ: "glas"|"beton"|"ziegel"|"platte"|"modern", w, d, etagen, nacht, licht: Anteil heller Fenster, aufl })`.
+  - Jede Seite hat eigene Canvas-Karten: Farbe, Leuchten, Rauheit/Metall.
+  - Fenster mit Rahmen, Sprossen, Himmelsspiegelung, Vorhängen und Jalousien. Nachts beleuchtete Zimmer in verschiedenen Lichtfarben mit Deckenlampe, Möbel-Silhouetten und TV-Blau.
+  - Echte Geometrie: Geschossbänder, Lisenen, Balkone/Loggien (Instanzen), Lobby mit Vordach, Attika, Dachtechnik, Wassertank, Antenne mit Blinklicht (`h.userData.update(T)`).
+  - Hintergrund: `skyline(s, n, seed, { nacht, aufl: 0.35, a0, a1, r0, r1 })`.
+  - Speicher: Straßenhäuser `aufl` 1, Hintergrund 0.3–0.4.
+- **Autos** (`effekte.js`): `autoPlus(auto(...), { licht, bremse, fern, spot, seed })` ergänzt:
+  - Klarlack (MeshPhysical) und spiegelnde Scheiben
+  - Scheinwerfer mit Glühen, weichem Lichtkegel und SpotLight auf der Straße
+  - leuchtende Rücklichter, deutsche Kennzeichen (fiktiv)
+  - Speichenfelgen mit Bremsscheibe, Scheibenwischer, Antenne
+- **Licht-Effekte:** `lichtKegel(länge, radius, farbe, stärke)` für alle Lichtstrahlen, `glanzPunkt(farbe, größe)` für Lichtquellen.
+- **Feuer:** `feuer(s, x, y, z, { breite, hoehe, kraft, licht, glut, rauch, seed })` mit `update(T, kamera)`.
+  - Rausch-Shader-Flammen drehen sich zur Kamera. Dazu Glut, Rauch und flackerndes Licht.
+  - Bei brennenden Autos `y` auf Dachhöhe legen, sonst verdeckt die Karosserie die Flammen.
+- **Regen komplett:**
+  - `regen(...)` + `regenSpritzer(s, x0, x1, z0, z1, n)` (Einschlag-Ringe)
+  - `nass(material, 0.85)` für Asphalt und Gehweg, dazu `pfuetze()`
+  - Regenschirme an Figuren. Nachts spiegeln sich Laternen und Scheinwerfer auf der Straße.
+- **Tiere** (`tiere.js`): passend zum Thema einsetzen, z. B. Hund an der Leine in der Stadt, Tauben auf Plätzen, Katze am Fenster, Vögel im Park.
+  - Hunde: `hund(seed, { rasse: "labrador"|"schaeferhund"|"dackel"|"mops"|"husky"|"pudel"|"beagle", hecheln })`.
+  - Katzen: `katze(seed, { fell: "rot"|"grau"|"schwarz"|"getigert"|"weiss" })`.
+  - Tauben: `taube(seed)`.
+  - Bewegung: `tierLaufen(t, T, tempo)`, `tierIdle(t, T)` (Kopf, Schwanzwedeln, Atmen), `tierSitzen(t)`, `taubePicken(t, T)`, `taubeFliegen(t, T)`.
+- **Figuren v4:**
+  - Gelenke ohne Stufen (Hüftkugel = Oberschenkelradius, Schritt-Füllung).
+  - Hosen mit Stofftextur (Jeans/Stoff), Steppnähten, Kniefalten, Saum, Gesäßtaschen und Hosenschlitz, Gürtel zum Hemd.
+  - Schuhe mit Sohle in Fußform, Zehenkappe, Schnürung, Zunge und Fersenkappe. Sneaker mit Seitenstreifen, Halbschuh/Stiefel mit Absatz.
+  - Oberteile mit Stricktextur.
+- **Thema zuerst:** Tageszeit, Wetter, Gebäudetyp (Platte im Osten, Glas im Bankenviertel, Ziegel im Altbauviertel), Tiere und Effekte immer aus der Geschichte ableiten, nicht wahllos alles einbauen.
+
 ## Fallen
 
 - `cam()` hat nur 400 m Sichtweite. Für alles, was weiter weg steht (Horizont, Kraftwerk, Bögen), `camFar(3000+)` nehmen und den Nebel weit genug setzen, sonst ist es unsichtbar.
@@ -182,3 +222,6 @@ Jedes Projekt soll Atmosphäre, Effekte, Animation und Klang über das vorige he
 - Bei Zeilen mit unbekanntem Phonem gibt es kein Alignment. `voice.py` verteilt die Wörter dann nach Energie und Silbenlänge; Timing im Snapshot prüfen.
 - Szenen-Ids müssen eindeutig sein (Präfixe `er-`, `ti-`, `ut-`).
 - Der Container ist flüchtig: Videos sofort schicken. Skill und Projekte bleiben nur erhalten, wenn sie in ein Git-Repo gepusht werden.
+- PMREM (`umgebung`) sieht nur bis 100 m. Deshalb wird die Himmelskuppel dort verkleinert, sonst bleibt die Umgebung schwarz.
+- Render-Ziele ohne Stencil haben nur 16-bit-Tiefe. Dann zeigen Kanten weit weg Treppen. `nachbearbeitung` setzt deshalb `stencilBuffer: true`.
+- Bei `sed`/Python-Ersetzungen keine `//`-Kommentare mitten in einzeilige Blöcke setzen, sonst wird der Rest der Zeile auskommentiert.
