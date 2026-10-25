@@ -181,46 +181,46 @@
       // Flugbahn in B: Vogelschlag nördlich, dann Linkskurve nach Süden über den Hudson, Wasserung bei z = 0
       // 3) Gänse: Kamera vor dem Flugzeug, der Schwarm kreuzt – Knall, Feuer, Stille
       W.gaense = { scene: B, camera: c.gaense, look: "tealOrange", post: Object.assign({}, LUFT, { uBewegung: 0, uSplit: 0.1, uSplitSchatten: [0.2, 0.4, 0.55] }),
-        update(t, T) { basisB(T); allesAus(); const z = -14000 - t * 0, pos = v3(2600, 860 + t * 6, -15500 + t * 95); setJet(pos, Math.PI * 0.82, 0.12, 0.05); fans(T, T > KNALL);
+        update(t, T) { basisB(T); allesAus(); const z = -14000 - t * 0, pos = v3(2600, 860 + t * 6, -15500 + t * 95); setJet(pos, 0, 0.12, 0.05); fans(T, T > KNALL);
           zeigen(gaense, true); gaense.forEach((g, i) => { const reihe = Math.floor(i / 2), sx = i % 2 ? 1 : -1, k = (T - KNALL) * 30; const p = v3(sx * reihe * 3.0 + Math.sin(i) * 1.5, 0.5 + Math.sin(i * 2.1) * 1.5, 4 + (KNALL - T) * 55 + reihe * 2.6); p.applyMatrix4(jet.matrixWorld); g.position.copy(p); g.rotation.y = jet.rotation.y + Math.PI * 0.95 + Math.sin(i) * 0.1; g.visible = T < KNALL + 0.12 && i !== 3; g.userData.anim(T + i * 0.13); });
           const nach = T - KNALL; rauch.forEach((r) => { r.pts.visible = nach > 0; r.update(T); r.mat.opacity = clamp(nach * 1.2, 0, 0.75); }); feuer.forEach((f) => { f.pts.visible = nach > 0 && nach < 1.6; f.update(T); f.mat.opacity = 0.95 * (1 - nach / 1.6); }); federn.pts.visible = nach > 0 && nach < 1.2; federn.update(nach);
           const cam = c.gaense, vorn = v3(-14 - t * 0.2, -3.5, -12 + t * 0.6).applyMatrix4(jet.matrixWorld), ziel = v3(2, -0.5, 40).applyMatrix4(jet.matrixWorld); zielen(cam, vorn, ziel, 50); if (nach > 0) wackeln(cam, T, Math.exp(-nach * 2.2) * 6); } };
       // 4) Stille: Gleitflug ohne Schub, dünner Rauch, Stadt unter dir
       W.stille = { scene: B, camera: c.stille, look: "tealOrange", post: Object.assign({}, LUFT, { uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55], uStrahlen: 0.12 }),
-        update(t, T) { basisB(T); allesAus(); const pos = v3(1700 - t * 40, 800 - t * 9, -14300 + t * 110); setJet(pos, Math.PI * 0.8, 0.05, -0.12); fans(T, true);
+        update(t, T) { basisB(T); allesAus(); const pos = v3(1700 - t * 40, 800 - t * 9, -14300 + t * 110); setJet(pos, Math.atan2(-40, 110), 0.05, -0.12); fans(T, true);
           rauch.forEach((r) => { r.pts.visible = true; r.update(T); r.mat.opacity = 0.42; });
           const cam = c.stille, p = v3(-28 + t * 1.2, 9, -46 + t * 2).applyMatrix4(jet.matrixWorld), z2 = v3(2, -2, 10).applyMatrix4(jet.matrixWorld); zielen(cam, p, z2, 42); } };
       // 5) Totale: winziges Flugzeug über dem Fluss, Manhattan, Brücke im Norden
       W.gleit = { scene: B, camera: c.gleit, look: "tealOrange", post: Object.assign({}, LUFT, { uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55] }),
-        update(t, T) { basisB(T); allesAus(); const pos = v3(250 - t * 25, 600 - t * 6, -11800 + t * 105); setJet(pos, Math.PI * 1.0, 0.04, 0.35); fans(T, true);
-          const cam = c.gleit; zielen(cam, v3(pos.x + 14, pos.y + 22, pos.z + 105 - t * 3), v3(pos.x - 5, pos.y - 45, pos.z - 500), 44); } };
+        update(t, T) { basisB(T); allesAus(); const pos = v3(250 - t * 25, 600 - t * 6, -11800 + t * 105); setJet(pos, Math.atan2(-25, 105), 0.04, -0.3); fans(T, true);
+          const cam = c.gleit; zielen(cam, v3(pos.x + 14, pos.y + 22, pos.z - 105 + t * 3), v3(pos.x + 5, pos.y - 45, pos.z + 500), 44); } };
       // 6) Cockpit: Blick über die Schultern auf den Hudson, Warnlicht blinkt
       W.cockpit = { scene: B, camera: c.cockpit, look: "tealOrange", post: Object.assign({}, KLAR, { uBloom: 0.45, uSplit: 0.1, uSplitSchatten: [0.2, 0.4, 0.55] }),
-        update(t, T) { basisB(T, false); allesAus(); innenAn(true); zeigen(passagiere.filter((p) => p.piv).map((p) => p.piv), false); const pos = v3(-80 - t * 6, 520 - t * 8, -10800 + t * 105); setJet(pos, Math.PI * 1.0, 0.03, -0.06 + Math.sin(t * 0.8) * 0.02); fans(T, true);
+        update(t, T) { basisB(T, false); allesAus(); innenAn(true); zeigen(passagiere.filter((p) => p.piv).map((p) => p.piv), false); const pos = v3(-80 - t * 6, 520 - t * 8, -10800 + t * 105); setJet(pos, Math.atan2(-6, 105), 0.03, -0.06 + Math.sin(t * 0.8) * 0.02); fans(T, true);
           ck.piloten.forEach((p, i) => { p.setze(0, T + i); const u = p.p.userData; u.shL.rotation.x = u.shR.rotation.x = 0.05; u.elL.rotation.x = u.elR.rotation.x = -1.35; u.shL.rotation.z = -0.08; u.shR.rotation.z = 0.08; p.p.userData.head.rotation.y = (i ? -0.25 : 0.15) * Math.sin(t * 0.6 + i); }); ck.warn.material.color.setScalar((T * 2) % 1 < 0.5 ? 3 : 0.3); ck.warn.material.color.g *= 0.2; ck.warn.material.color.b *= 0.05;
           const cam = c.cockpit, p = v3(0.0, 0.62 + Math.sin(t * 1.1) * 0.01, 13.25 + t * 0.03).applyMatrix4(jet.matrixWorld), z2 = v3(0, -0.6, 30).applyMatrix4(jet.matrixWorld); zielen(cam, p, z2, 64); cam.rotation.z += Math.sin(t * 2.3) * 0.004; } };
       // 7) „Wir landen im Hudson“: Kurve über dem Fluss, Untersicht
       W.hudson = { scene: B, camera: c.hudson, look: "tealOrange", post: Object.assign({}, LUFT, { uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55], uStrahlen: 0.2, uFlare: 0.08 }),
-        update(t, T) { basisB(T); allesAus(); const a = 0.25 - t * 0.08, pos = v3(-150 + t * 30, 430 - t * 7, -10000 + t * 100); setJet(pos, Math.PI + a, 0.04, -0.32 + t * 0.06); fans(T, true);
+        update(t, T) { basisB(T); allesAus(); const a = 0.25 - t * 0.08, pos = v3(-150 + t * 30, 430 - t * 7, -10000 + t * 100); setJet(pos, Math.atan2(30, 100) + (a - 0.15) * 0.4, 0.04, 0.3 - t * 0.06); fans(T, true);
           const cam = c.hudson; zielen(cam, v3(pos.x + 210 - t * 8, pos.y + 70, pos.z + 260 - t * 25), v3(pos.x - 60, pos.y - 120, pos.z - 180), 42); } };
       // 8) Brücke: Kamera auf Fahrbahnhöhe, das Flugzeug gleitet knapp darüber
       W.bruecke = { scene: B, camera: c.bruecke, look: "tealOrange", post: Object.assign({}, LUFT, { uSSAA: 2, uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55], uStrahlen: 0.25 }),
-        update(t, T) { basisB(T); allesAus(); const pos = v3(-60, 300 - t * 4, -10900 + t * 105); setJet(pos, Math.PI, 0.04, 0.02); fans(T, true);
+        update(t, T) { basisB(T); allesAus(); const pos = v3(-60, 300 - t * 4, -10900 + t * 105); setJet(pos, 0, 0.04, 0.02); fans(T, true);
           const cam = c.bruecke, turm = v3(-530, 175, -10500), zp = turm.clone().lerp(v3(pos.x, pos.y, pos.z), 0.62); zielen(cam, v3(-610 + t * 4, bruecke.DECK + 9, -10420), zp, 62); } };
       // 9) Brace: Kabine von vorn, alle vorgebeugt, Fenster zeigen Wasser
       W.brace = { scene: B, camera: c.brace, look: "tealOrange", post: Object.assign({}, KLAR, { uBloom: 0.4, uVig: 0.45, uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55] }),
-        update(t, T) { basisB(T, false); allesAus(); innenAn(true); const pos = v3(-50, 60 - t * 12, -1500 + t * 100); setJet(pos, Math.PI, 0.06, 0.0); fans(T, true);
+        update(t, T) { basisB(T, false); allesAus(); innenAn(true); const pos = v3(-50, 60 - t * 12, -1500 + t * 100); setJet(pos, 0, 0.06, 0.0); fans(T, true);
           const k = ease((t - 0.3) / 1.2); passagiere.forEach((p, i) => { if (p.piv) { p.piv.visible = true; p.setze(k * (0.85 + (i % 3) * 0.05), T + i); } else if (p.sil) { p.sil.rotation.x = k * 0.9; p.sil.position.y = -0.26 - k * 0.15; } });
           const zr = kab.Z0 + kab.L / 2 - 2.2 - 2 * 0.81, cam = c.brace, p = v3(0.25, 0.45, zr - 0.9 + t * 0.08).applyMatrix4(jet.matrixWorld), z2 = v3(-1.4, -0.15, zr + 0.5 + t * 0.08).applyMatrix4(jet.matrixWorld); zielen(cam, p, z2, 62); wackeln(cam, T, 1.4 + t * 0.6); } };
       // 10) Wasserung: tiefe Kamera über dem Wasser, Aufsetzen, Gischt
       W.wasserung = { scene: B, camera: c.wasserung, look: "tealOrange", post: Object.assign({}, LUFT, { uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55], uBewegung: 0 }),
         update(t, T) { basisB(T); allesAus(); const nach = T - AUFSETZEN, v = nach < 0 ? 64 : 64 * Math.exp(-nach * 0.75), weg = nach < 0 ? nach * 64 : (64 / 0.75) * (1 - Math.exp(-nach * 0.75));
-          const y = nach < 0 ? 2.2 + Math.max(0, -nach) * 4.2 : 1.6 + Math.exp(-nach * 3) * 0.6 * Math.abs(Math.sin(nach * 6)); const pos = v3(-80, y, -300 + weg); setJet(pos, Math.PI, nach < 0 ? 0.1 : 0.1 * Math.exp(-nach * 1.5), 0); fans(T, true);
+          const y = nach < 0 ? 2.2 + Math.max(0, -nach) * 4.2 : 1.35 + 0.85 * Math.exp(-nach * 1.6); const pos = v3(-80, y, -300 + weg); setJet(pos, 0, nach < 0 ? 0.1 : 0.03 + 0.07 * Math.exp(-nach * 1.2), 0); fans(T, true);
           gischt.pts.visible = nach > 0; gischt.update(nach); gischt.pts.position.set(pos.x, 0, pos.z - 6); gischt.mat.opacity = clamp(0.6 * (1 - nach / 5) * Math.min(1, v / 20), 0, 0.6);
           kielwasser.visible = nach > 0; kielwasser.position.set(pos.x, 0.2, pos.z - 6 - Math.max(0, weg) / 2); kielwasser.scale.y = Math.max(1, weg); kielwasser.rotation.z = 0;
           const cam = c.wasserung; zielen(cam, v3(-80 - 70 + t * 2, 2.6, -300 + 30 + t * 17), v3(pos.x, pos.y + 1.5, pos.z + 4), 46); if (nach > 0) wackeln(cam, T, Math.exp(-nach * 1.5) * 4); } };
       // 11) Rettung: Menschen auf den Tragflächen, Rettungsinseln, Fähren kommen
-      function treibend(T) { const pos = v3(-80, 1.25 + Math.sin(T * 0.9) * 0.08, -300 + 64 / 0.75 + (T - 48.4) * 0.6); setJet(pos, Math.PI + 0.08, 0.04 + Math.sin(T * 0.7) * 0.01, Math.sin(T * 0.6) * 0.012); return pos; }
+      function treibend(T) { const pos = v3(-80, 1.3 + Math.sin(T * 0.5) * 0.03, -300 + 64 / 0.75 + (T - 48.4) * 0.3); setJet(pos, 0.08, 0.035 + Math.sin(T * 0.4) * 0.003, Math.sin(T * 0.35) * 0.004); return pos; }
       function rettungsBild(T, cam) { allesAus(); zeigen(flosse, true); zeigen(leuteFluegel, true); zeigen(faehren, true);
         leuteFluegel.forEach((p, i) => { const sx = i < 8 ? -1 : 1, k = i % 8; p.position.set(sx * (3.6 + k * 1.15), -0.12 + k * 0.015, -1.2 - k * 0.55 + (k % 2) * 0.5); p.rotation.y = sx * 1.6 + Math.sin(i) * 0.4; idle(p, T + i); });
         const pos = treibend(T); faehren.forEach((f, i) => { const w = [[-90, 60, -0.7], [130, -40, 2.2], [-60, -110, 0.4], [160, 120, -2.4]][i], k = Math.min(1, (T - 48.4) / 14); f.position.set(pos.x + w[0] * (1.3 - k * 0.5), 0.0 + Math.sin(T + i) * 0.05, pos.z + w[1] * (1.3 - k * 0.5)); f.rotation.y = w[2]; f.rotation.z = Math.sin(T * 0.8 + i) * 0.01; }); return pos; }
