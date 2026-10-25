@@ -1,0 +1,25 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; pointer-events: none; }
+    #lk-vig { position: absolute; inset: 0; background: radial-gradient(ellipse 78% 64% at 50% 46%, rgba(0,0,0,0) 58%, rgba(0,0,0,.42) 100%); }
+    #lk-flash { position: absolute; inset: 0; background: #fff2dc; opacity: 0; }
+    #lk-black { position: absolute; inset: 0; background: #000; opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="look" data-width="1080" data-height="1920" data-layout-ignore>
+    <div id="lk-vig"></div>
+    <div id="lk-flash"></div>
+    <div id="lk-black"></div>
+  </div>
+  <script>
+    // kein Filmkorn (Wunsch des Users); Blitz beim Vogelschlag 16.66 s, heller Schlag beim Aufsetzen 46.6 s, Schlussabblende
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#lk-flash", { opacity: 0 }, { opacity: 0.85, duration: 0.04, ease: "none" }, 16.64);
+    tl.to("#lk-flash", { opacity: 0, duration: 0.7, ease: "power2.out" }, 16.7);
+    tl.fromTo("#lk-black", { opacity: 0 }, { opacity: 0.35, duration: 0.5, ease: "power1.in" }, 18.0);
+    tl.to("#lk-black", { opacity: 0, duration: 0.15, ease: "none" }, 18.75);
+    tl.to("#lk-flash", { opacity: 0.5, duration: 0.05, ease: "none" }, 46.58);
+    tl.to("#lk-flash", { opacity: 0, duration: 0.6, ease: "power2.out" }, 46.65);
+    tl.to("#lk-black", { opacity: 1, duration: 1.2, ease: "power1.in" }, 77.4);
+    window.__timelines["look"] = tl;
+  </script>
+</template>

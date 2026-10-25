@@ -1,0 +1,1328 @@
+{
+ "duration": 77.714,
+ "lines": [
+  {
+   "start": 0.39,
+   "end": 5.208,
+   "text": "Du sitzt am Fenster eines Airbus in New York. Es ist eiskalt, der Himmel ist klar."
+  },
+  {
+   "start": 5.63,
+   "end": 11.945,
+   "text": "Um fünfzehn Uhr fünfundzwanzig hebt Flug fünfzehn-neunundvierzig ab. Hundertfünfundfünfzig Menschen sind an Bord."
+  },
+  {
+   "start": 12.44,
+   "end": 18.593,
+   "text": "Eineinhalb Minuten später: ein Schwarm Kanadagänse. Ein Knall. Dann wird es still."
+  },
+  {
+   "start": 18.9,
+   "end": 23.34,
+   "text": "Beide Triebwerke sind ausgefallen. Ihr seid nur rund achthundertfünfzig Meter hoch."
+  },
+  {
+   "start": 23.67,
+   "end": 26.323,
+   "text": "Dem Piloten bleiben jetzt gut dreieinhalb Minuten."
+  },
+  {
+   "start": 26.67,
+   "end": 31.924,
+   "text": "Der Tower bietet den Rückweg zum Flughafen an. Kapitän Sullenberger rechnet. Das reicht nicht."
+  },
+  {
+   "start": 32.35,
+   "end": 34.605,
+   "text": "Seine Antwort: „Wir landen im Hudson.“"
+  },
+  {
+   "start": 34.83,
+   "end": 39.196,
+   "text": "Knapp gleitet ihr über die George-Washington-Brücke. Unter dir nur Wasser."
+  },
+  {
+   "start": 39.47,
+   "end": 42.593,
+   "text": "„Brace for impact.“ Kopf runter, festhalten."
+  },
+  {
+   "start": 43.27,
+   "end": 48.047,
+   "text": "Mit rund zweihundertdreißig Stundenkilometern setzt der Airbus auf dem Fluss auf. Er bleibt ganz."
+  },
+  {
+   "start": 48.53,
+   "end": 54.614,
+   "text": "Du stehst auf der Tragfläche. Das Wasser ist fünf Grad kalt. Nach vier Minuten ist die erste Fähre da."
+  },
+  {
+   "start": 55.23,
+   "end": 59.091,
+   "text": "Hundertfünfundfünfzig Menschen an Bord. Hundertfünfundfünfzig überleben."
+  },
+  {
+   "start": 59.38,
+   "end": 67.6,
+   "text": "Warum nicht zurück zum Flughafen? Ohne Schub ist Höhe dein einziger Vorrat. Jede Kurve und jede Sekunde Zögern kostet Höhe."
+  },
+  {
+   "start": 67.93,
+   "end": 74.588,
+   "text": "Simulationen zeigen später: Nur bei sofortiger Umkehr hätte es gereicht. Für die Entscheidung blieb fast keine Zeit."
+  },
+  {
+   "start": 74.95,
+   "end": 77.547,
+   "text": "Hättest du in diesen Sekunden richtig entschieden?"
+  }
+ ],
+ "words": [
+  {
+   "id": "w0",
+   "text": "DU",
+   "start": 0.44,
+   "end": 0.57,
+   "line": 0
+  },
+  {
+   "id": "w1",
+   "text": "SITZT",
+   "start": 0.57,
+   "end": 0.77,
+   "line": 0
+  },
+  {
+   "id": "w2",
+   "text": "AM",
+   "start": 0.77,
+   "end": 0.96,
+   "line": 0
+  },
+  {
+   "id": "w3",
+   "text": "FENSTER",
+   "start": 0.96,
+   "end": 1.21,
+   "line": 0
+  },
+  {
+   "id": "w4",
+   "text": "EINES",
+   "start": 1.21,
+   "end": 1.59,
+   "line": 0
+  },
+  {
+   "id": "w5",
+   "text": "AIRBUS",
+   "start": 1.59,
+   "end": 2.14,
+   "line": 0
+  },
+  {
+   "id": "w6",
+   "text": "IN",
+   "start": 2.14,
+   "end": 2.34,
+   "line": 0
+  },
+  {
+   "id": "w7",
+   "text": "NEW",
+   "start": 2.34,
+   "end": 2.48,
+   "line": 0
+  },
+  {
+   "id": "w8",
+   "text": "YORK",
+   "start": 2.48,
+   "end": 2.84,
+   "line": 0
+  },
+  {
+   "id": "w9",
+   "text": "ES",
+   "start": 2.84,
+   "end": 3.02,
+   "line": 0
+  },
+  {
+   "id": "w10",
+   "text": "IST",
+   "start": 3.02,
+   "end": 3.17,
+   "line": 0
+  },
+  {
+   "id": "w11",
+   "text": "EISKALT",
+   "start": 3.17,
+   "end": 3.85,
+   "line": 0
+  },
+  {
+   "id": "w12",
+   "text": "DER",
+   "start": 3.85,
+   "end": 4.184,
+   "line": 0
+  },
+  {
+   "id": "w13",
+   "text": "HIMMEL",
+   "start": 4.2,
+   "end": 4.62,
+   "line": 0
+  },
+  {
+   "id": "w14",
+   "text": "IST",
+   "start": 4.62,
+   "end": 4.87,
+   "line": 0
+  },
+  {
+   "id": "w15",
+   "text": "KLAR",
+   "start": 4.87,
+   "end": 5.208,
+   "line": 0
+  },
+  {
+   "id": "w16",
+   "text": "UM",
+   "start": 5.68,
+   "end": 5.767,
+   "line": 1
+  },
+  {
+   "id": "w17",
+   "text": "FÜNFZEHN",
+   "start": 5.79,
+   "end": 6.321,
+   "line": 1
+  },
+  {
+   "id": "w18",
+   "text": "UHR",
+   "start": 6.34,
+   "end": 6.492,
+   "line": 1
+  },
+  {
+   "id": "w19",
+   "text": "FÜNFUNDZWANZIG",
+   "start": 6.5,
+   "end": 7.34,
+   "line": 1
+  },
+  {
+   "id": "w20",
+   "text": "HEBT",
+   "start": 7.4,
+   "end": 7.655,
+   "line": 1
+  },
+  {
+   "id": "w21",
+   "text": "FLUG",
+   "start": 7.67,
+   "end": 7.912,
+   "line": 1
+  },
+  {
+   "id": "w22",
+   "text": "FÜNFZEHN-NEUNUNDVIERZIG",
+   "start": 7.97,
+   "end": 9.298,
+   "line": 1
+  },
+  {
+   "id": "w23",
+   "text": "AB",
+   "start": 9.35,
+   "end": 9.596,
+   "line": 1
+  },
+  {
+   "id": "w24",
+   "text": "HUNDERTFÜNFUNDFÜNFZIG",
+   "start": 10.25,
+   "end": 11.106,
+   "line": 1
+  },
+  {
+   "id": "w25",
+   "text": "MENSCHEN",
+   "start": 11.13,
+   "end": 11.411,
+   "line": 1
+  },
+  {
+   "id": "w26",
+   "text": "SIND",
+   "start": 11.43,
+   "end": 11.582,
+   "line": 1
+  },
+  {
+   "id": "w27",
+   "text": "AN",
+   "start": 11.65,
+   "end": 11.738,
+   "line": 1
+  },
+  {
+   "id": "w28",
+   "text": "BORD",
+   "start": 11.76,
+   "end": 11.945,
+   "line": 1
+  },
+  {
+   "id": "w29",
+   "text": "EINEINHALB",
+   "start": 12.49,
+   "end": 13.025,
+   "line": 2
+  },
+  {
+   "id": "w30",
+   "text": "MINUTEN",
+   "start": 13.07,
+   "end": 13.391,
+   "line": 2
+  },
+  {
+   "id": "w31",
+   "text": "SPÄTER",
+   "start": 13.43,
+   "end": 13.996,
+   "line": 2
+  },
+  {
+   "id": "w32",
+   "text": "EIN",
+   "start": 14.28,
+   "end": 14.46,
+   "line": 2
+  },
+  {
+   "id": "w33",
+   "text": "SCHWARM",
+   "start": 14.64,
+   "end": 15.106,
+   "line": 2
+  },
+  {
+   "id": "w34",
+   "text": "KANADAGÄNSE",
+   "start": 15.19,
+   "end": 16.012,
+   "line": 2
+  },
+  {
+   "id": "w35",
+   "text": "EIN",
+   "start": 16.41,
+   "end": 16.602,
+   "line": 2
+  },
+  {
+   "id": "w36",
+   "text": "KNALL",
+   "start": 16.66,
+   "end": 17.19,
+   "line": 2
+  },
+  {
+   "id": "w37",
+   "text": "DANN",
+   "start": 17.47,
+   "end": 17.664,
+   "line": 2
+  },
+  {
+   "id": "w38",
+   "text": "WIRD",
+   "start": 17.71,
+   "end": 17.986,
+   "line": 2
+  },
+  {
+   "id": "w39",
+   "text": "ES",
+   "start": 18.03,
+   "end": 18.215,
+   "line": 2
+  },
+  {
+   "id": "w40",
+   "text": "STILL",
+   "start": 18.26,
+   "end": 18.593,
+   "line": 2
+  },
+  {
+   "id": "w41",
+   "text": "BEIDE",
+   "start": 18.95,
+   "end": 19.306,
+   "line": 3
+  },
+  {
+   "id": "w42",
+   "text": "TRIEBWERKE",
+   "start": 19.37,
+   "end": 19.857,
+   "line": 3
+  },
+  {
+   "id": "w43",
+   "text": "SIND",
+   "start": 19.92,
+   "end": 20.08,
+   "line": 3
+  },
+  {
+   "id": "w44",
+   "text": "AUSGEFALLEN",
+   "start": 20.09,
+   "end": 20.724,
+   "line": 3
+  },
+  {
+   "id": "w45",
+   "text": "IHR",
+   "start": 21.02,
+   "end": 21.15,
+   "line": 3
+  },
+  {
+   "id": "w46",
+   "text": "SEID",
+   "start": 21.18,
+   "end": 21.33,
+   "line": 3
+  },
+  {
+   "id": "w47",
+   "text": "NUR",
+   "start": 21.36,
+   "end": 21.476,
+   "line": 3
+  },
+  {
+   "id": "w48",
+   "text": "RUND",
+   "start": 21.49,
+   "end": 21.71,
+   "line": 3
+  },
+  {
+   "id": "w49",
+   "text": "ACHTHUNDERTFÜNFZIG",
+   "start": 21.77,
+   "end": 22.7,
+   "line": 3
+  },
+  {
+   "id": "w50",
+   "text": "METER",
+   "start": 22.73,
+   "end": 23.131,
+   "line": 3
+  },
+  {
+   "id": "w51",
+   "text": "HOCH",
+   "start": 23.16,
+   "end": 23.34,
+   "line": 3
+  },
+  {
+   "id": "w52",
+   "text": "DEM",
+   "start": 23.72,
+   "end": 23.849,
+   "line": 4
+  },
+  {
+   "id": "w53",
+   "text": "PILOTEN",
+   "start": 23.86,
+   "end": 24.316,
+   "line": 4
+  },
+  {
+   "id": "w54",
+   "text": "BLEIBEN",
+   "start": 24.34,
+   "end": 24.611,
+   "line": 4
+  },
+  {
+   "id": "w55",
+   "text": "JETZT",
+   "start": 24.63,
+   "end": 24.882,
+   "line": 4
+  },
+  {
+   "id": "w56",
+   "text": "GUT",
+   "start": 24.91,
+   "end": 25.139,
+   "line": 4
+  },
+  {
+   "id": "w57",
+   "text": "DREIEINHALB",
+   "start": 25.2,
+   "end": 25.752,
+   "line": 4
+  },
+  {
+   "id": "w58",
+   "text": "MINUTEN",
+   "start": 25.76,
+   "end": 26.323,
+   "line": 4
+  },
+  {
+   "id": "w59",
+   "text": "DER",
+   "start": 26.72,
+   "end": 26.862,
+   "line": 5
+  },
+  {
+   "id": "w60",
+   "text": "TOWER",
+   "start": 26.89,
+   "end": 27.124,
+   "line": 5
+  },
+  {
+   "id": "w61",
+   "text": "BIETET",
+   "start": 27.16,
+   "end": 27.416,
+   "line": 5
+  },
+  {
+   "id": "w62",
+   "text": "DEN",
+   "start": 27.43,
+   "end": 27.52,
+   "line": 5
+  },
+  {
+   "id": "w63",
+   "text": "RÜCKWEG",
+   "start": 27.53,
+   "end": 27.946,
+   "line": 5
+  },
+  {
+   "id": "w64",
+   "text": "ZUM",
+   "start": 27.99,
+   "end": 28.125,
+   "line": 5
+  },
+  {
+   "id": "w65",
+   "text": "FLUGHAFEN",
+   "start": 28.15,
+   "end": 28.67,
+   "line": 5
+  },
+  {
+   "id": "w66",
+   "text": "AN",
+   "start": 28.7,
+   "end": 28.932,
+   "line": 5
+  },
+  {
+   "id": "w67",
+   "text": "KAPITÄN",
+   "start": 29.22,
+   "end": 29.73,
+   "line": 5
+  },
+  {
+   "id": "w68",
+   "text": "SULLENBERGER",
+   "start": 29.81,
+   "end": 30.281,
+   "line": 5
+  },
+  {
+   "id": "w69",
+   "text": "RECHNET",
+   "start": 30.35,
+   "end": 30.836,
+   "line": 5
+  },
+  {
+   "id": "w70",
+   "text": "DAS",
+   "start": 31.18,
+   "end": 31.336,
+   "line": 5
+  },
+  {
+   "id": "w71",
+   "text": "REICHT",
+   "start": 31.35,
+   "end": 31.696,
+   "line": 5
+  },
+  {
+   "id": "w72",
+   "text": "NICHT",
+   "start": 31.73,
+   "end": 31.924,
+   "line": 5
+  },
+  {
+   "id": "w73",
+   "text": "SEINE",
+   "start": 32.4,
+   "end": 32.633,
+   "line": 6
+  },
+  {
+   "id": "w74",
+   "text": "ANTWORT",
+   "start": 32.66,
+   "end": 33.09,
+   "line": 6
+  },
+  {
+   "id": "w75",
+   "text": "WIR",
+   "start": 33.39,
+   "end": 33.603,
+   "line": 6
+  },
+  {
+   "id": "w76",
+   "text": "LANDEN",
+   "start": 33.64,
+   "end": 33.987,
+   "line": 6
+  },
+  {
+   "id": "w77",
+   "text": "IM",
+   "start": 34.04,
+   "end": 34.156,
+   "line": 6
+  },
+  {
+   "id": "w78",
+   "text": "HUDSON",
+   "start": 34.19,
+   "end": 34.605,
+   "line": 6
+  },
+  {
+   "id": "w79",
+   "text": "KNAPP",
+   "start": 34.88,
+   "end": 35.248,
+   "line": 7
+  },
+  {
+   "id": "w80",
+   "text": "GLEITET",
+   "start": 35.27,
+   "end": 35.732,
+   "line": 7
+  },
+  {
+   "id": "w81",
+   "text": "IHR",
+   "start": 35.79,
+   "end": 35.93,
+   "line": 7
+  },
+  {
+   "id": "w82",
+   "text": "ÜBER",
+   "start": 35.94,
+   "end": 36.085,
+   "line": 7
+  },
+  {
+   "id": "w83",
+   "text": "DIE",
+   "start": 36.13,
+   "end": 36.263,
+   "line": 7
+  },
+  {
+   "id": "w84",
+   "text": "GEORGE-WASHINGTON-BRÜCKE",
+   "start": 36.28,
+   "end": 37.561,
+   "line": 7
+  },
+  {
+   "id": "w85",
+   "text": "UNTER",
+   "start": 37.89,
+   "end": 38.124,
+   "line": 7
+  },
+  {
+   "id": "w86",
+   "text": "DIR",
+   "start": 38.15,
+   "end": 38.428,
+   "line": 7
+  },
+  {
+   "id": "w87",
+   "text": "NUR",
+   "start": 38.49,
+   "end": 38.782,
+   "line": 7
+  },
+  {
+   "id": "w88",
+   "text": "WASSER",
+   "start": 38.81,
+   "end": 39.196,
+   "line": 7
+  },
+  {
+   "id": "w89",
+   "text": "BRACE",
+   "start": 39.52,
+   "end": 39.812,
+   "line": 8
+  },
+  {
+   "id": "w90",
+   "text": "FOR",
+   "start": 39.92,
+   "end": 40.105,
+   "line": 8
+  },
+  {
+   "id": "w91",
+   "text": "IMPACT",
+   "start": 40.13,
+   "end": 40.506,
+   "line": 8
+  },
+  {
+   "id": "w92",
+   "text": "KOPF",
+   "start": 40.99,
+   "end": 41.238,
+   "line": 8
+  },
+  {
+   "id": "w93",
+   "text": "RUNTER",
+   "start": 41.26,
+   "end": 41.724,
+   "line": 8
+  },
+  {
+   "id": "w94",
+   "text": "FESTHALTEN",
+   "start": 41.94,
+   "end": 42.593,
+   "line": 8
+  },
+  {
+   "id": "w95",
+   "text": "MIT",
+   "start": 43.32,
+   "end": 43.4,
+   "line": 9
+  },
+  {
+   "id": "w96",
+   "text": "RUND",
+   "start": 43.41,
+   "end": 43.512,
+   "line": 9
+  },
+  {
+   "id": "w97",
+   "text": "ZWEIHUNDERTDREISSIG",
+   "start": 43.52,
+   "end": 44.268,
+   "line": 9
+  },
+  {
+   "id": "w98",
+   "text": "STUNDENKILOMETERN",
+   "start": 44.3,
+   "end": 45.275,
+   "line": 9
+  },
+  {
+   "id": "w99",
+   "text": "SETZT",
+   "start": 45.29,
+   "end": 45.538,
+   "line": 9
+  },
+  {
+   "id": "w100",
+   "text": "DER",
+   "start": 45.56,
+   "end": 45.706,
+   "line": 9
+  },
+  {
+   "id": "w101",
+   "text": "AIRBUS",
+   "start": 45.77,
+   "end": 46.075,
+   "line": 9
+  },
+  {
+   "id": "w102",
+   "text": "AUF",
+   "start": 46.1,
+   "end": 46.215,
+   "line": 9
+  },
+  {
+   "id": "w103",
+   "text": "DEM",
+   "start": 46.23,
+   "end": 46.37,
+   "line": 9
+  },
+  {
+   "id": "w104",
+   "text": "FLUSS",
+   "start": 46.4,
+   "end": 46.627,
+   "line": 9
+  },
+  {
+   "id": "w105",
+   "text": "AUF",
+   "start": 46.75,
+   "end": 47.024,
+   "line": 9
+  },
+  {
+   "id": "w106",
+   "text": "ER",
+   "start": 47.32,
+   "end": 47.414,
+   "line": 9
+  },
+  {
+   "id": "w107",
+   "text": "BLEIBT",
+   "start": 47.44,
+   "end": 47.702,
+   "line": 9
+  },
+  {
+   "id": "w108",
+   "text": "GANZ",
+   "start": 47.74,
+   "end": 48.047,
+   "line": 9
+  },
+  {
+   "id": "w109",
+   "text": "DU",
+   "start": 48.58,
+   "end": 48.65,
+   "line": 10
+  },
+  {
+   "id": "w110",
+   "text": "STEHST",
+   "start": 48.68,
+   "end": 48.986,
+   "line": 10
+  },
+  {
+   "id": "w111",
+   "text": "AUF",
+   "start": 49.01,
+   "end": 49.105,
+   "line": 10
+  },
+  {
+   "id": "w112",
+   "text": "DER",
+   "start": 49.15,
+   "end": 49.23,
+   "line": 10
+  },
+  {
+   "id": "w113",
+   "text": "TRAGFLÄCHE",
+   "start": 49.31,
+   "end": 49.904,
+   "line": 10
+  },
+  {
+   "id": "w114",
+   "text": "DAS",
+   "start": 50.21,
+   "end": 50.374,
+   "line": 10
+  },
+  {
+   "id": "w115",
+   "text": "WASSER",
+   "start": 50.41,
+   "end": 50.732,
+   "line": 10
+  },
+  {
+   "id": "w116",
+   "text": "IST",
+   "start": 50.82,
+   "end": 51.086,
+   "line": 10
+  },
+  {
+   "id": "w117",
+   "text": "FÜNF",
+   "start": 51.18,
+   "end": 51.474,
+   "line": 10
+  },
+  {
+   "id": "w118",
+   "text": "GRAD",
+   "start": 51.54,
+   "end": 51.82,
+   "line": 10
+  },
+  {
+   "id": "w119",
+   "text": "KALT",
+   "start": 51.85,
+   "end": 52.189,
+   "line": 10
+  },
+  {
+   "id": "w120",
+   "text": "NACH",
+   "start": 52.51,
+   "end": 52.692,
+   "line": 10
+  },
+  {
+   "id": "w121",
+   "text": "VIER",
+   "start": 52.75,
+   "end": 52.959,
+   "line": 10
+  },
+  {
+   "id": "w122",
+   "text": "MINUTEN",
+   "start": 52.97,
+   "end": 53.368,
+   "line": 10
+  },
+  {
+   "id": "w123",
+   "text": "IST",
+   "start": 53.42,
+   "end": 53.552,
+   "line": 10
+  },
+  {
+   "id": "w124",
+   "text": "DIE",
+   "start": 53.56,
+   "end": 53.661,
+   "line": 10
+  },
+  {
+   "id": "w125",
+   "text": "ERSTE",
+   "start": 53.69,
+   "end": 53.97,
+   "line": 10
+  },
+  {
+   "id": "w126",
+   "text": "FÄHRE",
+   "start": 54.01,
+   "end": 54.319,
+   "line": 10
+  },
+  {
+   "id": "w127",
+   "text": "DA",
+   "start": 54.38,
+   "end": 54.614,
+   "line": 10
+  },
+  {
+   "id": "w128",
+   "text": "HUNDERTFÜNFUNDFÜNFZIG",
+   "start": 55.28,
+   "end": 56.115,
+   "line": 11
+  },
+  {
+   "id": "w129",
+   "text": "MENSCHEN",
+   "start": 56.14,
+   "end": 56.369,
+   "line": 11
+  },
+  {
+   "id": "w130",
+   "text": "AN",
+   "start": 56.43,
+   "end": 56.508,
+   "line": 11
+  },
+  {
+   "id": "w131",
+   "text": "BORD",
+   "start": 56.55,
+   "end": 56.735,
+   "line": 11
+  },
+  {
+   "id": "w132",
+   "text": "HUNDERTFÜNFUNDFÜNFZIG",
+   "start": 57.18,
+   "end": 58.468,
+   "line": 11
+  },
+  {
+   "id": "w133",
+   "text": "ÜBERLEBEN",
+   "start": 58.52,
+   "end": 59.091,
+   "line": 11
+  },
+  {
+   "id": "w134",
+   "text": "WARUM",
+   "start": 59.43,
+   "end": 59.751,
+   "line": 12
+  },
+  {
+   "id": "w135",
+   "text": "NICHT",
+   "start": 59.76,
+   "end": 59.96,
+   "line": 12
+  },
+  {
+   "id": "w136",
+   "text": "ZURÜCK",
+   "start": 59.99,
+   "end": 60.238,
+   "line": 12
+  },
+  {
+   "id": "w137",
+   "text": "ZUM",
+   "start": 60.26,
+   "end": 60.39,
+   "line": 12
+  },
+  {
+   "id": "w138",
+   "text": "FLUGHAFEN",
+   "start": 60.43,
+   "end": 61.126,
+   "line": 12
+  },
+  {
+   "id": "w139",
+   "text": "OHNE",
+   "start": 61.6,
+   "end": 61.737,
+   "line": 12
+  },
+  {
+   "id": "w140",
+   "text": "SCHUB",
+   "start": 61.82,
+   "end": 62.132,
+   "line": 12
+  },
+  {
+   "id": "w141",
+   "text": "IST",
+   "start": 62.19,
+   "end": 62.392,
+   "line": 12
+  },
+  {
+   "id": "w142",
+   "text": "HÖHE",
+   "start": 62.45,
+   "end": 62.607,
+   "line": 12
+  },
+  {
+   "id": "w143",
+   "text": "DEIN",
+   "start": 62.63,
+   "end": 62.952,
+   "line": 12
+  },
+  {
+   "id": "w144",
+   "text": "EINZIGER",
+   "start": 63.04,
+   "end": 63.576,
+   "line": 12
+  },
+  {
+   "id": "w145",
+   "text": "VORRAT",
+   "start": 63.64,
+   "end": 64.044,
+   "line": 12
+  },
+  {
+   "id": "w146",
+   "text": "JEDE",
+   "start": 64.43,
+   "end": 64.762,
+   "line": 12
+  },
+  {
+   "id": "w147",
+   "text": "KURVE",
+   "start": 64.82,
+   "end": 65.305,
+   "line": 12
+  },
+  {
+   "id": "w148",
+   "text": "UND",
+   "start": 65.32,
+   "end": 65.488,
+   "line": 12
+  },
+  {
+   "id": "w149",
+   "text": "JEDE",
+   "start": 65.55,
+   "end": 65.887,
+   "line": 12
+  },
+  {
+   "id": "w150",
+   "text": "SEKUNDE",
+   "start": 65.91,
+   "end": 66.32,
+   "line": 12
+  },
+  {
+   "id": "w151",
+   "text": "ZÖGERN",
+   "start": 66.38,
+   "end": 66.844,
+   "line": 12
+  },
+  {
+   "id": "w152",
+   "text": "KOSTET",
+   "start": 66.87,
+   "end": 67.316,
+   "line": 12
+  },
+  {
+   "id": "w153",
+   "text": "HÖHE",
+   "start": 67.38,
+   "end": 67.6,
+   "line": 12
+  },
+  {
+   "id": "w154",
+   "text": "SIMULATIONEN",
+   "start": 67.98,
+   "end": 68.766,
+   "line": 13
+  },
+  {
+   "id": "w155",
+   "text": "ZEIGEN",
+   "start": 68.79,
+   "end": 69.034,
+   "line": 13
+  },
+  {
+   "id": "w156",
+   "text": "SPÄTER",
+   "start": 69.05,
+   "end": 69.581,
+   "line": 13
+  },
+  {
+   "id": "w157",
+   "text": "NUR",
+   "start": 69.76,
+   "end": 69.957,
+   "line": 13
+  },
+  {
+   "id": "w158",
+   "text": "BEI",
+   "start": 69.97,
+   "end": 70.114,
+   "line": 13
+  },
+  {
+   "id": "w159",
+   "text": "SOFORTIGER",
+   "start": 70.16,
+   "end": 70.824,
+   "line": 13
+  },
+  {
+   "id": "w160",
+   "text": "UMKEHR",
+   "start": 70.87,
+   "end": 71.268,
+   "line": 13
+  },
+  {
+   "id": "w161",
+   "text": "HÄTTE",
+   "start": 71.33,
+   "end": 71.509,
+   "line": 13
+  },
+  {
+   "id": "w162",
+   "text": "ES",
+   "start": 71.54,
+   "end": 71.664,
+   "line": 13
+  },
+  {
+   "id": "w163",
+   "text": "GEREICHT",
+   "start": 71.69,
+   "end": 72.022,
+   "line": 13
+  },
+  {
+   "id": "w164",
+   "text": "FÜR",
+   "start": 72.46,
+   "end": 72.624,
+   "line": 13
+  },
+  {
+   "id": "w165",
+   "text": "DIE",
+   "start": 72.64,
+   "end": 72.748,
+   "line": 13
+  },
+  {
+   "id": "w166",
+   "text": "ENTSCHEIDUNG",
+   "start": 72.76,
+   "end": 73.334,
+   "line": 13
+  },
+  {
+   "id": "w167",
+   "text": "BLIEB",
+   "start": 73.37,
+   "end": 73.67,
+   "line": 13
+  },
+  {
+   "id": "w168",
+   "text": "FAST",
+   "start": 73.68,
+   "end": 73.914,
+   "line": 13
+  },
+  {
+   "id": "w169",
+   "text": "KEINE",
+   "start": 73.95,
+   "end": 74.319,
+   "line": 13
+  },
+  {
+   "id": "w170",
+   "text": "ZEIT",
+   "start": 74.38,
+   "end": 74.588,
+   "line": 13
+  },
+  {
+   "id": "w171",
+   "text": "HÄTTEST",
+   "start": 75.0,
+   "end": 75.438,
+   "line": 14
+  },
+  {
+   "id": "w172",
+   "text": "DU",
+   "start": 75.45,
+   "end": 75.63,
+   "line": 14
+  },
+  {
+   "id": "w173",
+   "text": "IN",
+   "start": 75.69,
+   "end": 75.813,
+   "line": 14
+  },
+  {
+   "id": "w174",
+   "text": "DIESEN",
+   "start": 75.82,
+   "end": 76.197,
+   "line": 14
+  },
+  {
+   "id": "w175",
+   "text": "SEKUNDEN",
+   "start": 76.22,
+   "end": 76.579,
+   "line": 14
+  },
+  {
+   "id": "w176",
+   "text": "RICHTIG",
+   "start": 76.64,
+   "end": 77.004,
+   "line": 14
+  },
+  {
+   "id": "w177",
+   "text": "ENTSCHIEDEN",
+   "start": 77.07,
+   "end": 77.547,
+   "line": 14
+  }
+ ]
+}

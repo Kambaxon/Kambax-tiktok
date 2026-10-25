@@ -2,7 +2,7 @@
       // flugzeug(typ, { seed, farbe (Leitwerk/Streifen), fahrwerk, kondens, nachbrenner })
       //   Zivil: "a320" (Kurz-/Mittelstrecke), "a350" (Langstrecke), "b747f" (Fracht), "bizjet", "atr72" (Turboprop), "cessna", "segler", "ul"
       //   Militär: "eurofighter", "f35", "b2", "a400m", "awacs" (Aufklärer)   Forschung: "x15" (Raketenflugzeug)
-      // Nase zeigt nach +z, Rumpfmitte im Ursprung, echte Meter. flugzeugUpdate(f, T) für Propeller, Blinklichter, Flammen.
+      // Nase zeigt nach +z, Rumpfmitte im Ursprung, echte Meter. flugzeugUpdate(f, T) für Propeller, Blinklichter, Flammen. Fan-Drehung über f.userData.fanWinkel (rad; langsam halten, sonst Stroboskop bei 30 fps).
       const FLUG = {
         a320:       { L: 37, R: 2.0, span: 34, chord: [6.5, 1.6], sweep: 0.45, flH: -0.6, tw: "fan", twR: 0.95, tw2: [[5.8, -1.6, 2.5]], fin: [6, 4.2, 0.7], stab: [12.5, 3.2], fenster: true, lack: "zivil" },
         a350:       { L: 65, R: 3.0, span: 64, chord: [11, 2.4], sweep: 0.55, flH: -1.0, tw: "fan", twR: 1.65, tw2: [[10, -2.6, 4]], fin: [9.5, 7, 0.75], stab: [19, 5], fenster: true, lack: "zivil", winglet: true },
@@ -85,7 +85,7 @@
           // Triebwerke
           const fan = (x, y, z, R) => { const gondel = add(new THREE.CylinderGeometry(R, R * 0.82, R * 3.6, 32, 1, true), grau, x, y, z); gondel.rotation.x = Math.PI / 2; gondel.material = new THREE.MeshPhysicalMaterial({ color: 0xd8dadc, metalness: 0.5, roughness: 0.3, side: THREE.DoubleSide });
             const lip = new THREE.Mesh(new THREE.TorusGeometry(R * 0.96, R * 0.08, 10, 32), metall); lip.position.set(x, y, z + R * 1.8); g.add(lip);
-            const scheibe = add(new THREE.CircleGeometry(R * 0.92, 32), dunkel, x, y, z + R * 1.3); for (let k = 0; k < 18; k++) { const bl = add(new THREE.BoxGeometry(0.04, R * 0.8, 0.02), M(0x5a5e62, { metalness: 0.9, roughness: 0.3 }), x, y, z + R * 1.32); bl.geometry.translate(0, R * 0.45, 0); bl.rotation.z = k / 18 * Math.PI * 2; bl.rotation.y = 0.4; props.push({ m: bl, v: 0, fan: true }); }
+            const scheibe = add(new THREE.CircleGeometry(R * 0.92, 32), dunkel, x, y, z + R * 1.3); for (let k = 0; k < 18; k++) { const bl = add(new THREE.BoxGeometry(0.04, R * 0.8, 0.02), M(0x5a5e62, { metalness: 0.9, roughness: 0.3 }), x, y, z + R * 1.32); bl.geometry.translate(0, R * 0.45, 0); bl.rotation.z = k / 18 * Math.PI * 2; bl.rotation.y = 0.4; props.push({ m: bl, v: 0, fan: true, basis: k / 18 * Math.PI * 2 }); }
             const spinner = add(new THREE.ConeGeometry(R * 0.28, R * 0.6, 20), metall, x, y, z + R * 1.6); spinner.rotation.x = Math.PI / 2;
             const duese = add(new THREE.ConeGeometry(R * 0.5, R * 1.4, 20), dunkel, x, y, z - R * 2.2); duese.rotation.x = -Math.PI / 2;
             const pylon = add(new THREE.BoxGeometry(R * 0.2, Math.abs(F.flH - y) + 0.2, R * 2.4), grau, x, (F.flH + y) / 2, z + R * 0.2); return { x, y, z: z - R * 2.6 }; };
@@ -118,7 +118,7 @@
         return g;
       }
       function flugzeugUpdate(f, T) { const u = f.userData;
-        u.props.forEach((p) => { if (p.achse === "y") p.m.rotation.y = T * p.v * 6; else if (p.fan) {} else { p.m.rotation.z = T * 45; if (p.scheibe) p.scheibe.material.opacity = 0.12; } });
+        u.props.forEach((p) => { if (p.achse === "y") p.m.rotation.y = T * p.v * 6; else if (p.fan) { p.m.rotation.z = p.basis + (u.fanWinkel ?? T * 1.5); } else { p.m.rotation.z = T * 45; if (p.scheibe) p.scheibe.material.opacity = 0.12; } });
         u.lichter.forEach((L, i) => { if (L.art === "blitz") L.m.visible = (T * 1.1 + i * 0.3) % 1 < 0.12; });
         u.flammen.forEach((fl, i) => { fl.scale.set(1, 1, 0.85 + 0.15 * Math.sin(T * 37 + i)); });
       }

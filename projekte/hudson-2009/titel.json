@@ -1,0 +1,14 @@
+[
+ {"start":0,"end":5.55,"kicker":"15. Januar 2009 · New York","titel":"15:24 Uhr","sub":"Minus 7 Grad, klarer Himmel"},
+ {"start":5.55,"end":12.3,"kicker":"Flug 1549 · Airbus A320","titel":"15:25 Uhr","sub":"155 Menschen an Bord"},
+ {"start":12.3,"end":18.8,"kicker":"Über der Bronx · 850 m","titel":"15:27 Uhr","sub":"Ein Schwarm Kanadagänse"},
+ {"start":18.8,"end":23.55,"kicker":"Beide Triebwerke aus","titel":"850 m","sub":"Gleitflug ohne Schub","farbe":"#ff5a4a"},
+ {"start":23.55,"end":26.55,"kicker":"Flug 1549 · im Gleitflug","titel":"Noch 3:30","sub":"So lange trägt die Höhe"},
+ {"start":26.55,"end":32.2,"kicker":"Cockpit · Funk mit dem Tower","titel":"Noch 3 Min.","sub":"Zurück nach LaGuardia?"},
+ {"start":32.2,"end":34.75,"kicker":"Kapitän Sullenberger","titel":"Noch 2 Min.","sub":"„Wir landen im Hudson“"},
+ {"start":34.75,"end":39.4,"kicker":"George-Washington-Brücke","titel":"Noch 90 Sek.","sub":"Knapp darüber hinweg"},
+ {"start":39.4,"end":43.0,"kicker":"Kabine · Brace for impact","titel":"Noch 20 Sek.","sub":"Kopf runter","farbe":"#ff5a4a"},
+ {"start":43.0,"end":48.4,"kicker":"Hudson · 15:31 Uhr","titel":"Sekunde 0","sub":"Wasserung mit rund 230 km/h"},
+ {"start":48.4,"end":55.1,"kicker":"Wasser 5 °C · Luft −7 °C","titel":"+4 Min.","sub":"Die erste Fähre ist da"},
+ {"start":74.8,"end":78.6,"kicker":"15. Januar 2009","titel":"Und du?","sub":"Hättest du richtig entschieden?"}
+]

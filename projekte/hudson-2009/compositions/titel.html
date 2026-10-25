@@ -1,0 +1,84 @@
+<template>
+  <style>
+    @font-face { font-family: "Open Sans Doku"; src: url("assets/fonts/open-sans-latin-700-normal.woff2") format("woff2"); font-weight: 700; }
+    @font-face { font-family: "Open Sans Doku"; src: url("assets/fonts/open-sans-latin-600-normal.woff2") format("woff2"); font-weight: 600; }
+    #root { position: absolute; inset: 0; pointer-events: none; }
+    .ti { position: absolute; left: 72px; top: 228px; width: 940px; color: #fff; font-family: "Open Sans Doku", sans-serif;
+           text-shadow: 0 2px 16px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.5); }
+    .ti .k, .ti .s { font-weight: 600; font-size: 32px; letter-spacing: .13em; text-transform: uppercase; line-height: 1.2; }
+    .ti .h { font-weight: 700; font-size: 132px; letter-spacing: -0.01em; line-height: 1.08; margin: 6px 0 8px -4px; }
+  </style>
+  <div id="root" data-composition-id="titel" data-width="1080" data-height="1920">
+    <div id="ti-0" class="clip ti" data-start="0" data-duration="5.55" data-track-index="1">
+      <div class="k">15. Januar 2009 · New York</div>
+      <div class="h" style="color:#ffffff">15:24 Uhr</div>
+      <div class="s">Minus 7 Grad, klarer Himmel</div>
+    </div>
+    <div id="ti-1" class="clip ti" data-start="5.55" data-duration="6.75" data-track-index="1">
+      <div class="k">Flug 1549 · Airbus A320</div>
+      <div class="h" style="color:#ffffff">15:25 Uhr</div>
+      <div class="s">155 Menschen an Bord</div>
+    </div>
+    <div id="ti-2" class="clip ti" data-start="12.3" data-duration="6.5" data-track-index="1">
+      <div class="k">Über der Bronx · 850 m</div>
+      <div class="h" style="color:#ffffff">15:27 Uhr</div>
+      <div class="s">Ein Schwarm Kanadagänse</div>
+    </div>
+    <div id="ti-3" class="clip ti" data-start="18.8" data-duration="4.75" data-track-index="1">
+      <div class="k">Beide Triebwerke aus</div>
+      <div class="h" style="color:#ff5a4a">850 m</div>
+      <div class="s">Gleitflug ohne Schub</div>
+    </div>
+    <div id="ti-4" class="clip ti" data-start="23.55" data-duration="3.0" data-track-index="1">
+      <div class="k">Flug 1549 · im Gleitflug</div>
+      <div class="h" style="color:#ffffff">Noch 3:30</div>
+      <div class="s">So lange trägt die Höhe</div>
+    </div>
+    <div id="ti-5" class="clip ti" data-start="26.55" data-duration="5.65" data-track-index="1">
+      <div class="k">Cockpit · Funk mit dem Tower</div>
+      <div class="h" style="color:#ffffff">Noch 3 Min.</div>
+      <div class="s">Zurück nach LaGuardia?</div>
+    </div>
+    <div id="ti-6" class="clip ti" data-start="32.2" data-duration="2.55" data-track-index="1">
+      <div class="k">Kapitän Sullenberger</div>
+      <div class="h" style="color:#ffffff">Noch 2 Min.</div>
+      <div class="s">„Wir landen im Hudson“</div>
+    </div>
+    <div id="ti-7" class="clip ti" data-start="34.75" data-duration="4.65" data-track-index="1">
+      <div class="k">George-Washington-Brücke</div>
+      <div class="h" style="color:#ffffff">Noch 90 Sek.</div>
+      <div class="s">Knapp darüber hinweg</div>
+    </div>
+    <div id="ti-8" class="clip ti" data-start="39.4" data-duration="3.6" data-track-index="1">
+      <div class="k">Kabine · Brace for impact</div>
+      <div class="h" style="color:#ff5a4a">Noch 20 Sek.</div>
+      <div class="s">Kopf runter</div>
+    </div>
+    <div id="ti-9" class="clip ti" data-start="43.0" data-duration="5.4" data-track-index="1">
+      <div class="k">Hudson · 15:31 Uhr</div>
+      <div class="h" style="color:#ffffff">Sekunde 0</div>
+      <div class="s">Wasserung mit rund 230 km/h</div>
+    </div>
+    <div id="ti-10" class="clip ti" data-start="48.4" data-duration="6.7" data-track-index="1">
+      <div class="k">Wasser 5 °C · Luft −7 °C</div>
+      <div class="h" style="color:#ffffff">+4 Min.</div>
+      <div class="s">Die erste Fähre ist da</div>
+    </div>
+    <div id="ti-11" class="clip ti" data-start="74.8" data-duration="3.8" data-track-index="1">
+      <div class="k">15. Januar 2009</div>
+      <div class="h" style="color:#ffffff">Und du?</div>
+      <div class="s">Hättest du richtig entschieden?</div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    document.querySelectorAll(".ti").forEach((b) => {
+      const s = parseFloat(b.dataset.start);
+      const [k, h, sub] = b.children;
+      tl.fromTo(k, { opacity: 0 }, { opacity: 1, duration: 0.2 }, s);
+      tl.fromTo(h, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power2.out" }, s + 0.04);
+      tl.fromTo(sub, { opacity: 0 }, { opacity: 1, duration: 0.2 }, s + 0.1);
+    });
+    window.__timelines["titel"] = tl;
+  </script>
+</template>

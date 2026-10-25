@@ -1,0 +1,81 @@
+<template>
+  <style>
+    @font-face { font-family: "Open Sans Doku"; src: url("assets/fonts/open-sans-latin-700-normal.woff2") format("woff2"); font-weight: 700; }
+    @font-face { font-family: "Open Sans Doku"; src: url("assets/fonts/open-sans-latin-600-normal.woff2") format("woff2"); font-weight: 600; }
+    #root { position: absolute; inset: 0; font-family: "Open Sans Doku", sans-serif; }
+    #wy-dim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(18,24,30,.97) 0%, rgba(18,24,30,.97) 56%, rgba(18,24,30,.74) 100%); }
+    .wy-ti { position: absolute; left: 72px; top: 228px; color: #fff; }
+    .wy-ti .k, .wy-ti .s { font-weight: 600; font-size: 32px; letter-spacing: .13em; text-transform: uppercase; }
+    .wy-ti .h { font-weight: 700; font-size: 132px; line-height: 1.08; margin: 6px 0 8px -4px; }
+    #wy-band { position: absolute; left: 0; top: 640px; width: 1080px; height: 400px; background: #e8eef2; overflow: hidden; }
+    .wy-svg { position: absolute; inset: 0; width: 1080px; height: 400px; }
+    .t { font: 700 24px "Open Sans Doku", sans-serif; letter-spacing: .12em; fill: #1d2a3a; }
+    .wy-n { position: absolute; left: 0; width: 1080px; top: 1062px; text-align: center; color: #5fd0e8; font-weight: 700; font-size: 30px; letter-spacing: .13em; }
+  </style>
+  <div id="root" data-composition-id="warum" data-width="1080" data-height="1920" data-layout-allow-overlap data-layout-allow-overflow>
+    <div id="wy-dim"></div>
+    <div id="wy-t1" class="clip wy-ti" data-start="0" data-duration="2.25" data-track-index="1"><div class="k">Flug 1549 · Die Entscheidung</div><div class="h">Warum?</div><div class="s">Schema, nicht maßstabsgetreu</div></div>
+    <div id="wy-t2" class="clip wy-ti" data-start="2.25" data-duration="6.35" data-track-index="1"><div class="k">Ohne Schub</div><div class="h">Höhe = Vorrat</div><div class="s">Jede Kurve kostet Höhe</div></div>
+    <div id="wy-t3" class="clip wy-ti" data-start="8.6" data-duration="6.9" data-track-index="1"><div class="k">Spätere Simulationen</div><div class="h">Umkehr?</div><div class="s">Nur sofort hätte es gereicht</div></div>
+    <div id="wy-band">
+      <!-- Teil 1: Höhenvorrat als Tank, Kurve und Uhr zehren daran -->
+      <svg id="wy-a" class="wy-svg" viewBox="0 0 1080 400">
+        <line x1="60" y1="350" x2="1020" y2="350" stroke="#9aa6b2" stroke-width="4" />
+        <path id="wy-gleit" d="M150,90 L860,340" stroke="#1d2a3a" stroke-width="5" stroke-dasharray="14 12" fill="none" />
+        <g transform="translate(150 90) rotate(19)"><path d="M-38,0 L34,0 L44,-4 L34,-8 L-30,-8 L-40,-22 L-48,-22 L-44,-4 Z" fill="#1e3a6a" /><path d="M-6,-4 L10,-4 L-14,14 L-24,14 Z" fill="#33507e" /></g>
+        <text class="t" x="96" y="60">850 M</text>
+        <text class="t" x="760" y="385" style="font-size:20px">GLEITPFAD OHNE SCHUB</text>
+        <rect x="920" y="60" width="80" height="270" rx="10" fill="#ffffff" stroke="#1d2a3a" stroke-width="4" />
+        <rect id="wy-tank" x="927" y="67" width="66" height="256" rx="6" fill="#3a7ac9" />
+        <text class="t" x="905" y="40" style="font-size:20px">HÖHE</text>
+        <g id="wy-kurve" opacity="0"><path d="M420,250 C380,200 440,150 500,170" stroke="#c4302b" stroke-width="8" fill="none" stroke-linecap="round" /><path d="M490,155 L515,172 L488,186 Z" fill="#c4302b" /><text class="t" x="360" y="300" style="fill:#c4302b">KURVE</text></g>
+        <g id="wy-uhr" opacity="0" transform="translate(640 150)"><circle r="40" fill="#ffffff" stroke="#c4302b" stroke-width="7" /><line x1="0" y1="0" x2="0" y2="-26" stroke="#1d2a3a" stroke-width="6" stroke-linecap="round" /><line id="wy-zeiger" x1="0" y1="0" x2="20" y2="0" stroke="#c4302b" stroke-width="5" stroke-linecap="round" /><text class="t" x="-62" y="78" style="fill:#c4302b">ZÖGERN</text></g>
+      </svg>
+      <!-- Teil 2: Draufsicht – Reichweitenkreis, Umkehr nach LaGuardia vs. Hudson -->
+      <svg id="wy-b" class="wy-svg" viewBox="0 0 1080 400" opacity="0">
+        <rect x="0" y="0" width="1080" height="400" fill="#e9dfc6" />
+        <path d="M640,0 L760,0 L740,400 L610,400 Z" fill="#4a86b8" />
+        <text class="t" x="650" y="380" style="fill:#ffffff;font-size:22px">HUDSON</text>
+        <g transform="translate(150 300) rotate(-20)"><rect x="-70" y="-9" width="140" height="18" fill="#4a4e54" /><rect x="-12" y="-60" width="18" height="120" fill="#4a4e54" /></g>
+        <text class="t" x="70" y="370">LAGUARDIA</text>
+        <circle id="wy-reich" cx="420" cy="140" r="330" fill="rgba(58,122,201,.14)" stroke="#3a7ac9" stroke-width="4" stroke-dasharray="12 10" />
+        <g transform="translate(420 140) rotate(-60)"><path d="M-30,0 L28,0 L36,-3 L28,-6 L-24,-6 L-32,-18 L-38,-18 L-35,-3 Z" fill="#1e3a6a" /></g>
+        <path id="wy-sofort" d="M420,140 C470,60 330,40 280,120 C240,190 200,250 165,292" stroke="#2e9e4a" stroke-width="8" fill="none" stroke-linecap="round" />
+        <path id="wy-spaet" d="M420,140 C500,110 520,30 430,30 C340,30 300,140 270,200" stroke="#c4302b" stroke-width="8" fill="none" stroke-linecap="round" />
+        <g id="wy-kreuz" opacity="0" transform="translate(270 205)"><circle r="22" fill="#c4302b" /><path d="M-9,-9 L9,9 M9,-9 L-9,9" stroke="#fff" stroke-width="6" stroke-linecap="round" /></g>
+        <path id="wy-hudson" d="M420,140 C520,170 610,230 670,300" stroke="#2e9e4a" stroke-width="8" fill="none" stroke-linecap="round" />
+        <g id="wy-haken" opacity="0" transform="translate(675 305)"><circle r="24" fill="#2e9e4a" /><path d="M-11,1 L-3,9 L12,-8" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" /></g>
+      </svg>
+    </div>
+    <div id="wy-n1" class="clip wy-n" data-start="3.0" data-duration="5.6" data-track-index="2">HÖHE ↓ = REICHWEITE ↓</div>
+    <div id="wy-n2" class="clip wy-n" data-start="10.4" data-duration="2.7" data-track-index="2">SOFORT UMKEHREN: GERADE SO MÖGLICH</div>
+    <div id="wy-n3" class="clip wy-n" data-start="13.1" data-duration="2.4" data-track-index="2">MIT 35 S BEDENKZEIT: ZU KURZ</div>
+  </div>
+  <script>
+    // lokal 0 = 59.3 s. Vorrat 4.34, Kurve 5.52, Sekunde 6.61, Zögern 7.08, Höhe 8.08, Simulationen 8.68, sofortiger 10.86, Umkehr 11.57, gereicht 12.39, Entscheidung 13.46, Zeit 15.08
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#wy-dim", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0);
+    tl.fromTo("#wy-t1 .h", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2 }, 0.1);
+    tl.fromTo("#wy-band", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "power2.inOut" }, 0.4);
+    tl.fromTo("#wy-t2 .h", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2 }, 2.25);
+    tl.fromTo("#wy-t3 .h", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2 }, 8.6);
+    tl.set("#wy-tank", { transformOrigin: "50% 100%", transformBox: "fill-box", scaleY: 1 }, 0);
+    tl.fromTo("#wy-gleit", { strokeDashoffset: 760 }, { strokeDashoffset: 0, duration: 3, ease: "none" }, 0.9);
+    tl.to("#wy-tank", { scaleY: 0.82, duration: 2.5, ease: "none" }, 2.3);
+    tl.to("#wy-kurve", { opacity: 1, duration: 0.25 }, 5.45);
+    tl.to("#wy-tank", { scaleY: 0.55, fill: "#e0a030", duration: 0.6, ease: "power2.out" }, 5.6);
+    tl.to("#wy-uhr", { opacity: 1, duration: 0.25 }, 6.55);
+    tl.fromTo("#wy-zeiger", { rotation: 0, svgOrigin: "0 0" }, { rotation: 300, duration: 1.6, ease: "none" }, 6.6);
+    tl.to("#wy-tank", { scaleY: 0.28, fill: "#c4302b", duration: 1.2, ease: "power1.in" }, 6.9);
+    tl.to("#wy-a", { opacity: 0, duration: 0.3 }, 8.5); tl.to("#wy-b", { opacity: 1, duration: 0.3 }, 8.6);
+    ["#wy-sofort", "#wy-spaet", "#wy-hudson"].forEach((id) => { const p = document.querySelector(id), L = p.getTotalLength(); p.style.strokeDasharray = L; p.style.strokeDashoffset = L; });
+    tl.to("#wy-sofort", { strokeDashoffset: 0, duration: 1.4, ease: "power1.inOut" }, 10.8);
+    tl.to("#wy-reich", { attr: { r: 210 }, duration: 1.4, ease: "power1.in" }, 12.6);
+    tl.to("#wy-sofort", { opacity: 0.25, duration: 0.3 }, 12.9);
+    tl.to("#wy-spaet", { strokeDashoffset: 0, duration: 1.0, ease: "power1.inOut" }, 13.1);
+    tl.to("#wy-kreuz", { opacity: 1, duration: 0.2 }, 14.0);
+    tl.to("#wy-hudson", { strokeDashoffset: 0, duration: 0.9, ease: "power1.inOut" }, 14.1);
+    tl.to("#wy-haken", { opacity: 1, duration: 0.2 }, 14.95);
+    window.__timelines["warum"] = tl;
+  </script>
+</template>

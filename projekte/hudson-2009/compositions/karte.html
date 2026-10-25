@@ -1,0 +1,55 @@
+<template>
+  <style>
+    @font-face { font-family: "Open Sans Doku"; src: url("assets/fonts/open-sans-latin-700-normal.woff2") format("woff2"); font-weight: 700; }
+    @font-face { font-family: "Open Sans Doku"; src: url("assets/fonts/open-sans-latin-600-normal.woff2") format("woff2"); font-weight: 600; }
+    #root { position: absolute; inset: 0; background: #123f73; font-family: "Open Sans Doku", sans-serif; overflow: hidden; }
+    #ka-svg { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+    .land { fill: #e9dfc6; stroke: #c9bc98; stroke-width: 2; }
+    .ziel { fill: #f4ecd6; stroke: #ffffff; stroke-width: 5; }
+    .lbl { font: 700 26px "Open Sans Doku", sans-serif; letter-spacing: .16em; fill: #3a4656; }
+    .lbl.w { fill: #ffffff; paint-order: stroke; stroke: rgba(0,0,0,.35); stroke-width: 6px; }
+    .route { fill: none; stroke: #ffcc33; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
+    .ring { fill: none; stroke: #ffffff; stroke-width: 7; }
+    .ti { position: absolute; left: 72px; top: 228px; color: #fff; text-shadow: 0 2px 16px rgba(0,0,0,.5); }
+    .ti .k, .ti .s { font-weight: 600; font-size: 32px; letter-spacing: .13em; text-transform: uppercase; }
+    .ti .h { font-weight: 700; font-size: 132px; line-height: 1.08; margin: 6px 0 8px -4px; }
+    .ti .h span { color: #7dffa0; }
+  </style>
+  <div id="root" data-composition-id="karte" data-width="1080" data-height="1920" data-layout-allow-overflow>
+    <svg id="ka-svg" viewBox="0 0 1080 1920">
+      <g id="ka-map"><g transform="translate(0 300)">
+        <path class="land" d="M0,300 L540,300 L560,420 L540,560 L520,700 L470,1000 L430,1300 L410,1550 L380,1920 L0,1920 Z" />
+        <path class="land" d="M650,300 L1080,300 L1080,1920 L560,1920 L545,1600 L600,1330 L660,1080 L700,880 L705,760 L680,600 L640,470 Z" />
+        <path class="ziel" d="M575,470 L612,520 L640,700 L650,900 L605,1150 L548,1420 L502,1515 L474,1495 L500,1300 L535,1000 L560,700 Z" />
+        <g fill="#c9bc98"><rect x="790" y="770" width="70" height="10" transform="rotate(-30 825 775)" /><rect x="810" y="750" width="10" height="60" transform="rotate(-30 815 780)" /></g>
+        <line x1="540" y1="560" x2="569" y2="560" stroke="#3a4656" stroke-width="7" />
+        <text class="lbl" x="120" y="1180">NEW JERSEY</text>
+        <text class="lbl" x="760" y="520">BRONX</text>
+        <text class="lbl" x="760" y="1220">QUEENS</text>
+        <text class="lbl" x="868" y="800">LAGUARDIA</text>
+        <text class="lbl" x="440" y="548" text-anchor="end" style="font-size:22px">GW-BRÜCKE</text>
+        <text class="lbl" transform="translate(600 1240) rotate(-74)">MANHATTAN</text>
+        <text class="lbl w" transform="translate(470 960) rotate(-80)">HUDSON</text>
+        <path id="ka-route" class="route" d="M825,775 C800,700 770,640 730,600 C690,560 640,500 590,470 C560,455 545,500 548,560 C548,700 520,900 492,1080" />
+        <g id="ka-x" opacity="0" transform="translate(740 612)"><circle r="22" fill="#ff4b3e" /><path d="M-9,-9 L9,9 M9,-9 L-9,9" stroke="#fff" stroke-width="6" stroke-linecap="round" /></g>
+        <text id="ka-xl" class="lbl w" x="772" y="640" opacity="0" style="font-size:24px">VOGELSCHLAG</text>
+        <circle id="ka-r1" class="ring" cx="492" cy="1080" r="10" opacity="0" />
+        <circle id="ka-r2" class="ring" cx="492" cy="1080" r="10" opacity="0" />
+        <circle id="ka-dot" cx="492" cy="1080" r="16" fill="#ffcc33" stroke="#6a4a00" stroke-width="4" opacity="0" />
+        <text id="ka-dl" class="lbl w" x="250" y="1088" opacity="0" style="font-size:24px">WASSERUNG</text>
+      </g></g>
+    </svg>
+    <div class="ti"><div class="k">Flug 1549 · Bilanz</div><div class="h"><span id="ka-zahl">0</span> / 155</div><div class="s">Alle Menschen überleben</div></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true }); const route = document.getElementById("ka-route"); const L = route.getTotalLength();
+    route.style.strokeDasharray = L; route.style.strokeDashoffset = L;
+    tl.fromTo("#ka-map", { scale: 1.0, transformOrigin: "540px 1200px" }, { scale: 1.12, duration: 4.2, ease: "none" }, 0);
+    tl.to(route, { strokeDashoffset: 0, duration: 1.8, ease: "power1.inOut" }, 0.1);
+    tl.to(["#ka-x", "#ka-xl"], { opacity: 1, duration: 0.2 }, 0.55);
+    tl.to(["#ka-dot", "#ka-dl"], { opacity: 1, duration: 0.25 }, 1.9);
+    [["#ka-r1", 1.95], ["#ka-r2", 2.5]].forEach(([id, t0]) => tl.fromTo(id, { attr: { r: 12 }, opacity: 1 }, { attr: { r: 150 }, opacity: 0, duration: 1.3, ease: "power1.out" }, t0));
+    const z = { v: 0 }; tl.to(z, { v: 155, duration: 2.6, ease: "power2.out", onUpdate: () => { document.getElementById("ka-zahl").textContent = Math.round(z.v); } }, 0.2);
+    window.__timelines["karte"] = tl;
+  </script>
+</template>

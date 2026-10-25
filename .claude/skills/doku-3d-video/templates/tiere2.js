@@ -1,5 +1,5 @@
       // ===== Tiere v2: alle Klassen (braucht: tiere.js (vierbeiner, texFell, tierLaufen...), rng, box, cyl, M, canvasTex) =====
-      // saeugetier(seed, "pferd"|"kuh"|"reh"|"baer"|"fuchs"|"elefant"|"wal")  vogel(seed, "spatz"|"adler"|"moewe"|"pinguin"|"rabe"|"ente")
+      // saeugetier(seed, "pferd"|"kuh"|"reh"|"baer"|"fuchs"|"elefant"|"wal")  vogel(seed, "spatz"|"adler"|"moewe"|"pinguin"|"rabe"|"ente"|"gans")
       // reptil(seed, "eidechse"|"krokodil"|"schlange"|"schildkroete")  amphibie(seed, "frosch"|"molch")  fisch(seed, "hai"|"forelle"|"thunfisch"|"goldfisch")
       // insekt(seed, "kaefer"|"ameise"|"biene"|"libelle")  spinnentier(seed, "spinne"|"skorpion")  weichtier(seed, "schnecke"|"tintenfisch")  qualle(seed)
       // Jedes Tier hat userData.anim(T) – einfach in update() aufrufen (Laufen/Schwimmen/Flattern/Kriechen je nach Tier, o.bewegung wählt Variante).
@@ -60,13 +60,16 @@
       // ---------- Vögel ----------
       const VOEGEL = { spatz: { gr: 0.08, farbe: 0x8a6a4a, bauch: 0xd8c8b0, kopf: 0x6a4a34, schnabel: 0x3a3a3a, kurz: true }, adler: { gr: 0.45, farbe: 0x4a3220, bauch: 0x5a4028, kopf: 0xf2f0ea, schnabel: 0xe8b830, haken: true, spann: 2.2 },
         moewe: { gr: 0.25, farbe: 0xf4f4f2, bauch: 0xffffff, kopf: 0xffffff, schnabel: 0xe8c030, fluegel: 0xb8bcc4, spann: 1.4 }, pinguin: { gr: 0.35, farbe: 0x1a1a20, bauch: 0xf6f4ee, kopf: 0x1a1a20, schnabel: 0x1a1a1a, steht: true },
-        rabe: { gr: 0.22, farbe: 0x14141a, bauch: 0x1a1a22, kopf: 0x14141a, schnabel: 0x111111, spann: 1.0 }, ente: { gr: 0.25, farbe: 0x8a7a64, bauch: 0xb8a888, kopf: 0x1e5a3a, schnabel: 0xe8c030, flach: true } };
+        rabe: { gr: 0.22, farbe: 0x14141a, bauch: 0x1a1a22, kopf: 0x14141a, schnabel: 0x111111, spann: 1.0 }, ente: { gr: 0.25, farbe: 0x8a7a64, bauch: 0xb8a888, kopf: 0x1e5a3a, schnabel: 0xe8c030, flach: true },
+        gans: { gr: 0.42, farbe: 0x6e5a44, bauch: 0xd6cbb6, kopf: 0x161616, schnabel: 0x1a1a1a, fluegel: 0x5e4c3a, spann: 1.7, hals: true } }; // Kanadagans: langer schwarzer Hals, weißes Kinnband
       function vogel(seed, art = "spatz", o = {}) { const V = VOEGEL[art], g = new THREE.Group(), mk = mkT(g), s = V.gr; const fed = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, map: texMuster("feder", 0xe8e8e8, 0xe8e8e8) });
         const koerper = mk(new THREE.SphereGeometry(s * 0.5, 22, 16), fed(V.farbe), 0, s * (V.steht ? 0.9 : 0.6), 0); koerper.scale.set(0.85, V.steht ? 1.6 : 0.85, V.steht ? 0.9 : 1.4); if (V.steht) koerper.position.y = s * 0.95;
         const bauch = mk(new THREE.SphereGeometry(s * 0.46, 20, 14), fed(V.bauch), 0, koerper.position.y - s * 0.05, s * 0.08); bauch.scale.set(0.78, V.steht ? 1.5 : 0.78, V.steht ? 0.85 : 1.3);
         const kopf = new THREE.Group(); kopf.position.set(0, V.steht ? s * 1.75 : s * 0.95, V.steht ? s * 0.05 : s * 0.55); g.add(kopf); mk(new THREE.SphereGeometry(s * 0.3, 18, 14), fed(V.kopf), 0, 0, 0, kopf);
         const sch = mk(new THREE.ConeGeometry(s * (V.flach ? 0.12 : 0.08), s * (V.haken ? 0.35 : V.kurz ? 0.2 : 0.32), 10), M(V.schnabel, { roughness: 0.4 }), 0, -s * 0.04, s * 0.38, kopf); sch.rotation.x = Math.PI / 2 + (V.haken ? 0.4 : 0.05); if (V.flach) sch.scale.set(1.4, 1, 0.45);
         augenPaar(mk, kopf, s * 0.18, s * 0.06, s * 0.2, s * 0.05, art === "adler" ? 0x8a6a1a : 0x0a0a0a);
+        if (V.hals) { kopf.position.set(0, s * 0.78, s * 1.25); const halsM = M(0x161616, { roughness: 0.8 }); const hl = mk(new THREE.CylinderGeometry(s * 0.1, s * 0.15, s * 0.85, 14), halsM, 0, s * 0.7, s * 0.88); hl.rotation.x = Math.PI / 2 - 0.25;
+          mk(new THREE.SphereGeometry(s * 0.2, 14, 10), M(0xf4f2ec, { roughness: 0.8 }), 0, -s * 0.09, s * 0.02, kopf).scale.set(1.12, 0.55, 0.75); }
         const fluegel = []; for (const sx of [-1, 1]) { const f = new THREE.Group(); f.position.set(sx * s * 0.38, koerper.position.y + s * 0.1, 0); g.add(f); const fl = mk(new THREE.SphereGeometry(s * 0.5, 16, 10), fed(V.fluegel ?? V.farbe), sx * s * 0.08, 0, -s * 0.1, f); fl.scale.set(0.25, V.steht ? 1.3 : 0.55, V.steht ? 0.5 : 1.3);
           if (art === "moewe" || art === "adler") mk(new THREE.SphereGeometry(s * 0.2, 10, 6), M(art === "moewe" ? 0x1a1a1a : 0x2a1a10), sx * s * 0.08, 0, -s * 0.6, f).scale.set(0.3, 0.5, 1.5); fluegel.push({ f, fl, sx }); }
         const schwanz = mk(new THREE.BoxGeometry(s * 0.35, s * 0.04, s * 0.5), fed(V.farbe), 0, koerper.position.y + (V.steht ? -s * 0.6 : 0), V.steht ? -s * 0.4 : -s * 0.75); schwanz.rotation.x = V.steht ? 1.2 : -0.15;
@@ -76,7 +79,7 @@
           if (modus === "fliegen" || modus === "gleiten") { const sch2 = modus === "gleiten" ? Math.sin(k * 1.2) * 0.1 : Math.sin(k * (art === "spatz" ? 30 : art === "adler" ? 5 : 10)) * 0.9;
             fluegel.forEach(({ f, fl, sx }) => { fl.scale.set(1.6 * (V.spann ?? 1) / 1.4, 0.12, 1.1); fl.position.x = sx * s * 0.75 * (V.spann ?? 1); f.rotation.z = sx * sch2; }); }
           else if (modus === "watscheln") { g.rotation.z = Math.sin(k * 5) * 0.12; g.position.y = Math.abs(Math.sin(k * 5)) * s * 0.05; fluegel.forEach(({ f, sx }) => (f.rotation.z = sx * (0.3 + Math.sin(k * 5) * 0.1))); }
-          else { const pk = Math.max(0, Math.sin(k * 3)) ** 4; kopf.rotation.x = pk * 1.0; kopf.position.z = (V.steht ? s * 0.05 : s * 0.55) + pk * s * 0.2; kopf.rotation.y = Math.sin(k * 0.9) * 0.4; } } };
+          else if (!V.hals) { const pk = Math.max(0, Math.sin(k * 3)) ** 4; kopf.rotation.x = pk * 1.0; kopf.position.z = (V.steht ? s * 0.05 : s * 0.55) + pk * s * 0.2; kopf.rotation.y = Math.sin(k * 0.9) * 0.4; } } };
         if (o.groesse) g.scale.setScalar(o.groesse); return g; }
 
       // ---------- Reptilien & Amphibien ----------

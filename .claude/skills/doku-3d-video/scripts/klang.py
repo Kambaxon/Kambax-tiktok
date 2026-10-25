@@ -6,7 +6,7 @@ eigenem Akkord und Energie. Effekte: Wind, Grollen, Radiorauschen, Uhr, Schritte
 Glocke, Herzschlag, Suchscheinwerfer-Brummen.
 
   python3 klang.py musik plan.json assets/music/musik.wav
-  python3 klang.py sfx assets/sfx
+  python3 klang.py sfx assets/sfx      (sfx2/sfx3/sfx4 = weitere Sets; sfx4 = Luftfahrt)
 plan.json: {"dauer": 75.5, "abschnitte": [{"t": 0, "akkord": ["D2","A2","D3","F3"], "energie": 0.6, "puls": 0}, ...],
             "klavier": [[t, "D4"], ...]}
 Deterministisch (feste Seeds). Alles 48 kHz.
@@ -226,8 +226,46 @@ def sfx3(outdir):
     t = T(12); aw = lp(np.cumsum(rng.standard_normal(len(t))) * 0.02, 400, 2) * (0.6 + 0.4 * np.sin(2 * np.pi * t / 6.3))
     save("aschewind", aw * env_lin([(0, 0), (1.5, 1), (10.5, 1), (12, 0)], len(t)), 0.6)
 
+
+def sfx4(outdir):
+    """Effekte Luftfahrt (Projekt Hudson): Triebwerk, Abheben, Vogelschlag, Auslaufen, Fahrtwind, Warnton, Gänse, Aufprall, Wasser, Kabine, Fährhorn."""
+    os.makedirs(outdir, exist_ok=True)
+    def save(name, x, peak=0.85): write(os.path.join(outdir, name + ".wav"), norm(x, peak)); print(name)
+    def T(sec): return np.arange(int(sec * SR)) / SR
+    def heul(t, f):  # Turbinen-Heulen mit leichtem Vibrato, Frequenzverlauf f(t)
+        ph = 2 * np.pi * np.cumsum(f * (1 + 0.003 * np.sin(2 * np.pi * 5.3 * t))) / SR
+        return np.sin(ph) + 0.4 * np.sin(2 * ph) + 0.15 * np.sin(3.01 * ph)
+    t = T(12); roar = lp(rng.standard_normal(len(t)), 1400, 3) + 0.5 * lp(rng.standard_normal(len(t)), 160, 3)
+    save("triebwerk", (roar + 0.05 * heul(t, np.full(len(t), 3150.0))) * env_lin([(0, 0), (0.8, 1), (11.2, 1), (12, 0)], len(t)), 0.7)
+    t = T(7.5); k = np.clip(t / 5.5, 0, 1); n0 = rng.standard_normal(len(t)); roar = (lp(n0, 900, 3) * (1 - k) + lp(n0, 1800, 3) * k) * (0.35 + 0.65 * k) + 0.5 * lp(rng.standard_normal(len(t)), 140, 3) * (0.3 + 0.7 * k)
+    save("abheben", (roar + 0.06 * heul(t, 1800 + 1500 * k) * (0.4 + 0.6 * k)) * env_lin([(0, 0), (0.5, 1), (7, 1), (7.5, 0)], len(t)), 0.8)
+    t = T(3.0); thud = lp(rng.standard_normal(len(t)), 220, 3) * np.exp(-t * 7) * 2.5 + np.sin(2 * np.pi * 52 * t) * np.exp(-t * 5) * 1.2
+    clang = bp(rng.standard_normal(len(t)), 900, 4000) * np.exp(-t * 14) * 0.9; pops = np.zeros(len(t))
+    for a0 in (0.18, 0.42, 0.75): a = int(a0 * SR); ln = int(0.12 * SR); pops[a:a + ln] += lp(rng.standard_normal(ln), 400, 2) * np.exp(-np.arange(ln) / SR * 30) * 1.6
+    save("vogelschlag", reverb(thud + clang + pops, 1.2, 0.25), 0.95)
+    t = T(5.0); f = 600 + 2550 * np.exp(-t * 0.9); amp = np.exp(-t * 0.75)
+    save("auslaufen", (((lambda n0: lp(n0, 300, 3) * (1 - amp) + lp(n0, 1400, 3) * amp)(rng.standard_normal(len(t)))) * amp + 0.07 * heul(t, f) * amp) * env_lin([(0, 1), (4.6, 1), (5, 0)], len(t)), 0.7)
+    t = T(12); save("fahrtwind", bp(rng.standard_normal(len(t)), 300, 3500) * (0.8 + 0.2 * np.sin(2 * np.pi * t / 4.1)) * env_lin([(0, 0), (1, 1), (11, 1), (12, 0)], len(t)), 0.5)
+    t = T(6); dg = np.zeros(len(t))
+    for a0 in np.arange(0.1, 5.6, 1.0): a = int(a0 * SR); ln = int(0.5 * SR); tt = np.arange(ln) / SR; dg[a:a + ln] += (np.sin(2 * np.pi * 1180 * tt) + 0.5 * np.sin(2 * np.pi * 2360 * tt)) * np.exp(-tt * 7)
+    save("warnton", dg, 0.6)
+    t = T(2.2); g = np.zeros(len(t)); r2 = np.random.default_rng(11)
+    for _ in range(9):
+        a = int(r2.random() * 1.8 * SR); ln = int((0.12 + r2.random() * 0.1) * SR); tt = np.arange(ln) / SR; f0 = 330 + r2.random() * 120
+        tone = np.sign(np.sin(2 * np.pi * f0 * tt)) * 0.6 + np.sin(2 * np.pi * f0 * 2 * tt) * 0.4; g[a:a + ln] += bp(tone, 500, 2600) * np.sin(np.pi * tt / tt[-1]) * (0.5 + r2.random() * 0.5)
+    save("gaense", reverb(g, 0.8, 0.2), 0.6)
+    t = T(4.5); boom = lp(rng.standard_normal(len(t)), 150, 3) * np.exp(-t * 2.2) * 2 + np.sin(2 * np.pi * 38 * t) * np.exp(-t * 3)
+    spl = bp(rng.standard_normal(len(t)), 300, 7000) * np.exp(-t * 0.9) * env_lin([(0, 0), (0.05, 1), (4.5, 1)], len(t)); hiss = hp(rng.standard_normal(len(t)), 4000) * np.exp(-t * 0.6) * 0.3
+    save("aufprall", reverb(boom + spl + hiss, 1.6, 0.25), 0.95)
+    t = T(12); w = bp(rng.standard_normal(len(t)), 200, 1800) * (0.5 + 0.5 * np.abs(np.sin(2 * np.pi * t * 0.37)) ** 3) + 0.2 * hp(rng.standard_normal(len(t)), 3000)
+    save("wasser", w * env_lin([(0, 0), (1, 1), (11, 1), (12, 0)], len(t)), 0.5)
+    t = T(10); save("kabine", (lp(rng.standard_normal(len(t)), 500, 3) + 0.3 * np.sin(2 * np.pi * 118 * t)) * env_lin([(0, 0), (0.6, 1), (9.4, 1), (10, 0)], len(t)), 0.5)
+    t = T(2.6); hz0 = 110; hn = sum(np.sin(2 * np.pi * hz0 * h * t) / h for h in range(1, 9)) * env_lin([(0, 0), (0.15, 1), (2.0, 1), (2.6, 0)], len(t))
+    save("faehrhorn", reverb(lp(hn, 1800, 2), 2.5, 0.4), 0.7)
+
 if __name__ == "__main__":
     if sys.argv[1] == "musik": musik(json.load(open(sys.argv[2])), sys.argv[3])
     elif sys.argv[1] == "sfx2": sfx2(sys.argv[2])
     elif sys.argv[1] == "sfx3": sfx3(sys.argv[2])
+    elif sys.argv[1] == "sfx4": sfx4(sys.argv[2])
     else: sfx(sys.argv[2])
