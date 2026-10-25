@@ -398,6 +398,52 @@ Gilt ab dem nächsten Video. Reihenfolge der Bausteine im `<script>`: Basis-Helf
 - `text3d(s, "TEXT", { x, y, z, ry, hoehe, farbe, tiefe, neon, metall })` steht im Raum, wirft echte Schatten und kann als Neon leuchten.
 - `update(T, { start, dauer, flackern })` blendet sanft ein und skaliert dabei leicht hoch.
 
+## Realismus-Stufe 5: Effekt-Kit und Nachbearbeitung v3 (Szene „ZUSAMMEN“)
+
+Beispielszene: `scripts/builder/szenen-zusammen.js` mit zwei Shots: Fahrt die Straße hinunter, dann eine flache Seitwärtsfahrt mit Rack-Fokus.
+
+### Nachbearbeitung v3 (`render.js`, `nachbearbeitung`)
+
+Jeder Shot setzt `post: { uName: wert }` und `look`. Vorher wird alles auf `POST_STANDARD` zurückgesetzt.
+
+- **Kantenglättung:** `uSSAA` 1–8 (Jitter-Akkumulation, wirkt wie TAA ohne Schlieren). Für „crystal clear“ 4 nehmen. Kostet entsprechend mehr Renderzeit.
+- **Tiefe und Licht:**
+  - `uDof`, `uFokus`, `uBlende` (größer = mehr Schärfentiefe; 1.8–2.5 für Portrait), `uBokeh`
+  - `uTilt`
+  - `uAO` (SSAO)
+  - `uNebel`, `uNebelHoehe`, `uNebelFarbe` (mit Sonnenstreuung)
+  - `uBewegung` (Kamera-Bewegungsunschärfe)
+  - `uStrahlen` (God Rays; sampeln nur den Himmel)
+  - `uFlare`, `uAnamorph`
+- **Bildgeometrie:**
+  - `uVerzerrung`, `uChroma`, `uGlitch`
+  - `uHitze` (Band)
+  - `hitzePunkte(POST, cam, [{ pos, radius, staerke }])` für Hitzeflimmern über dem Auspuff oder über Feuer
+- **Ton und Farbe:**
+  - ACES und `uRolloff`, `uLift`/`uGamma`/`uGain`, Split-Toning, Cross-Process, Mono, Black Crush
+  - Looks: neutral, tealOrange, noir, golden, cyberpunk, moody, pastell, kreuz
+- **Stil:** `uKontur`, Toon, Halftone, Scanlines, VHS, Light Leaks, Kratzer. `uKorn` bleibt **0** (der User mag kein Rauschen).
+- **Klarheit:** `uSchaerfe`, `uKlarheit`, `uBloom`, `uHalation`
+- **Debug:** `uTon` (Clay-Render), `uDraht` (Drahtgitter darüber)
+- **Rack-Fokus:** `fokusZug(POST, t, { von, nach, start, dauer })`
+- **Tiefenpass:** Sprites, Punkte, Linien, transparente Objekte ohne depthWrite und `userData.keineTiefe` sind ausgeschlossen, sonst entstehen harte DOF-Kanten und Rechtecke. Alpha-getestete Flächen (Schrift) bekommen `userData.tiefeMat` (MeshDepthMaterial mit map und alphaTest). So haben sie echte Tiefe und werden nicht wie der Hintergrund vernebelt oder unscharf.
+
+### Neue Bausteine
+
+- `spiegelflaeche(s, w, d, { maske: pfuetzen|feucht|voll, staerke, rau, wiederholen, wasser })` (`effekte2.js`): echte planare Spiegelung für nasse Straßen, Pfützen und Wasser.
+- `effekte2.js` enthält außerdem: `kaustik`, `fahne`, `aufloesen`, `morphMesh`, `fallendeKoerper`, `wirbel`, `zeitRampe`, `dreiPunktLicht`, `randLicht`.
+- `kopfsteinStrasse(s, laenge, { breite, gehweg, uneben, flicken })` (`stadt2.js`): unebenes Pflaster mit Asphaltflicken, Bordstein und Gehweg.
+- `fachwerkStadthaus(seed, { etagen })`: auskragendes Fachwerk; der Schornstein in `userData.schornstein` passt zu `schornsteinRauch`.
+- `brutalismus(seed, { etagen, breite })`: Betonraster mit Lisenen.
+- Fahrzeugtyp `oldtimer` (Chrom, runde Lampen, Weißwandreifen). `abgas(car, …)` und `hitzePunkte` zusammen ergeben einen Oldtimer im Leerlauf.
+
+### Gelernt
+
+- Bodennebel-Ebenen auf Augenhöhe erzeugen Streifen und Rechtecke. Stattdessen Tiefennebel (`uNebel`) plus `nebelSchwaden` sparsam einsetzen (dichte ≈ 0.07).
+- God Rays verwischen helle Objekte radial und erzeugen dann Geisterbuchstaben. Deshalb sampeln sie nur noch den Himmel.
+- Bei Gegenlicht nichts Großes in den Fluchtpunkt stellen, sonst verschwindet die Sonne. Die Strahlen in der Totalen nicht über 0.3 setzen, sonst wirkt das Bild milchig.
+- Schrift in Portrait: Breite ≈ 5 × Höhe. Bei FOV 50 braucht man den Abstand ≥ 2 × Textbreite.
+
 ## Fallen
 
 - `cam()` hat nur 400 m Sichtweite. Für alles, was weiter weg steht (Horizont, Kraftwerk, Bögen), `camFar(3000+)` nehmen und den Nebel weit genug setzen, sonst ist es unsichtbar.
@@ -418,3 +464,4 @@ Gilt ab dem nächsten Video. Reihenfolge der Bausteine im `<script>`: Basis-Helf
 - Multiply-Ebenen (Blending) über dem Boden vermeiden: mit HalfFloat-Ziel und Nebel wird der Boden schwarz. Für Schatten echte Schattenwerfer nehmen.
 - `blobGeo()` ist nicht indiziert und wirkt deshalb facettiert. Für weiche Kronen `blob2()` aus `natur3.js` nehmen.
 - Kamera nie direkt hinter Sitzlehnen oder in Lichtbahnen setzen. Vorher die Maße prüfen: Sitzhöhe ≈ 0.55 m, Dach ≈ 1.45 m.
+- Nach jeder Python-Ersetzung prüfen, dass kein Kommentar in eine Einzeilen-Funktion gerutscht ist (`titel.update` hinter `//` blieb einmal unbemerkt). Syntaxcheck allein findet das nicht.

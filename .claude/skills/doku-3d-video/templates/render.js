@@ -148,7 +148,9 @@
         const opt = Object.assign({ bloom: 0.55, schwelle: 1.0, belichtung: rend.toneMappingExposure || 0.62, vignette: 0.28, samples: 4, tiltMitte: 0.45 }, o);
         const mk = (w, h, s = 0, typ = THREE.HalfFloatType, tiefe = false) => new THREE.WebGLRenderTarget(w, h, { type: typ, samples: s, depthBuffer: s > 0 || tiefe, stencilBuffer: s > 0 || tiefe, // mit Stencil -> 24-bit-Tiefe statt 16 bit
           minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
-        const haupt = mk(Wd, Ht, opt.samples);
+        const haupt = mk(Wd, Ht, opt.samples), akku = mk(Wd, Ht);
+        const kopieM = new THREE.ShaderMaterial({ uniforms: { tSrc: { value: null }, uW: { value: 1 } }, vertexShader: VS_QUAD, fragmentShader: `uniform sampler2D tSrc; uniform float uW; varying vec2 vUv; void main(){ gl_FragColor = vec4(texture2D(tSrc, vUv).rgb * uW, 1.0); }`, depthTest: false, depthWrite: false, toneMapped: false, blending: THREE.AdditiveBlending, transparent: true });
+        const JITTER = [[0.25, 0.75], [0.75, 0.25], [0.375, 0.125], [0.875, 0.625], [0.125, 0.375], [0.625, 0.875], [0.5, 0.5], [0.0625, 0.9375]];
         const stufen = [2, 4, 8].map((f) => ({ a: mk(Wd / f, Ht / f), b: mk(Wd / f, Ht / f), w: Wd / f, h: Ht / f }));
         const unscharf = { a: mk(Wd / 3, Ht / 3), b: mk(Wd / 3, Ht / 3), w: Wd / 3, h: Ht / 3 };
         const tiefeRT = mk(Wd / 2, Ht / 2, 0, THREE.UnsignedByteType, true);
@@ -177,14 +179,14 @@
           uMono: { value: 0 }, uKreuz: { value: 0 }, uSchwarz: { value: 0 }, uRolloff: { value: 0 },
           uSchaerfe: { value: 0 }, uKlarheit: { value: 0 }, uHalation: { value: 0 }, uKorn: { value: 0 },
           uKontur: { value: 0 }, uToon: { value: 0 }, uHalbton: { value: 0 }, uGlitch: { value: 0 }, uVHS: { value: 0 }, uScan: { value: 0 }, uLeck: { value: 0 }, uKratzer: { value: 0 }, uTon: { value: 0 }, uDraht: { value: 0 },
-          uZeit: { value: 0 }, uAufl: { value: new THREE.Vector2(Wd, Ht) },
+          uZeit: { value: 0 }, uAufl: { value: new THREE.Vector2(Wd, Ht) }, uSSAA: { value: 1 }, uHitzePunkte: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
         };
         const endM = sm(U, `
           #include <packing>
           uniform sampler2D tSzene, tB1, tB2, tB3, tUnscharf, tTiefe;
           uniform float uBloom, uBel, uSat, uKon, uVig, uBlau, uStrahlen, uFlare, uAnamorph, uSicht, uTilt, uTiltMitte, uDof, uFokus, uBlende, uBokeh, uNear, uFar, uUnscharfAn;
           uniform float uAO, uNebel, uNebelHoehe, uBewegung, uChroma, uVerzerrung, uHitze, uHitzeY, uSplit, uMono, uKreuz, uSchwarz, uRolloff, uSchaerfe, uKlarheit, uHalation, uKorn;
-          uniform float uKontur, uToon, uHalbton, uGlitch, uVHS, uScan, uLeck, uKratzer, uZeit;
+          uniform float uKontur, uToon, uHalbton, uGlitch, uVHS, uScan, uLeck, uKratzer, uZeit; uniform vec4 uHitzePunkte[4];
           uniform vec3 uTint, uSonnenFarbe, uNebelFarbe, uLift, uGamma, uGain, uSplitSchatten, uSplitLicht, uSonneDir; uniform vec2 uSonnePos, uAufl;
           uniform mat4 uInvProj, uCamWelt, uPrevVP; varying vec2 vUv;
           float h12(vec2 p){ p = fract(p * vec2(443.897, 441.423)); p += dot(p, p.yx + 19.19); return fract((p.x + p.y) * p.x); }
@@ -201,6 +203,7 @@
             vec2 uv = vUv; vec2 zc = uv - 0.5;
             if (uVerzerrung != 0.0) { float r2 = dot(zc * vec2(0.5625, 1.0), zc * vec2(0.5625, 1.0)); uv = 0.5 + zc * (1.0 + uVerzerrung * r2 * 1.6) / (1.0 + uVerzerrung * 0.25); }
             if (uHitze > 0.0) { float band = smoothstep(0.25, 0.0, abs(uv.y - uHitzeY)); uv.x += sin(uv.y * 180.0 + uZeit * 7.0) * 0.0018 * uHitze * band; uv.y += sin(uv.x * 120.0 + uZeit * 5.0) * 0.0012 * uHitze * band; }
+            for (int i = 0; i < 4; i++) { vec4 hp = uHitzePunkte[i]; if (hp.w > 0.0) { vec2 dv = (uv - hp.xy) * vec2(0.5625, 1.0); float infl = smoothstep(hp.z, 0.0, length(dv)) * step(hp.y - hp.z * 0.3, uv.y); uv += vec2(sin(uv.y * 260.0 - uZeit * 9.0), cos(uv.x * 210.0 + uZeit * 7.0)) * 0.0022 * hp.w * infl; } } // Hitzeflimmern über Auspuff/Feuer
             if (uGlitch > 0.0) { float zeile = floor(uv.y * 40.0); float ein = step(1.0 - uGlitch * 0.25, h12(vec2(zeile, floor(uZeit * 12.0)))); uv.x += (h12(vec2(zeile, uZeit)) - 0.5) * 0.08 * ein; }
             // ---- Szene mit chromatischer Aberration ----
             vec3 c; if (uChroma > 0.0) { vec2 d = (uv - 0.5) * uChroma * 0.012; c = vec3(texture2D(tSzene, uv + d).r, texture2D(tSzene, uv).g, texture2D(tSzene, uv - d).b); } else c = texture2D(tSzene, uv).rgb;
@@ -231,7 +234,7 @@
             vec3 b = texture2D(tB1, uv).rgb * 0.5 + texture2D(tB2, uv).rgb * 0.3 + texture2D(tB3, uv).rgb * 0.35; c += b * uBloom;
             if (uHalation > 0.0) c += texture2D(tB3, uv).rgb * vec3(1.0, 0.35, 0.15) * uHalation;
             if (uStrahlen > 0.0 && uSicht > 0.0) { vec2 dl = (uv - uSonnePos) / 48.0; vec2 tc = uv; float dec = 1.0; vec3 acc = vec3(0.0);
-              for (int i = 0; i < 48; i++) { tc -= dl; acc += texture2D(tB2, tc).rgb * dec; dec *= 0.962; } c += acc / 48.0 * uStrahlen * uSicht * 2.5 * uSonnenFarbe; }
+              for (int i = 0; i < 48; i++) { tc -= dl; float hm = brauchtTiefe ? step(0.9999, tiefeRoh(tc)) : 1.0; acc += texture2D(tB2, tc).rgb * dec * hm; dec *= 0.962; } c += acc / 48.0 * uStrahlen * uSicht * 2.5 * uSonnenFarbe; }
             if (uFlare > 0.0) { vec2 uvf = vec2(1.0) - uv; vec2 gv = (vec2(0.5) - uvf) * 0.34; vec3 fl = vec3(0.0);
               for (int i = 0; i < 5; i++) { vec2 off = fract(uvf + gv * float(i)); float w = pow(1.0 - length(vec2(0.5) - off) / 0.7071, 8.0); vec3 tint = vec3(0.6 + 0.4 * sin(float(i) * 1.7), 0.6 + 0.4 * sin(float(i) * 1.7 + 2.1), 0.6 + 0.4 * sin(float(i) * 1.7 + 4.2)); fl += texture2D(tB3, off).rgb * w * tint; }
               vec2 hv = normalize(gv + 1e-5) * 0.42; float hw = pow(1.0 - length(vec2(0.5) - fract(uvf + hv)) / 0.7071, 6.0); fl += texture2D(tB3, fract(uvf + hv)).rgb * hw * vec3(0.7, 0.8, 1.0) * 0.6; c += fl * uFlare; }
@@ -269,14 +272,19 @@
           render(scene, camera, T = 0, vorigeVP = null) {
             U.uZeit.value = T; const h = scene.userData.himmel; if (h) h.dome.position.copy(camera.position);
             (scene.userData.spiegel || []).forEach((sp) => sp.vorRender(rend, scene, camera)); // planare Spiegelungen zuerst
-            scene.overrideMaterial = U.uTon.value > 0.5 ? tonM : null; rend.setRenderTarget(haupt); rend.render(scene, camera); scene.overrideMaterial = null;
+            scene.overrideMaterial = U.uTon.value > 0.5 ? tonM : null; const nS = Math.max(1, Math.min(8, Math.round(U.uSSAA.value)));
+            if (nS > 1) { rend.setRenderTarget(akku); rend.setClearColor(0x000000, 1); rend.clear(); const au = rend.shadowMap.autoUpdate; // Supersampling: n leicht versetzte Bilder mitteln (glatte Kanten, auch bei Laub/Schrift)
+              for (let i = 0; i < nS; i++) { const j = JITTER[i]; camera.setViewOffset(Wd, Ht, (j[0] - 0.5), (j[1] - 0.5), Wd, Ht); rend.setRenderTarget(haupt); rend.render(scene, camera); if (i === 0) rend.shadowMap.autoUpdate = false;
+                kopieM.uniforms.tSrc.value = haupt.texture; kopieM.uniforms.uW.value = 1 / nS; quad.material = kopieM; rend.setRenderTarget(akku); const ac = rend.autoClear; rend.autoClear = false; rend.render(qs, qc); rend.autoClear = ac; }
+              camera.clearViewOffset(); rend.shadowMap.autoUpdate = au; U.tSzene.value = akku.texture; } else { rend.setRenderTarget(haupt); rend.render(scene, camera); U.tSzene.value = haupt.texture; }
+            scene.overrideMaterial = null;
             if (U.uDraht.value > 0) { drahtM.opacity = 0.35 * U.uDraht.value; const ac = rend.autoClear; rend.autoClear = false; const vis = h ? h.dome.visible : true; if (h) h.dome.visible = false; scene.overrideMaterial = drahtM; rend.render(scene, camera); scene.overrideMaterial = null; if (h) h.dome.visible = vis; rend.autoClear = ac; }
             const tiefeNoetig = U.uDof.value > 0.5 || U.uAO.value > 0 || U.uNebel.value > 0 || U.uBewegung.value > 0 || U.uKontur.value > 0;
-            if (tiefeNoetig) { const vis = h ? h.dome.visible : true; if (h) h.dome.visible = false; const bg = scene.background; scene.background = null; scene.overrideMaterial = tiefeM;
-              rend.setClearColor(0xffffff, 1); rend.setRenderTarget(tiefeRT); rend.clear(); rend.render(scene, camera); scene.overrideMaterial = null; scene.background = bg; if (h) h.dome.visible = vis; rend.setClearColor(0x000000, 1);
+            if (tiefeNoetig) { const vis = h ? h.dome.visible : true; if (h) h.dome.visible = false; const ohne = [], tausch = []; scene.traverse((o) => { if (!o.visible) return; const m = o.material; if (o.userData.keineTiefe || o.isSprite || o.isPoints || o.isLine || (m && !Array.isArray(m) && m.transparent && !m.depthWrite && !o.userData.tiefeMat)) { ohne.push(o); o.visible = false; return; } if (o.isMesh) { tausch.push([o, m]); o.material = o.userData.tiefeMat || tiefeM; } }); const bg = scene.background; scene.background = null;
+              rend.setClearColor(0xffffff, 1); rend.setRenderTarget(tiefeRT); rend.clear(); rend.render(scene, camera); scene.overrideMaterial = null; scene.background = bg; if (h) h.dome.visible = vis; ohne.forEach((o) => (o.visible = true)); tausch.forEach(([o, m]) => (o.material = m)); rend.setClearColor(0x000000, 1);
               U.uNear.value = camera.near; U.uFar.value = camera.far; U.uInvProj.value.copy(camera.projectionMatrixInverse); U.uCamWelt.value.copy(camera.matrixWorld);
               if (vorigeVP) U.uPrevVP.value.copy(vorigeVP); else U.uPrevVP.value.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); }
-            let src = haupt.texture;
+            let src = U.tSzene.value;
             stufen.forEach((s, i) => {
               if (i === 0) { hellM.uniforms.tSrc.value = src; pass(hellM, s.a); }
               else { blurM.uniforms.tSrc.value = src; blurM.uniforms.uDir.value.set(0, 0); pass(blurM, s.a); }
@@ -284,7 +292,7 @@
               blurM.uniforms.tSrc.value = s.b.texture; blurM.uniforms.uDir.value.set(0, 1 / s.h); pass(blurM, s.a);
               src = s.a.texture;
             });
-            if (U.uUnscharfAn.value > 0.5) { blurM.uniforms.tSrc.value = haupt.texture; blurM.uniforms.uDir.value.set(0, 0); pass(blurM, unscharf.a);
+            if (U.uUnscharfAn.value > 0.5) { blurM.uniforms.tSrc.value = U.tSzene.value; blurM.uniforms.uDir.value.set(0, 0); pass(blurM, unscharf.a);
               for (let k = 0; k < 2; k++) { blurM.uniforms.tSrc.value = unscharf.a.texture; blurM.uniforms.uDir.value.set(1.6 / unscharf.w, 0); pass(blurM, unscharf.b); blurM.uniforms.tSrc.value = unscharf.b.texture; blurM.uniforms.uDir.value.set(0, 1.6 / unscharf.h); pass(blurM, unscharf.a); } }
             if (h) { U.uSonneDir.value.copy(h.sonne); const sf = h.mat.uniforms.uSonnenFarbe.value; U.uSonnenFarbe.value.set(sf.x, sf.y, sf.z).normalize().multiplyScalar(1.2);
               if (U.uStrahlen.value > 0) { camera.getWorldDirection(blick); const dot = blick.dot(h.sonne); tmp.copy(camera.position).addScaledVector(h.sonne, 100).project(camera);
@@ -294,6 +302,8 @@
         };
         if (o.look) P.look(o.look); return P;
       }
+      // Hitzeflimmern an Weltpunkten (z. B. über Auspuffrohren): hitzePunkte(POST, kamera, [{ pos: Vector3, radius (Bildanteil), staerke }])
+      function hitzePunkte(post, cam, punkte) { const v = new THREE.Vector3(); post.uniforms.uHitzePunkte.value.forEach((u, i) => { const p = punkte[i]; if (!p) { u.set(0, 0, 0, 0); return; } v.copy(p.pos).project(cam); const sicht = v.z < 1 && Math.abs(v.x) < 1.2 && Math.abs(v.y) < 1.2; u.set(v.x * 0.5 + 0.5, v.y * 0.5 + 0.5, p.radius ?? 0.06, sicht ? (p.staerke ?? 1) : 0); }); }
       // Rack Focus (Schärfeverlagerung): fokusZug(POST, t, { von, nach, start, dauer })
       function fokusZug(post, t, o) { const k = Math.min(1, Math.max(0, (t - (o.start ?? 0)) / (o.dauer ?? 1))); const e = k * k * (3 - 2 * k); post.uniforms.uFokus.value = o.von + (o.nach - o.von) * e; }
       // Benutzung:

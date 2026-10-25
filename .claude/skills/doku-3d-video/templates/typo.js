@@ -14,7 +14,7 @@
         const tiefe = o.tiefe ?? 0.12, schichten = Math.max(1, Math.round(tiefe / 0.012)), planes = [];
         const seite = new THREE.MeshStandardMaterial({ map: tex, color: farbe.clone().multiplyScalar(0.55), transparent: true, alphaTest: 0.4, roughness: 0.5, side: THREE.DoubleSide });
         for (let i = 0; i < schichten; i++) { const p = new THREE.Mesh(new THREE.PlaneGeometry(W, H), i === 0 ? front : seite); p.position.z = -i * (tiefe / schichten); p.castShadow = o.schatten !== false; p.receiveShadow = i === 0;
-          p.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.4 }); grp.add(p); planes.push(p); }
+          p.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.4, side: THREE.DoubleSide }); p.userData.tiefeMat = p.customDepthMaterial; grp.add(p); planes.push(p); }
         if (neon) { const glow = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.15, H * 1.6), new THREE.MeshBasicMaterial({ map: tex, color: new THREE.Color(o.neon).multiplyScalar(0.8), transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); glow.position.z = 0.02; grp.add(glow);
           const l = new THREE.PointLight(o.neon, 2.2, H * 8, 2); l.position.z = H * 0.6; grp.add(l); }
         return { g: grp, breite: W, update(T, a = {}) { const st = a.start ?? 0, du = a.dauer ?? 0.8, k = Math.min(1, Math.max(0, (T - st) / du)), e = 1 - Math.pow(1 - k, 3);

@@ -150,9 +150,9 @@
         box(w, H, d, beton, 0, H / 2, -d / 2, g); box(w + 0.1, 1.2, d + 0.1, dunkel, 0, 0.6, -d / 2, g);
         const raster = Math.max(4, Math.round(w / 3)); const bw = w / raster;
         for (let e = 0; e < etagen; e++) { const y = 1.2 + e * eh; box(w + 0.4, 0.35, 0.6, beton, 0, y + eh - 0.17, 0.3, g); // auskragende Geschossplatte
-          for (let i = 0; i < raster; i++) { const x = -w / 2 + bw * (i + 0.5); const tief = (i + e) % 3 === 0;
-            if (tief) { box(bw - 0.2, eh - 0.4, 1.4, beton, x, y + eh / 2 - 0.1, 0.7, g); box(bw - 0.5, 1.0, 0.08, beton, x, y + 0.5, 1.38, g); fenster2(g, x, y + 1.35, 0.02, bw - 0.7, 2.0, { art: "schiebe", rahmen: "dunkel", licht: o.licht && r() < 0.5, vorhang: r() < 0.6, bank: false }); } // Loggia-Kasten
-            else { box(0.25, eh - 0.35, 0.5, beton, x - bw / 2 + 0.12, y + eh / 2 - 0.1, 0.25, g); fenster2(g, x + 0.1, y + 1.5, -0.25, bw - 0.6, 1.6, { art: "drehkipp", rahmen: "dunkel", kipp: r() < 0.15 ? 1 : 0, licht: o.licht && r() < 0.5, bank: false }); } } }
+          for (let i = 0; i < raster; i++) { const x = -w / 2 + bw * (i + 0.5); box(0.32, eh - 0.35, 0.6, beton, x - bw / 2, y + eh / 2 - 0.17, 0.3, g); // Lisene (Betonrippe)
+            const breit = (i + e) % 4 === 0; fenster2(g, x, y + (breit ? 1.25 : 1.45), 0.02, bw - 0.6, breit ? 2.2 : 1.5, { art: breit ? "schiebe" : "drehkipp", rahmen: "dunkel", kipp: r() < 0.12 ? 1 : 0, licht: o.licht && r() < 0.5, vorhang: r() < 0.6, bank: false });
+            if (breit) box(bw - 0.4, 1.0, 0.12, beton, x, y + 0.55, 0.55, g); } box(0.32, eh - 0.35, 0.6, beton, w / 2, y + eh / 2 - 0.17, 0.3, g); }
         box(4.5, H + 4, 4.5, beton, w / 2 - 2.5, (H + 4) / 2, -d - 1.5, g); for (let e = 0; e < etagen; e++) box(0.3, 1.8, 0.05, glasM({ licht: o.licht }), w / 2 - 2.5, 2.5 + e * eh, -d + 0.77, g); // Treppenturm mit Schlitzfenstern
         box(3.5, 2.6, 0.2, M(0x2a2a2c, { metalness: 0.6, roughness: 0.4 }), -w / 4, 1.3 + 0.1, 0.05, g); box(5, 0.3, 2.4, beton, -w / 4, 3.0, 1.2, g); // Eingang mit Betonvordach
         g.userData = { w, H, d }; return g; }
