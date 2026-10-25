@@ -170,3 +170,11 @@
           for (let i = 0; i < 4; i++) cyl(0.09, 0.09, 0.01, M(0x111111, { roughness: 0.3 }), 0.6 + (i % 2) * 0.25, 0.925, -d / 2 + 0.25 + Math.floor(i / 2) * 0.25, g, 20);
           box(0.7, 1.9, 0.65, M(0xd8dadc, { metalness: 0.6, roughness: 0.3 }), w / 2 - 0.45, 0.95, -d / 2 + 0.36, g); setze(tisch(seed + 3), 0, 0.6); setze(stuhl(seed), -0.45, 0.6, Math.PI / 2); setze(stuhl(seed + 1), 0.45, 0.6, -Math.PI / 2); }
         return g; }
+
+      // Kopfsteinstraße (uneben, mit geflickten Asphaltstellen und Rissen), alte Bordsteine, Gehwegplatten. Entlang z, Mitte x = 0.
+      function kopfsteinStrasse(s, laenge, o = {}) { const g = new THREE.Group(); s.add(g); const b = o.breite ?? 6.5, r = rng(o.seed ?? 3), N = rauschen2(o.seed ?? 3);
+        const geo = new THREE.PlaneGeometry(b, laenge, 60, Math.round(laenge * 4)); geo.rotateX(-Math.PI / 2); const p = geo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i); p.setY(i, (N.fbm(x * 0.4, z * 0.4, 3) - 0.5) * (o.uneben ?? 0.08) - Math.pow(Math.abs(x) / (b / 2), 2) * 0.05); } geo.computeVertexNormals();
+        const strasse = new THREE.Mesh(geo, material("kopfstein", { wiederholen: [b / 2.2, laenge / 2.2] })); strasse.position.z = -laenge / 2 + 8; strasse.receiveShadow = true; g.add(strasse);
+        for (let i = 0; i < (o.flicken ?? Math.round(laenge / 10)); i++) { const fw = 1 + r() * 2.5, fd = 1.5 + r() * 4; const f = new THREE.Mesh(new THREE.PlaneGeometry(fw, fd), material("asphalt", { wiederholen: [fw / 3, fd / 3] })); f.rotation.x = -Math.PI / 2; f.rotation.z = (r() - 0.5) * 0.3; f.position.set((r() - 0.5) * (b - fw), 0.03, -r() * laenge + 8); f.receiveShadow = true; g.add(f); }
+        for (const sx of [-1, 1]) { const bord = box(0.3, 0.16, laenge, material("bordstein", { wiederholen: [laenge / 2, 1] }), sx * (b / 2 + 0.15), 0.05, -laenge / 2 + 8, g); const geh = box(o.gehweg ?? 3, 0.14, laenge, material("betonplatten", { wiederholen: [1, laenge / 3] }), sx * (b / 2 + 0.3 + (o.gehweg ?? 3) / 2), 0.07, -laenge / 2 + 8, g); }
+        return g; }

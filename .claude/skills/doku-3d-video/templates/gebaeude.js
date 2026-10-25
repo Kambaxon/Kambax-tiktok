@@ -143,3 +143,26 @@
         const buero = hochhaus(seed + 1, { typ: "glas", w, d, etagen: o.buero ?? 14, lobby: false, nacht: o.nacht, licht: o.nacht ? 0.5 : 0.3 }); buero.position.y = sockel.userData.H + 0.9; g.add(buero);
         const wohnen = hochhaus(seed + 2, { typ: "modern", w: w - 6, d: d - 4, etagen: o.wohnen ?? 10, lobby: false, nacht: o.nacht, licht: 0.45 }); wohnen.position.y = buero.position.y + buero.userData.H + 0.9; g.add(wohnen);
         g.userData = { H: wohnen.position.y + wohnen.userData.H, update(T) { [sockel, buero, wohnen].forEach((h) => h.userData.update(T)); } }; return g; }
+
+      // Brutalismus: rohe Sichtbeton-Wohnblöcke mit tiefen Fensterlaibungen, vorspringenden Balkon-Kästen und Treppenhaus-Turm
+      function brutalismus(seed, o = {}) { const r = rng(seed * 43 + 3), g = new THREE.Group(), w = o.breite ?? 24, d = 13, etagen = o.etagen ?? 8, eh = 3.0, H = etagen * eh + 1.2;
+        const beton = material("sichtbeton", { wiederholen: [w / 3, H / 3], farbe: o.farbe ?? 0xd0ccc4 }), dunkel = material("sichtbeton", { wiederholen: [2, 2], farbe: 0x9a968e });
+        box(w, H, d, beton, 0, H / 2, -d / 2, g); box(w + 0.1, 1.2, d + 0.1, dunkel, 0, 0.6, -d / 2, g);
+        const raster = Math.max(4, Math.round(w / 3)); const bw = w / raster;
+        for (let e = 0; e < etagen; e++) { const y = 1.2 + e * eh; box(w + 0.4, 0.35, 0.6, beton, 0, y + eh - 0.17, 0.3, g); // auskragende Geschossplatte
+          for (let i = 0; i < raster; i++) { const x = -w / 2 + bw * (i + 0.5); const tief = (i + e) % 3 === 0;
+            if (tief) { box(bw - 0.2, eh - 0.4, 1.4, beton, x, y + eh / 2 - 0.1, 0.7, g); box(bw - 0.5, 1.0, 0.08, beton, x, y + 0.5, 1.38, g); fenster2(g, x, y + 1.35, 0.02, bw - 0.7, 2.0, { art: "schiebe", rahmen: "dunkel", licht: o.licht && r() < 0.5, vorhang: r() < 0.6, bank: false }); } // Loggia-Kasten
+            else { box(0.25, eh - 0.35, 0.5, beton, x - bw / 2 + 0.12, y + eh / 2 - 0.1, 0.25, g); fenster2(g, x + 0.1, y + 1.5, -0.25, bw - 0.6, 1.6, { art: "drehkipp", rahmen: "dunkel", kipp: r() < 0.15 ? 1 : 0, licht: o.licht && r() < 0.5, bank: false }); } } }
+        box(4.5, H + 4, 4.5, beton, w / 2 - 2.5, (H + 4) / 2, -d - 1.5, g); for (let e = 0; e < etagen; e++) box(0.3, 1.8, 0.05, glasM({ licht: o.licht }), w / 2 - 2.5, 2.5 + e * eh, -d + 0.77, g); // Treppenturm mit Schlitzfenstern
+        box(3.5, 2.6, 0.2, M(0x2a2a2c, { metalness: 0.6, roughness: 0.4 }), -w / 4, 1.3 + 0.1, 0.05, g); box(5, 0.3, 2.4, beton, -w / 4, 3.0, 1.2, g); // Eingang mit Betonvordach
+        g.userData = { w, H, d }; return g; }
+      // Historisches Fachwerk-Stadthaus (schmal, mehrgeschossig, verwittert, vorkragende Obergeschosse)
+      function fachwerkStadthaus(seed, o = {}) { const r = rng(seed * 47 + 5), g = new THREE.Group(), w = o.breite ?? 8 + Math.floor(r() * 4), d = 10, eh = 2.9, etagen = o.etagen ?? 3; const putzF = [0xf2ead8, 0xe8dcc0, 0xf0e4cc, 0xe0d4b8, 0xd8c8a8][Math.floor(r() * 5)];
+        let y = 0; for (let e = 0; e < etagen; e++) { const vk = e * 0.25; const wand = material("putzweiss", { farbe: putzF, wiederholen: [w / 3, 1] }); // jedes Geschoss kragt etwas vor
+          box(w, eh, d, e === 0 ? material("sandstein", { wiederholen: [w / 3, 1] }) : wand, 0, y + eh / 2, -d / 2 + vk, g);
+          if (e > 0) { fachwerk(g, w, eh, y, vk + 0.05, { kreuze: r() < 0.6, balken: [0x3a2418, 0x4a3020, 0x2a1a12][Math.floor(r() * 3)] }); box(w + 0.1, 0.22, 0.3, material("altholz", { farbe: 0x3a2418 }), 0, y + 0.1, vk + 0.1, g); }
+          const n = Math.max(2, Math.round(w / 2.4)); for (let i = 0; i < n; i++) { const x = -w / 2 + w / n * (i + 0.5); if (e === 0 && i === Math.floor(n / 2)) { box(1.2, 2.3, 0.1, material("altholz", { farbe: 0x5a3220 }), x, 1.15, vk + 0.04, g); continue; }
+            fenster2(g, x, y + eh * 0.55, vk + 0.03, 0.9, 1.25, { art: "sprossen", rahmen: "holz", licht: o.licht && r() < 0.6, bank: false }); if (r() < 0.5) for (const sx of [-1, 1]) box(0.45, 1.3, 0.04, M([0x2a5a3a, 0x7a2a22, 0x3a4a6a][Math.floor(r() * 3)], { roughness: 0.7 }), x + sx * 0.7, y + eh * 0.55, vk + 0.08, g); }
+          y += eh; }
+        satteldach(g, w, d, 5 + r() * 2, y, -d / 2 + (etagen - 1) * 0.25, { farbe: ["#7a3a2a", "#8a4a34", "#5a3a2e"][Math.floor(r() * 3)], giebelM: material("putzweiss", { farbe: putzF }) }); const sch = box(0.6, 2.2, 0.6, material("klinker", { wiederholen: [0.5, 1] }), w * 0.2, y + 3.2, -d * 0.55, g);
+        g.userData = { w, H: y, d, schornstein: new THREE.Vector3(w * 0.2, y + 4.4, -d * 0.55) }; return g; }

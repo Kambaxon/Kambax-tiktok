@@ -18,6 +18,7 @@
         gelaende:   { body: [[-2.3, 0.52], [2.3, 0.52], [2.32, 1.1], [2.2, 1.16], [-2.3, 1.16]], glas: [[-2.25, 1.16], [1.1, 1.16], [0.98, 1.86], [-2.25, 1.86]], tueren: 4, r: 0.4, reling: true, beplankung: true, kastig: true },
         targa:      { body: [[-2.2, 0.3], [2.2, 0.3], [2.24, 0.54], [1.9, 0.7], [0.85, 0.8], [-1.4, 0.84], [-2.15, 0.8], [-2.24, 0.54]], glas: [[-0.9, 0.82], [0.8, 0.8], [0.1, 1.18], [-0.75, 1.2], [-0.95, 0.86]], tueren: 2, r: 0.33, tief: true, offen: true },
         minivan:    { body: [[-2.45, 0.38], [2.45, 0.38], [2.47, 0.8], [2.15, 1.0], [-2.4, 1.05], [-2.47, 0.8]], glas: [[-2.38, 1.02], [2.1, 1.0], [1.1, 1.75], [-2.3, 1.8], [-2.42, 1.1]], tueren: 3, r: 0.34 },
+        oldtimer:   { body: [[-2.35, 0.36], [2.3, 0.36], [2.36, 0.62], [2.1, 0.86], [0.95, 0.92], [-1.4, 0.95], [-2.1, 0.88], [-2.38, 0.62]], glas: [[-1.45, 0.93], [0.85, 0.92], [0.45, 1.44], [-0.95, 1.46], [-1.55, 0.98]], tueren: 2, r: 0.36, alt: true },
         stretch:    { body: [[-2.4, 0.32], [2.4, 0.32], [2.42, 0.62], [2.1, 0.8], [1.0, 0.9], [-1.6, 0.94], [-2.35, 0.9], [-2.42, 0.62]], glas: [[-1.5, 0.9], [0.95, 0.9], [0.3, 1.4], [-0.95, 1.42], [-1.6, 0.95]], tueren: 6, r: 0.34, dehnen: 3.2 },
       };
       const REIFEN_TEX = {};
@@ -116,7 +117,7 @@
         for (const sx of [-0.35, 0.35]) { const wi = box(0.6, 0.014, 0.02, gummiM, sx, glas[1][1] + 0.03, glas[1][0] - 0.02, kar); wi.rotation.z = sx > 0 ? 0.08 : -0.08; }
         if (typ === "gelaende") { const ers = reifenRad(kar, 0, zh - 0.28, 0.36, 0.26, "offroad", 0x2a2a2c); ers.rotation.y = Math.PI / 2; ers.position.y = 1.0; }
         // Räder
-        const rR = K.r, rW = typ === "coupe" || typ === "targa" ? 0.26 : 0.23, fe = o.felge ?? (typ === "gelaende" ? "offroad" : pick(["speichen5", "vielspeichen", "doppelspeichen", "turbine", r() < 0.3 ? "stahl" : "speichen5"]));
+        const rR = K.r, rW = typ === "coupe" || typ === "targa" ? 0.26 : 0.23, fe = o.felge ?? (K.alt ? "stahl" : typ === "gelaende" ? "offroad" : pick(["speichen5", "vielspeichen", "doppelspeichen", "turbine", r() < 0.3 ? "stahl" : "speichen5"]));
         const feC = o.felgenFarbe ?? (fe === "stahl" ? 0x3a3c40 : pick([0xc8ccd0, 0xc8ccd0, 0x2a2c30, 0x5a5e64, 0xc8a050])), sattel = r() < 0.3 ? pick([0xc82a1a, 0xd8b020, 0x2a5aa8]) : 0x4a4c50;
         const achse = L / 2 - (K.kastig ? 0.75 : 0.78) - (d ? 0 : 0);
         const wheels = [[-1, 1], [1, 1], [-1, -1], [1, -1]].map(([sx, sz]) => reifenRad(g, sx * (W / 2 - 0.12), sz * achse + (zf + zh) / 2, rR, rW, fe, feC, sattel));
@@ -124,6 +125,10 @@
         wheels.forEach((wh) => { const bo = new THREE.Mesh(new THREE.TorusGeometry(rR + 0.06, 0.04, 6, 20, Math.PI), dunkel); bo.rotation.y = Math.PI / 2; bo.position.set(wh.position.x + Math.sign(wh.position.x) * 0.08, rR, wh.position.z); kar.add(bo); });
         if (carbonM) { box(0.8, 0.012, 0.9, carbonM, 0, body[3] ? body[3][1] + 0.01 : 0.9, zf - 0.6, kar); for (const sx of [-1, 1]) box(0.13, 0.095, 0.2, carbonM, sx * (W / 2 + 0.071), glas[1][1] + 0.08, glas[1][0] - 0.15, kar); } // Carbon-Haube/Spiegel
         if (o.unterboden) { const ug = box(W - 0.3, 0.02, L - 1.2, new THREE.MeshBasicMaterial({ color: new THREE.Color(o.unterboden).multiplyScalar(2.5), toneMapped: false }), 0, 0.14, (zf + zh) / 2, kar); const ul = new THREE.PointLight(o.unterboden, 2.5, 4, 2); ul.position.set(0, 0.1, (zf + zh) / 2); kar.add(ul); }
+        if (K.alt) { const chromM = M(0xe8ecf0, { metalness: 1, roughness: 0.12 }); for (const zz of [zf + 0.08, zh - 0.08]) { const st = cyl(0.07, 0.07, W + 0.12, chromM, 0, body[0][1] + 0.12, zz, kar, 16); st.rotation.z = Math.PI / 2; } // Chromstoßstangen
+          for (const sx of [-1, 1]) { const kotf = new THREE.Mesh(new THREE.SphereGeometry(0.46, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), lack); kotf.scale.set(0.42, 0.85, 1.3); kotf.position.set(sx * (W / 2 - 0.1), body[0][1] + 0.05, achse + (zf + zh) / 2); kotf.castShadow = true; kar.add(kotf); const k2 = kotf.clone(); k2.position.z = -achse + (zf + zh) / 2; kar.add(k2);
+            const sw = cyl(0.13, 0.13, 0.08, M(0xfff6e0, { emissive: 0xfff0d0, emissiveIntensity: 0.15 }), sx * 0.62, body[2][1] - 0.02, zf - 0.02, kar, 24); sw.rotation.x = Math.PI / 2; const ring = new THREE.Mesh(new THREE.TorusGeometry(0.135, 0.02, 8, 24), chromM); ring.position.set(sx * 0.62, body[2][1] - 0.02, zf + 0.02); kar.add(ring); }
+          wheels.forEach((wh) => { const ww = new THREE.Mesh(new THREE.TorusGeometry(K.r * 0.62, K.r * 0.1, 8, 32), M(0xf2f2ee, { roughness: 0.6 })); ww.rotation.y = Math.PI / 2; ww.position.x = Math.sign(wh.position.x) * 0.1; wh.add(ww); }); } // runde Scheinwerfer, Weißwandreifen
         kar.position.y = K.tief ? -0.02 : 0;
         g.userData = { wheels, L, karosse: kar, rR, typ, felgenFertig: true, details: true, auspuff: rohre.map((xx) => new THREE.Vector3(xx, body[0][1] - 0.02, zh - 0.12)), phase: r() * 6.28 };
         return g;
