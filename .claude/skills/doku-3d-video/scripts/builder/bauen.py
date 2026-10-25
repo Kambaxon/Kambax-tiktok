@@ -13,7 +13,8 @@ lib = base + "\n" + "\n".join(rd(p) for p in libs)
 head = rd("/home/user/kambax-tiktok/projekte/asteroid/compositions/welt.html").split("      // ---------- Zeitplan")[0]
 tail = '''
       const _vp = new THREE.Matrix4();
-      function renderAt(T) { let sh = SHOTS[SHOTS.length - 1]; for (const x of SHOTS) if (T >= x.t0 && T < x.t1) { sh = x; break; } const w = W[sh.id]; WIND.staerke.value = 1;
+      let _letztesT = null;
+      function renderAt(T) { if (T === _letztesT) return; _letztesT = T; let sh = SHOTS[SHOTS.length - 1]; for (const x of SHOTS) if (T >= x.t0 && T < x.t1) { sh = x; break; } const w = W[sh.id]; WIND.staerke.value = 1;
         Object.entries(POST_STANDARD).forEach(([k, v]) => (POST.uniforms[k].value = v)); POST.look(w.look ?? "neutral"); Object.entries(w.post || {}).forEach(([k, v]) => (POST.uniforms[k].value = v));
         let vorher = null; if (POST.uniforms.uBewegung.value > 0) { wind(T - 1 / 30); w.update(T - sh.t0 - 1 / 30, T - 1 / 30); w.camera.updateMatrixWorld(); _vp.multiplyMatrices(w.camera.projectionMatrix, w.camera.matrixWorldInverse); vorher = _vp; }
         wind(T); w.update(T - sh.t0, T); w.camera.updateMatrixWorld(); POST.render(w.scene, w.camera, T, vorher); }
