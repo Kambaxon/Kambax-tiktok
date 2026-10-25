@@ -474,6 +474,43 @@ Das Tempo-Profil ist im Builder automatisch aktiv:
 - Vor dem Render messen: Ein Benchmark mit 2–3 Bildern zeigt die Zeit pro Bild. Mit 2100 multiplizieren und dem User ansagen.
 - Render-Aufruf für schwere Szenen: `npx hyperframes render -o renders/x.mp4 -q delivery -w 1 --low-memory-mode --player-ready-timeout 600000 --protocol-timeout 900000 --browser-timeout 600`. Sonst bricht der Render beim Laden nach 45 s ab.
 
+## Gelernt in Projekt Hudson (Luftfahrt, Stadt im echten Maßstab)
+
+Die Szenen-Datei `scripts/builder/szenen-hudson.js` ist eine Vorlage für Flugzeug-, Stadt- und Wasser-Szenen. Sie enthält: Flughafen, New York in Metern mit instanzierter Stadt, Hudson mit Spiegelung, Hängebrücke, Kabine mit echten Fensterausschnitten, Cockpit, Fähren und Rettungsinseln.
+
+**Arbeitsweise**
+- **Szenencode in eine IIFE kapseln:** `const SHOTS`/`DUR` gehören oben hin, alles andere in `(function () { … })();`. Sonst kollidieren eigene Namen mit Bibliotheksfunktionen wie `feuer`, `v3` oder `wackeln`.
+- **Schnell prüfen:** `python3 scripts/builder/probebau.py` im Projektordner, dann `node scripts/builder/probe.cjs . '[{"id":"shot","T":12.5,"out":"/pfad/a.jpg","pos":[..],"ziel":[..],"js":"…"}]'`.
+  - Das Werkzeug lädt die Szene einmal und rendert beliebige Zeitpunkte, Kameras oder Debug-Code.
+  - Ein Durchgang dauert etwa 1–2 Minuten statt 4 Minuten pro Snapshot.
+  - Danach `probe.html` löschen, sonst meldet `check` „multiple root compositions“.
+- **Hold-Shots** (`{ id, t0, t1, hold: true }`) rendert `bauen.py` nur einmal. Unter Karte und Erklärpanel sparen sie Hunderte Bilder.
+- **Zeit pro Bild vor dem Render messen** (Probe-Werkzeug, `renderAt` mit `performance.now`). Zur gemessenen Zeit kommen beim echten Render etwa +0,7 s pro Bild für die Bildaufnahme hinzu.
+
+**Stadt im echten Maßstab**
+- **Instanzierte Stadt** (`InstancedMesh` aus Einheitswürfeln mit `windowsTex`-Materialien): Tausende Gebäude kosten so kaum Draw Calls.
+  - Unbedingt `frustumCulled = false` setzen, sonst verschwindet die Stadt. Gecullt wird sonst mit der Box eines einzelnen Würfels am Ursprung.
+  - Schrittweiten `dx`/`dz` immer setzen. Ein fehlendes `dz` ergab NaN, und es entstanden nur 10 Gebäude.
+- **Nebel bei Kilometer-Entfernungen:** `uNebel` der Nachbearbeitung wirkt pro Meter und macht bei 10 km alles weiß. Für Luftbilder `uNebel` auf 0 lassen und nur `scene.fog` weit setzen (7–42 km). Dazu `camFar(45000)`.
+- **Tiefenpräzision:** Wasser und Land dürfen sich nicht überlappen. Der Boden unter allem liegt bei y = −30, und `near` ist bei Außenaufnahmen ≥ 1,5.
+- **Spiegelwasser** (`spiegelflaeche` mit `wasser`) rendert die Szene ein zweites Mal. In Innenaufnahmen (Kabine, Cockpit) stattdessen eine einfache glänzende Fläche zeigen (`spiegelAn(false)`).
+
+**Flugzeug**
+- **Rechte Tragfläche des Flugzeugmodells:** Sie ist gespiegelt und rendert auf der Unterseite schwarz. Fensterblicke deshalb über die linke Tragfläche planen, also die Rollrichtung entsprechend drehen.
+- **Kabine:** Seitenwände als `ShapeGeometry` mit echten ovalen Löchern (`form.holes`), dazu Fensterrahmen-Ringe. Die Texturlösung mit Alpha auf einem Zylinder hat nicht funktioniert.
+- **Fans:** Die Drehung der Triebwerksschaufeln über `f.userData.fanWinkel` langsam halten, sonst flackert es wie ein Stroboskop.
+- **Feuer und Rauch:** Additives Orange verschwindet vor hellem Himmel. Flammen deckend (normal blending) direkt am Auslass setzen, Rauch dunkel mit Größe ≥ 8.
+
+**Figuren und Kamera**
+- **Sitzende Figuren:** Mit `sitzend()` (Pivot an der Hüfte, Beine kompensiert) funktioniert die Brace-Haltung.
+  - Arme nach vorn auf die Lehne legen, nicht nach oben, das wirkt wie „Hände hoch“.
+  - Die Vorbeugung von vorn gefilmt sieht aus wie aufrecht und kopflos. Im Profil filmen.
+- **Kamera nie in eine Figur oder direkt vor eine Lehne setzen:** Den eigenen Sitz und den Nachbarplatz frei lassen.
+
+**Ton und Titel**
+- **Luftfahrt-Ton:** `klang.py sfx4` erzeugt triebwerk, abheben, vogelschlag, auslaufen, fahrtwind, warnton, gaense, aufprall, wasser, kabine und faehrhorn.
+- **Titel kurz halten:** „Noch 3:30 Min.“ bricht bei 132 px um, „Noch 3:30“ passt.
+
 ## Fallen
 
 - `cam()` hat nur 400 m Sichtweite. Für alles, was weiter weg steht (Horizont, Kraftwerk, Bögen), `camFar(3000+)` nehmen und den Nebel weit genug setzen, sonst ist es unsichtbar.
