@@ -23,6 +23,36 @@ Alles wird im Code gebaut: HyperFrames plus Three.js. Lies zuerst den Skill `hyp
   6. Schluss: eine Lehre oder eine Frage an „dich“.
 - **Schnitt:** harte Schnitte zwischen Einstellungen (alle 2–4 s). Innerhalb jeder Einstellung fährt die Kamera langsam, als Dolly oder Push-in, mit `smooth()` über die ganze Einstellung.
 
+## STANDARD: Master-Look und Effekt-Abfrage (Wunsch des Users, gilt für JEDES Projekt)
+
+**1. Immer nachfragen.** Vor dem Szenenbau, spätestens zusammen mit dem Skript, kurz fragen, welche Effekte und Looks das Thema braucht. Dazu passende Vorschläge machen:
+- Wetter und Tageszeit, Nebel, Strahlen
+- Spiegelungen
+- Tiefenschärfe und Fokuszüge
+- Bokeh
+- Grading-Look
+- Hitzeflimmern, Rauch, Feuer, Partikel
+- Kamerastil
+- Besondere Momente: Blitz, Zeitlupe, Abblende
+
+Eine knappe Liste mit Empfehlung genügt. Wenn der User „mach einfach“ sagt, gilt der Master-Look unten.
+
+**2. Master-Look ist der Standard.** Jedes Projekt startet mit dem Effekt-Kit aus ZUSAMMEN und Hudson, nie mit „neutral“ und flachen Farben. Grundwerte für `post`:
+```js
+const KLAR = { uSSAA: 1, uBloom: 0.35, uHalation: 0.03, uChroma: 0, uKorn: 0, uVig: 0.32, uAO: 0,
+  uSplit: 0.12, uSplitSchatten: [0.22, 0.42, 0.5], uBokehOval: 0.55, uBokeh: 0.4, uAnamorph: 0.06,
+  uStrahlen: 0.25, uFlare: 0.05, uSchaerfe: 0.3, uKlarheit: 0.2, uRolloff: 0.2 };
+// look: "tealOrange" (kühle Schatten, warme Lichter)
+// Außen/Luft: uNebel + uNebelHoehe (Straße ≈ 0.08/3, Kilometer-Skala ≈ 0.002/90) und uNebelFarbe passend zur Szene
+```
+- Wasser oder nasse Flächen bekommen immer `spiegelflaeche`.
+- Himmel mit Wolkenart passend zum Thema, God Rays über `uStrahlen`.
+- Glanz für Lack, Metall und Glas (`envMapIntensity` ≈ 1.8).
+- Tiefenschärfe mit Fokuszug bei nahen Motiven (Fenster, Gesichter, Details).
+- Feine Strukturen (Seile, Gitter) bekommen `uSSAA: 2` nur in diesem Shot.
+- Nie Filmkorn.
+- Das Tempo-Profil bleibt aktiv. Die Kosten der Effekte vor dem Render ansagen.
+
 ## Gestaltung
 
 **3D-Welt (Three.js r149, `assets/vendor/three.min.js`, im Szenen-`<template>` laden):**
