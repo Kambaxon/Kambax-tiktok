@@ -108,7 +108,7 @@
         const mk = (geo, m, x, y, z, p = g) => { const ms = new THREE.Mesh(geo, m); ms.position.set(x, y, z); ms.castShadow = true; p.add(ms); return ms; };
         const koerper = M(grau, { roughness: 0.8, map: texFell("kurz", 5) }), dunkel = M(new THREE.Color(grau).offsetHSL(0, 0, -0.18).getHex(), { roughness: 0.8 });
         mk(new THREE.SphereGeometry(0.075, 20, 14), koerper, 0, 0.17, 0).scale.set(0.95, 0.9, 1.45);
-        mk(new THREE.SphereGeometry(0.06, 18, 12), M(0x4a6a5a, { roughness: 0.35, metalness: 0.45 }), 0, 0.22, 0.07).scale.set(0.9, 1, 0.9); // schillernder Hals
+        mk(new THREE.SphereGeometry(0.06, 18, 12), M([0x4a6a5a, 0x6a4a7a, 0x4a5e6e, 0x5a6a4a][Math.floor(r() * 4)], { roughness: 0.3, metalness: 0.5 }), 0, 0.22, 0.07).scale.set(0.9, 1, 0.9); // schillernder Hals (grün/violett/blau)
         const kopf = new THREE.Group(); kopf.position.set(0, 0.27, 0.1); g.add(kopf);
         mk(new THREE.SphereGeometry(0.034, 16, 12), dunkel, 0, 0, 0, kopf);
         const sch = mk(new THREE.ConeGeometry(0.008, 0.03, 8), M(0x2a2624, { roughness: 0.5 }), 0, -0.004, 0.044, kopf); sch.rotation.x = Math.PI / 2;
@@ -118,9 +118,18 @@
           mk(new THREE.SphereGeometry(0.06, 16, 10), koerper, sx * 0.01, -0.01, -0.04, f).scale.set(0.25, 0.6, 1.6);
           mk(new THREE.SphereGeometry(0.04, 12, 8), M(0x2e2e34, { roughness: 0.8 }), sx * 0.008, -0.004, -0.11, f).scale.set(0.3, 0.45, 1.2); // dunkle Handschwingen
           fluegel.push(f); }
-        mk(new THREE.BoxGeometry(0.07, 0.012, 0.09), dunkel, 0, 0.16, -0.14).rotation.x = 0.25; // Schwanzfächer
+        const muster = o.muster ?? ["einfarbig", "binden", "gehaemmert", "gescheckt"][Math.floor(r() * 4)], bindenM = M(0x2a2a2e, { roughness: 0.85 }), weissM = M(0xeeeae2, { roughness: 0.85 }); // Gefieder-Varianten
+        fluegel.forEach((f, i) => { const sx = i ? 1 : -1;
+          if (muster === "binden") for (const z of [-0.03, -0.065]) mk(new THREE.SphereGeometry(0.03, 10, 6), bindenM, sx * 0.024, 0.002, z, f).scale.set(0.35, 0.18, 0.5);
+          if (muster === "gehaemmert") for (let k = 0; k < 5; k++) mk(new THREE.SphereGeometry(0.012, 8, 6), bindenM, sx * 0.024, -0.01 + (k % 2) * 0.016, -0.01 - k * 0.022, f).scale.set(0.4, 0.6, 1);
+          if (muster === "gescheckt" && r() < 0.8) mk(new THREE.SphereGeometry(0.03, 10, 6), weissM, sx * 0.022, -0.005, -0.03 - r() * 0.04, f).scale.set(0.4, 0.7, 1); });
+        if (muster === "gescheckt") mk(new THREE.SphereGeometry(0.04, 12, 8), weissM, 0, 0.15, 0.02).scale.set(1, 0.6, 1.2);
+        const schwanz = mk(new THREE.BoxGeometry(0.07, 0.012, 0.09), dunkel, 0, 0.16, -0.14); schwanz.rotation.x = 0.25; // Schwanzfächer
         const fussM = M(0xc84a4a, { roughness: 0.6 }); for (const sx of [-1, 1]) { cyl(0.004, 0.004, 0.07, fussM, sx * 0.022, 0.05, 0.01, g, 6); for (const a of [-0.5, 0, 0.5]) { const z = box(0.004, 0.003, 0.03, fussM, sx * 0.022 + Math.sin(a) * 0.012, 0.015, 0.02 + Math.cos(a) * 0.012, g); z.rotation.y = a; } }
-        g.userData = { kopf, fluegel, phase: r() * 6.28 }; if (o.groesse) g.scale.setScalar(o.groesse); return g;
+        g.userData = { kopf, fluegel, schwanz, rumpf: g.children[0], phase: r() * 6.28, muster }; g.scale.setScalar((o.groesse ?? 1) * (0.9 + r() * 0.2)); return g;
       }
-      function taubePicken(t, T) { const u = t.userData, k = T * 3 + u.phase, pick = Math.max(0, Math.sin(k * 2)) ** 4; u.kopf.position.set(0, 0.27 - pick * 0.17, 0.1 + pick * 0.08 + Math.sin(k * 4) * 0.008); u.kopf.rotation.x = pick * 1.1; }
+      function taubePicken(t, T) { const u = t.userData, k = T * 3 + u.phase, pick = Math.max(0, Math.sin(k * 2)) ** 4; u.kopf.position.set(0, 0.27 - pick * 0.17, 0.1 + pick * 0.08 + Math.sin(k * 4) * 0.008); u.kopf.rotation.x = pick * 1.1;
+        const blick = Math.sin(k * 0.37) * 0.45 + Math.sin(k * 1.13) * 0.2; u.kopf.rotation.y = blick * (1 - pick); u.kopf.rotation.z = Math.sin(k * 0.61) * 0.12 * (1 - pick); // Umschauen, Kopf schräg legen
+        if (u.schwanz) u.schwanz.rotation.x = 0.25 + Math.sin(k * 1.7) * 0.06 + pick * 0.15; if (u.rumpf) u.rumpf.scale.set(0.95, 0.9 + Math.sin(T * 5 + u.phase) * 0.012, 1.45); // Schwanzwippen, Atmen
+        u.fluegel.forEach((f, i) => (f.rotation.z = (i ? 1 : -1) * Math.max(0, Math.sin(k * 0.23 + 1)) ** 12 * 0.25)); } // gelegentliches Flügelschütteln
       function taubeFliegen(t, T) { const u = t.userData, k = T * 22 + u.phase; u.fluegel.forEach((f, i) => { const s = i ? 1 : -1; f.rotation.z = s * (0.3 + Math.sin(k) * 1.1); f.scale.set(1, 1, 1); f.children[0].scale.set(1.6, 0.25, 1.4); }); }

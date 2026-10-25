@@ -128,7 +128,7 @@
       // HDR-Nachbearbeitung v3: Szene linear in HalfFloat-MSAA-Ziel, dann ein Kompositions-Shader mit (fast) allen Kino-Effekten.
       // Alle Effekte sind Uniforms (0 = aus) und lassen sich pro Shot setzen: POST.uniforms.uName.value = ...  (in bauen.py: post: P({ uName: wert }))
       //  Licht/Tiefe: uStrahlen (Lichtstrahlen), uAO (Umgebungsverdeckung), uNebel + uNebelFarbe + uNebelHoehe (Höhen-/Tiefennebel mit Sonnenstreuung), uBewegung (Bewegungsunschärfe der Kamera)
-      //  Optik:  uDof + uFokus + uBlende (Tiefenschärfe), uBokeh (runde Lichter in der Unschärfe), uTilt + uTiltMitte, uFlare, uAnamorph, uChroma (Farbsäume), uVerzerrung (+ Tonne / − Kissen), uVig, uHitze (Hitzeflimmern) + uHitzeY
+      //  Optik:  uDof + uFokus + uBlende (Tiefenschärfe), uBokeh (runde Lichter in der Unschärfe), uBokehOval (<1 = ovale anamorphe Bokeh-Lichter, z. B. 0.55), uTilt + uTiltMitte, uFlare, uAnamorph, uChroma (Farbsäume), uVerzerrung (+ Tonne / − Kissen), uVig, uHitze (Hitzeflimmern) + uHitzeY
       //  Farbe:  uSat, uKon, uBel, uLift/uGamma/uGain (vec3), uSplitSchatten/uSplitLicht (vec3) + uSplit, uMono (Schwarzweiß), uKreuz (Cross-Processing), uSchwarz (Schwarzwert), uRolloff (weiche Lichter), uTint
       //  Finish: uSchaerfe, uKlarheit, uHalation, uKorn (Filmkorn – Standard aus!), uBloom, uSchwelle
       //  Stil:   uKontur (Umrisslinien aus Tiefe), uToon (Farbstufen), uHalbton, uGlitch, uVHS, uScan (CRT-Zeilen), uLeck (Lichtlecks), uKratzer, uTon (Ton-/Clay-Look, Szene grau), uDraht (Drahtgitter-Overlay)
@@ -171,7 +171,7 @@
         const v3 = (a) => new THREE.Vector3(...a), U = {
           tSzene: { value: haupt.texture }, tB1: { value: stufen[0].a.texture }, tB2: { value: stufen[1].a.texture }, tStrahlen: { value: strahlRT.texture }, tB3: { value: stufen[2].a.texture }, tUnscharf: { value: unscharf.a.texture }, tTiefe: { value: tiefeRT.texture },
           uBloom: { value: opt.bloom }, uBel: { value: opt.belichtung }, uSat: { value: 1.08 }, uKon: { value: 1.05 }, uVig: { value: opt.vignette }, uTint: { value: v3([1, 1, 1]) }, uBlau: { value: 0.012 },
-          uStrahlen: { value: 0 }, uFlare: { value: 0 }, uAnamorph: { value: 0 }, uSonnePos: { value: new THREE.Vector2(0.5, 0.8) }, uSicht: { value: 0 }, uSonnenFarbe: { value: v3([1, 0.9, 0.75]) },
+          uStrahlen: { value: 0 }, uBokehOval: { value: 1 }, uFlare: { value: 0 }, uAnamorph: { value: 0 }, uSonnePos: { value: new THREE.Vector2(0.5, 0.8) }, uSicht: { value: 0 }, uSonnenFarbe: { value: v3([1, 0.9, 0.75]) },
           uTilt: { value: 0 }, uTiltMitte: { value: opt.tiltMitte }, uDof: { value: 0 }, uFokus: { value: 10 }, uBlende: { value: 0.6 }, uBokeh: { value: 0 }, uNear: { value: 0.1 }, uFar: { value: 400 }, uUnscharfAn: { value: 0 },
           uAO: { value: 0 }, uNebel: { value: 0 }, uNebelFarbe: { value: v3([0.8, 0.85, 0.9]) }, uNebelHoehe: { value: 8 }, uBewegung: { value: 0 },
           uInvProj: { value: new THREE.Matrix4() }, uCamWelt: { value: new THREE.Matrix4() }, uPrevVP: { value: new THREE.Matrix4() }, uSonneDir: { value: new THREE.Vector3(0, 1, 0) },
@@ -185,7 +185,7 @@
         const endM = sm(U, `
           #include <packing>
           uniform sampler2D tSzene, tB1, tB2, tB3, tUnscharf, tTiefe, tStrahlen;
-          uniform float uBloom, uBel, uSat, uKon, uVig, uBlau, uStrahlen, uFlare, uAnamorph, uSicht, uTilt, uTiltMitte, uDof, uFokus, uBlende, uBokeh, uNear, uFar, uUnscharfAn;
+          uniform float uBokehOval, uBloom, uBel, uSat, uKon, uVig, uBlau, uStrahlen, uFlare, uAnamorph, uSicht, uTilt, uTiltMitte, uDof, uFokus, uBlende, uBokeh, uNear, uFar, uUnscharfAn;
           uniform float uAO, uNebel, uNebelHoehe, uBewegung, uChroma, uVerzerrung, uHitze, uHitzeY, uSplit, uMono, uKreuz, uSchwarz, uRolloff, uSchaerfe, uKlarheit, uHalation, uKorn;
           uniform float uKontur, uToon, uHalbton, uGlitch, uVHS, uScan, uLeck, uKratzer, uZeit; uniform vec4 uHitzePunkte[4];
           uniform vec3 uTint, uSonnenFarbe, uNebelFarbe, uLift, uGamma, uGain, uSplitSchatten, uSplitLicht, uSonneDir; uniform vec2 uSonnePos, uAufl;
@@ -223,7 +223,7 @@
               if (uDof > 0.5) coc = clamp(abs(dist - uFokus) / max(0.1, uFokus * uBlende), 0.0, 1.0);
               if (uTilt > 0.0) coc = max(coc, smoothstep(0.08, 0.42, abs(uv.y - uTiltMitte)) * uTilt);
               vec3 bl = texture2D(tUnscharf, uv).rgb;
-              if (uBokeh > 0.0 && coc > 0.05) { vec3 bk = vec3(0.0); float rr = coc * 0.022; for (int i = 0; i < 16; i++) { float a = float(i) / 16.0 * 6.2832; bk += texture2D(tB1, uv + vec2(cos(a), sin(a)) * rr * vec2(0.5625, 1.0)).rgb; } bl += bk / 16.0 * uBokeh * 2.0 * coc; }
+              if (uBokeh > 0.0 && coc > 0.05) { vec3 bk = vec3(0.0); float rr = coc * 0.022; for (int i = 0; i < 16; i++) { float a = float(i) / 16.0 * 6.2832; bk += texture2D(tB1, uv + vec2(cos(a), sin(a)) * rr * vec2(0.5625 * uBokehOval, 1.0)).rgb; } bl += bk / 16.0 * uBokeh * 2.0 * coc; }
               c = mix(c, bl, coc); }
             // ---- Höhen-/Tiefennebel mit Lichtstreuung zur Sonne ----
             if (uNebel > 0.0 && brauchtTiefe) { float hf = exp(-max(wp.y, 0.0) / max(0.1, uNebelHoehe)); float f = 1.0 - exp(-dist * 0.02 * uNebel * hf); if (zr >= 0.9999) f = uNebel * 0.25;

@@ -1,5 +1,5 @@
       // ===== Typografie v1: Schrift im 3D-Raum (wirft Schatten, kann leuchten, steht hinter Gebäudekanten oder im Nebel) =====
-      // text3d(s, "TEXT", { x, y, z, ry, hoehe (m), farbe, schrift, gewicht, neon (Leuchtfarbe), tiefe (m, Extrusion durch Schichten), schatten })
+      // text3d(s, "TEXT", { x, y, z, ry, hoehe (m), farbe, schrift, gewicht, neon (Leuchtfarbe), tiefe (m, Extrusion durch Schichten), schatten, kontrast (true|Deckkraft: weicher dunkler Halo dahinter) })
       //   -> { g, update(T, { start, dauer }) }  sanftes Einblenden + leichtes Hochskalieren (deterministisch)
       function text3d(s, text, o = {}) {
         const fontPx = 160, schrift = `${o.gewicht ?? 800} ${fontPx}px ${o.schrift ?? "Montserrat, 'Helvetica Neue', Arial, sans-serif"}`;
@@ -15,10 +15,14 @@
         const seite = new THREE.MeshStandardMaterial({ map: tex, color: farbe.clone().multiplyScalar(0.55), transparent: true, alphaTest: 0.4, roughness: 0.5, side: THREE.DoubleSide });
         for (let i = 0; i < schichten; i++) { const p = new THREE.Mesh(new THREE.PlaneGeometry(W, H), i === 0 ? front : seite); p.position.z = -i * (tiefe / schichten); p.castShadow = o.schatten !== false; p.receiveShadow = i === 0;
           p.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.4, side: THREE.DoubleSide }); p.userData.tiefeMat = p.customDepthMaterial; grp.add(p); planes.push(p); }
+        if (o.kontrast) { const kv = document.createElement("canvas"), pad = 60; kv.width = bw + pad * 2; kv.height = bh + pad * 2; const k2 = kv.getContext("2d"); k2.font = schrift; k2.textBaseline = "middle"; k2.textAlign = "center";
+          k2.shadowColor = "rgba(0,0,0,1)"; k2.shadowBlur = 38; k2.fillStyle = "rgba(0,0,0,0.6)"; k2.fillText(text, kv.width / 2, kv.height / 2 + fontPx * 0.04); const kt = new THREE.CanvasTexture(kv);
+          const kp = new THREE.Mesh(new THREE.PlaneGeometry(W * kv.width / bw, H * kv.height / bh), new THREE.MeshBasicMaterial({ map: kt, color: 0x1a120a, transparent: true, opacity: o.kontrast === true ? 0.32 : o.kontrast, depthWrite: false, toneMapped: false }));
+          kp.position.z = -tiefe - 0.05; kp.userData.keineTiefe = true; grp.add(kp); planes.push(kp); kp.userData.basisOpazitaet = kp.material.opacity; } // weicher Kontrastschatten hinter der Schrift (Lesbarkeit vor hellem Gegenlicht)
         if (neon) { const glow = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.15, H * 1.6), new THREE.MeshBasicMaterial({ map: tex, color: new THREE.Color(o.neon).multiplyScalar(0.8), transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); glow.position.z = 0.02; grp.add(glow);
           const l = new THREE.PointLight(o.neon, 2.2, H * 8, 2); l.position.z = H * 0.6; grp.add(l); }
         return { g: grp, breite: W, update(T, a = {}) { const st = a.start ?? 0, du = a.dauer ?? 0.8, k = Math.min(1, Math.max(0, (T - st) / du)), e = 1 - Math.pow(1 - k, 3);
-          grp.visible = k > 0; grp.scale.setScalar(0.92 + 0.08 * e); grp.position.y = (o.y ?? 0) - (1 - e) * H * 0.15; planes.forEach((p, i) => { p.material.opacity = a.wischen ? 1 : e; });
+          grp.visible = k > 0; grp.scale.setScalar(0.92 + 0.08 * e); grp.position.y = (o.y ?? 0) - (1 - e) * H * 0.15; planes.forEach((p, i) => { p.material.opacity = (a.wischen ? 1 : e) * (p.userData.basisOpazitaet ?? 1); });
           if (a.wischen) { grp.scale.setScalar(1); grp.position.y = o.y ?? 0; wisch.constant = -W / 2 + W * 1.1 * e; wisch.normal.set(-1, 0, 0); grp.updateMatrixWorld(true); planes.forEach((p) => { if (!p.material.clippingPlanes) p.material.needsUpdate = true; p.material.clippingPlanes = [wisch.clone().applyMatrix4(grp.matrixWorld)]; }); } if (a.flackern && neon) front.color.setScalar(0).add(new THREE.Color(o.neon).multiplyScalar(3 * (Math.sin(T * 31) > -0.85 ? 1 : 0.2))); } };
       }
       // Titel, der aus dem Nebel auftaucht: Schrift + Nebelschwaden davor, die sich lichten
