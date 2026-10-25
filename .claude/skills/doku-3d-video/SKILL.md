@@ -145,17 +145,25 @@ Jedes Projekt soll Atmosphäre, Effekte, Animation und Klang über das vorige he
 - **Stadtkulisse:** keine Gebäude in den ersten 70–150 m vor der Kamera, sonst blockiert ein Hochhaus das Bild. Vordere Gebäude höher, damit eine Skyline entsteht.
 - **Texturen von GitHub raw** (z. B. NASA Blue Marble aus `vasturiano/three-globe`) mit `window.__hf.buildReady` laden.
 
-## Bildqualität & Figuren (Feedback nach Projekt 4: „rauscht“, Figuren zu simpel)
+## Bildqualität, Figuren & Welt (Feedback nach Projekt 4)
 
-- **Kein Filmkorn mehr.** Es rauscht und wird von TikTok zu Matsch komprimiert. Die Look-Ebene behält nur Vignette, Blitze und Abblenden (Korn-Canvas weglassen).
-- **Figuren v2** aus `templates/figuren.js` statt der alten Gliederpuppe (Block aus den Basis-Helfern ersetzen):
-  - Gesicht: Augen mit Iris, Pupille und Glanzpunkt, Brauen, Nase, Mund, Ohren.
-  - Frisuren (kurz, seitenscheitel, pony, lang, dutt, locken, glatze), Bart, Brille, Jacke, Kragen und Schuhe.
-  - Ellbogen-Gelenke, Blinzeln in `idle()`.
-  - Optionen: `person(seed, { kind: "f"|"m", hair, beard, glasses, jacket, top, pants, skin, hairColor, scale })`.
-  - Für Nahaufnahmen von Gesichtern: Kamera ~1 m vor dem Kopf, Schatten `normalBias` ≥ 0,04.
-- Alle runden Teile mit genug Segmenten (≥ 16), sonst entstehen Zacken an den Gelenken.
-- TikTok-Export ohne Korn: zwei Durchgänge mit 12 Mbit/s, Lautheit −15 LUFS.
+- **Kein Filmkorn** (rauscht, TikTok macht Matsch daraus). Die Look-Ebene behält nur Vignette, Blitze und Abblenden. TikTok-Export in zwei Durchgängen mit 12 Mbit/s und −15 LUFS.
+- **Figuren v3** aus `templates/figuren.js` (ersetzt den alten Gliederpuppen-Block in den Basis-Helfern):
+  - Gesicht mit Iris, Pupille, Glanzpunkt, Wimpern (f), Brauen, Nase, Lippen, Ohren; Blinzeln.
+  - Hände mit 4 Fingern und Daumen, Ellbogen und Knie.
+  - Kleidung: `top` tshirt/langarm/hemd (Kragen + Knöpfe)/hoodie (Kapuze, Tasche, Kordeln)/pulli (Bündchen), `jacke`, `unten` hose/shorts/rock/kleid, `schuhe` sneaker/stiefel/halbschuh.
+  - Frisuren: kurz, seitenscheitel, pony, lang, bob, pferdeschwanz, dutt, locken, afro, undercut, glatze.
+  - Bärte: vollbart, dreitage, schnurrbart, kinnbart. Dazu `brille`.
+  - Körper: `oberweite` 0..1 (dezent, eingebettet), `bauch` 0..1, Breite und Größe variieren.
+  - In Szenen immer gemischt besetzen: Alter, Hauttöne, Geschlechter, Stile.
+- **Welt-Bausteine** aus `templates/bausteine.js`:
+  - `auto(seed, "limo"|"kleinwagen"|"transporter"|"lkw"|"bus")` mit Felgen, Lichtern, Spiegeln und extrudierter Karosserie; `fahrrad()`.
+  - `altbau(seed, breite, etagen, {geschaeft, licht})`: Fenster mit Rahmen, Sprossen, Fensterbänken, Läden und Blumenkästen, Balkone mit Geländer, Gesimse, Ziegeldach, Schornstein, Fallrohr. Dazu `einfamilienhaus()` mit Zaun und Briefkasten.
+  - `strasse(s, länge)` (Asphalt mit Rissen, Markierungen, Zebrastreifen, Bordstein, Pflaster, Gullys), `laterne`, `schild`, `bank`, `muelleimer`.
+  - `laubbaum`, `nadelbaum`, `birke`, `busch` (organische Blätter mit Farbverlauf), `gras` (InstancedMesh-Halme), `blumen`.
+  - Fassaden zeigen nach +z: für Straßenzeilen `rotation.y = ±π/2`.
+- Alle runden Teile mit ≥ 16–24 Segmenten, sonst entstehen gezackte Gelenknähte.
+- Detail-Regel: Jede Einstellung braucht Vorder-, Mittel- und Hintergrund mit echten Objekten (Fahrzeuge, Pflanzen, Straßenmöbel, Menschen), keine leeren Flächen.
 
 ## Fallen
 
