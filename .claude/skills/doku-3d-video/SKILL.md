@@ -55,16 +55,16 @@ const KLAR = { uSSAA: 1, uBloom: 0.35, uHalation: 0.03, uChroma: 0, uKorn: 0, uV
 
 **3. Realismus-Strukturen sind Standard** (`materialien.js`, mit eigenen Höhen-, Rauheits- und Metallkarten). Schmutz reagiert matt, Feuchte und Bitumen glänzend. Statt glatter Einheitsfarben immer einsetzen, wo es passt:
 - **Verfall und Patina:**
-  - `beton_verwittert`: Mikroporen, Haarrisse, Wasserläufer von Kanten, Salzausblühungen. Für Brutalismus, Industrie, Brückenpfeiler, Kaimauern.
-  - `stahl_rost`: Plattenfelder mit Nietreihen, Rost an den Nieten, Ölschmutz in den Fugen, Kratzer bis aufs blanke Metall. Für Brücken, alte Fahrzeuge, Industrie.
-  - `asphalt_alt` / `asphalt_spur`: freiliegender Zuschlag, gezackte Risse mit glänzendem Bitumen, abgefahrener Mittelstrich.
+  - `beton_verwittert`: Schalungsbeton mit Mikroporen, Schalungsfugen und Ankerlöchern, Wasserläufern, Haarrissen und Salzausblühungen. Trockene Flächen rau, Poren, Risse und Läufer feucht glänzend. Für Brutalismus, Industrie, Brückenpfeiler, Kaimauern.
+  - `stahl_rost`: Metall 1.0, gebürstete Grundstruktur, Plattenfelder mit Nietreihen. Rost konzentrisch um die Niete wirkt stumpf, Ölschmutz in den Fugen und Kratzer bis aufs blanke Metall glänzen. Für Brücken, alte Fahrzeuge, Industrie.
+  - `asphalt_alt` / `asphalt_spur`: tiefes Splitt-Relief, Asphalt stumpf. Bitumenrisse und Ölflecken hochglänzend, abgefahrener Mittelstrich.
 - **Organisch:**
-  - `moosstein_feucht`: Moos, Krustenflechten, nasser in den unteren Fugen. Für Ufer, Mauern, Treppen.
-  - `raureif`: Frostnadeln von den Kanten über kaltem Metall, mit Klarlack-Funkeln in der tiefen Sonne. Für Fensterrahmen und Geländer im Winter.
+  - `moosstein_feucht`: Moos stumpf mit Samtschimmer als Ersatz für Subsurface Scattering, Krustenflechten, nasse dunkle Fugen glänzend. Für Ufer, Mauern, Treppen.
+  - `raureif`: dendritische Frostnadeln von den Kanten über altem Metall. Klarlack und Irisieren erzeugen Mikro-Refraktion in der tiefen Sonne. Für Fensterrahmen und Geländer im Winter.
 - **Interieur:**
-  - `kabinenteppich`: Schlingenflor mit Rautenmuster und Laufspur bei u = 0,5. Mit `wiederholen: [1, n]` entlang des Gangs legen.
-  - `alu_eloxiert`: gebürstete Rillen mit anisotropem Glanz. Für Cockpit, Konsolen, Geräte.
-- **Eigene Strukturen:** Neue Materialien bekommen als `def[6]` die Maler `{ hoehe, rau, metall }` (Graustufen, hell = hoch, rau, metallisch). Dazu in `def[4]` `aufl: 512` für feine Details.
+  - `kabinenteppich`: Schlingenflor mit Rautenmuster, Faserglanz (Sheen) und Laufspur bei u = 0,5. Mit `wiederholen: [1, n]` entlang des Gangs legen.
+  - `alu_eloxiert`: diagonale Bürstrillen mit gestrecktem Glanz. Echte Anisotropie gibt es erst ab Three r153, hier entsteht der Effekt über die Rillen-Rauheit. Für Cockpit, Konsolen, Geräte.
+- **Eigene Strukturen:** Neue Materialien mit `matMitLayout()` bauen. Der Farb-Maler legt die Merkmale einmal fest (Risse, Flecken, Niete), und die Maler in `def[6] = { hoehe, rau, metall }` zeichnen genau dieselben Stellen. Sonst passen Glanz und Farbe nicht zusammen. Graustufen: hell = hoch, rau, metallisch. Dazu in `def[4]` `aufl: 512` für feine Details.
 
 ## Gestaltung
 
