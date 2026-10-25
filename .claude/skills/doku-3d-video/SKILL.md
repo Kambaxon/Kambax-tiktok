@@ -145,6 +145,18 @@ Jedes Projekt soll Atmosphäre, Effekte, Animation und Klang über das vorige he
 - **Stadtkulisse:** keine Gebäude in den ersten 70–150 m vor der Kamera, sonst blockiert ein Hochhaus das Bild. Vordere Gebäude höher, damit eine Skyline entsteht.
 - **Texturen von GitHub raw** (z. B. NASA Blue Marble aus `vasturiano/three-globe`) mit `window.__hf.buildReady` laden.
 
+## Bildqualität & Figuren (Feedback nach Projekt 4: „rauscht“, Figuren zu simpel)
+
+- **Kein Filmkorn mehr.** Es rauscht und wird von TikTok zu Matsch komprimiert. Die Look-Ebene behält nur Vignette, Blitze und Abblenden (Korn-Canvas weglassen).
+- **Figuren v2** aus `templates/figuren.js` statt der alten Gliederpuppe (Block aus den Basis-Helfern ersetzen):
+  - Gesicht: Augen mit Iris, Pupille und Glanzpunkt, Brauen, Nase, Mund, Ohren.
+  - Frisuren (kurz, seitenscheitel, pony, lang, dutt, locken, glatze), Bart, Brille, Jacke, Kragen und Schuhe.
+  - Ellbogen-Gelenke, Blinzeln in `idle()`.
+  - Optionen: `person(seed, { kind: "f"|"m", hair, beard, glasses, jacket, top, pants, skin, hairColor, scale })`.
+  - Für Nahaufnahmen von Gesichtern: Kamera ~1 m vor dem Kopf, Schatten `normalBias` ≥ 0,04.
+- Alle runden Teile mit genug Segmenten (≥ 16), sonst entstehen Zacken an den Gelenken.
+- TikTok-Export ohne Korn: zwei Durchgänge mit 12 Mbit/s, Lautheit −15 LUFS.
+
 ## Fallen
 
 - `cam()` hat nur 400 m Sichtweite. Für alles, was weiter weg steht (Horizont, Kraftwerk, Bögen), `camFar(3000+)` nehmen und den Nebel weit genug setzen, sonst ist es unsichtbar.
