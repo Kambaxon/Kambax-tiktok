@@ -303,6 +303,101 @@ Gilt ab dem nächsten Video. Reihenfolge der Bausteine im `<script>`: Basis-Helf
 - Warme Abendlichter.
 - Keine Kamera, durch die Autos oder Figuren hindurchfahren: Fahrwege und Kamera vorher prüfen.
 
+## Realismus-Stufe 4: Gebäude, Materialien, Himmel, Kamera, Gesichter, Pflanzen, Leben, Innenräume, Schrift
+
+**Zusammenbau neu:** `python3 <skill>/scripts/builder/bauen.py <szenen.js>` im Projektordner.
+- Die Reihenfolge der Bibliotheken übernimmt das Skript.
+- Die Szenen-Datei definiert `SHOTS`, `DUR` und `W.<id> = { scene, camera, post: P({...}), update(t, T) }`. `t` ist die Shot-Zeit, `T` die Gesamtzeit.
+- `post` setzt Nachbearbeitung pro Shot: `uStrahlen`, `uFlare`, `uAnamorph`, `uDof` + `uUnscharfAn` + `uFokus`/`uBlende`, `uTilt`.
+- Vorlage mit allen Bausteinen: `scripts/builder/szenen-test.js`.
+
+### Gebäude (`gebaeude.js`), passend zu Stadt oder Land
+
+- **Stadt:**
+  - `mehrfamilienhaus(seed, { fassade: "putz"|"klinker"|"vhf", etagen, balkone, licht, dach })`: Blockrand, Haustür mit Klingeln, Treppenhausfenster, Balkone (Glas, Stahl oder Beton), Gauben oder Dachfenster.
+  - `reihenhaeuser(seed, { anzahl })` mit Vorgärten.
+  - `loft()`: Industrie-Ziegelbau mit Stahlsprossenfenstern, Sheddach und Schornstein.
+- **Land:**
+  - `einfamilienhaus2(seed, { stil: "klassisch"|"modern"|"fachwerk" })`. Modern heißt Flachdach, Holz- oder VHF-Fassade und Hebeschiebetür.
+  - `bungalow()` mit Walmdach und Terrasse.
+  - `bauernhof()`: Fachwerk-Wohnhaus mit Fensterläden, Scheune mit Tor, Stall, Silo, Strohballen, Misthaufen und Zaun. `userData.rauchPos` gibt die Position für den Schornsteinrauch.
+- **Hochhäuser:** `mixedTower()` (Ladensockel, Büroglas, Wohnteil) zusätzlich zu `hochhaus()`.
+- **Fenster:** `fenster2(parent, x, y, z, w, h, { art, rahmen, kipp, licht, vorhang, rollladen })`.
+  - `art`: "drehkipp" (zweiflügelig ab 1,3 m; `kipp: 1` = gekippt), "schiebe", "fest", "sprossen", "stahl".
+  - `rahmen`: "kunststoff", "alu", "holz", "dunkel".
+  - Dazu `gaube()`, `dachfenster()`, `fachwerk()` und `satteldach()` mit Giebeln und Dachrinne.
+- **Fassaden** über `fassadeM(art)`: putz (WDVS), klinker, ziegel, holz, vhf (Faserzement), beton.
+
+### Materialien (`materialien.js`)
+
+- `material(name, { wiederholen: [x, y], farbe, nass })`: 101 prozedurale Oberflächen mit Relief, Rauheit und Metall, teils mit Klarlack oder Samtglanz.
+- **Kleidung:** denim, wolle, baumwolle, seide, leder, wildleder, cord, leinen, nylon, fleece, samt, rippstrick, canvas, neopren, goretex, flanell, tweed, netzstoff, spitze, kunstfell, kunstleder, chiffon, mikrofaser, steppstoff, gummistoff, carbon.
+- **Bau:** sichtbeton, waschbeton, ziegel, klinker, putzweiss, stuck, marmor, granit, schiefer, terrakotta, glasfassade, milchglas, getoentglas, wellblech, lochblech, edelstahl, chrom, alu, kupferpatina, zink, corten, keramikfliese, faserzement, dachschindel, sperrholz.
+- **Boden:** asphalt, asphaltnass, kopfstein, betonplatten, verbundpflaster, blindenleitsystem, kiesbett, schotter, gullydeckel, abflussgitter, fallschutzmatte, bordstein, fahrbahnmarkierung, feldweg, schlamm, pfuetze, terrazzo, bodenfliese, holzdeck, sandstein, dehnungsfuge, rostblech, riffelblech, moosstein, gestreut.
+- **Natur:** kiefernrinde, eichenrinde, birkenrinde, poliertesholz, holzbrett, altholz, rasen, wiese, stroh, flusskiesel, sand, erde, boden, schnee, eis, reif, blatt, hecke, fels, basalt, mulch, moos, lehmrisse, wasser, nassschlamm.
+
+### Himmel und Nachbearbeitung (`render.js`)
+
+- **Wolkenarten:** `himmelShader(s, { wolkenTyp: "cumulus"|"cirrus"|"stratus"|"altocumulus"|"gewitter", halo, zeit: ...|"gewitter" })`.
+- **Nachbearbeitung:** `nachbearbeitung(renderer, { tiefe: { fokus, blende }, tiltshift, strahlen, flare, anamorph })`.
+  - Lichtstrahlen zur Sonne (Gebäude und Wolken brechen sie).
+  - Linsenreflexe.
+  - Anamorphe Streifen für die Nacht.
+  - Tiefenschärfe mit echter Tiefe; der Tiefenpass läuft nur, wenn `uDof` an ist.
+  - Tilt-Shift.
+
+### Kamera (`kamera.js`)
+
+- `kamera(c, t, { art, dauer, weich, hand, fov, fovZu })` mit den Arten dollyIn, dollyOut, fahrt (Spline, `blick: "voraus"`), orbit, kran, schwenk, seitlich, vogel.
+- `hand` 0..1 gibt organisches Handkamera-Wackeln. Brennweite über `fov`: 24 mm ≈ 62°, 35 mm ≈ 46°, 85 mm ≈ 20°.
+
+### Gesichter (Figuren v5.1)
+
+- **Haut:** wärmeres Material mit Subsurface-Schimmer und Pfirsichflaum-Glanz.
+- **Männer:** größere Poren, mehr Hautglanz, Brauenwulst-Schatten, breiterer Kiefer, tiefere Falten.
+- **Frauen:** feinere Poren, betonte Wangenknochen, weichere Stirn, schmaleres Kinn, feinere Falten.
+- **Augen:** etwas größer (`augenGross`, Standard 1.1), gemalte Iris mit Fasern und Limbusring, glänzende Hornhaut mit Umgebungsspiegelung, zwei Lichtreflexe.
+- **Lippen:** mit Glanz.
+
+### Pflanzen (`natur3.js`)
+
+- `baum(s, x, z, art, { hoehe, seed, y })` mit eiche, birke, kiefer, zypresse, kirsche, weide, olive, linde. Gebogener Stamm mit Rinde, Äste, weiche Kronen und Tausende Blattkarten (Instanzen).
+- Weitere Pflanzen: `hecke()`, `bewuchs(s, x0, z0, w, d, n, "wildblumen"|"weizen"|"lavendel"|"farn"|"schilf", { hfn })`, `efeu(wand...)`, `zimmerpflanze2("monstera"|"ficus")`.
+- **Wind:** `wind(T)` jedes Frame (macht `bauen.py` automatisch). `WIND.staerke.value` 0..4 pro Shot, zum Beispiel 3.5 bei Gewitter.
+- Im Winter keine Laubbäume mit Blättern, nur Nadelbäume.
+
+### Leben und Wetter (`leben.js`)
+
+- **Wolkenschatten:** `wolkenSchatten(s, { licht: sonne })` als unsichtbare Schattenwerfer. Keine Multiply-Ebene, die hat alles schwarz gemacht.
+- **Wetter:** `schnee()`, `niesel()`, `fensterTropfen(kamera|fenster, w, h)` (Tropfen laufen über die Scheibe).
+- **Rauch, Dampf, Atem:** `dampf()` (Gully), `atem(person)` (kalte Luft), `schornsteinRauch()`.
+- **Wind:** `laubWind()`, `papierTuete()`, `pusteblumen()`.
+- **Licht und Wasser:** `staubLicht()` (Staub in Lichtstrahlen), `reifenSpritzer(auto)`.
+- **Tiere:** `taubenFlucht(tauben, tStart)` (Tauben fliegen auf, wenn ein Auto kommt), `vogelFormation()`, `kopfHeben(tier, T, tStart)` (Hund lauscht).
+- **Fensterlicht:** `lichtFlackern(material, T, basis, "warm"|"tv")`.
+
+### Auto-Innenraum (`fahrzeug()`)
+
+- Optionen: `innen` ("leder", "stoff" oder "alcantara") mit Ziernähten, `innenFarbe`, `ambiente` (LED-Farbe), `holz`, `panorama`, `carbon`, `unterboden` (Leuchtfarbe) und `lackArt` ("metallic" mit Flakes, "matt", "uni").
+- Ausstattung: OLED-Displays, Mittelkonsole in Edelstahl, Lüftungsdüsen, Fußmatten, Lederlenkrad.
+- Glas wirft keinen Schatten mehr, sonst ist der Innenraum schwarz.
+- Für Innenaufnahmen ein zusätzliches warmes PointLight in die Kabine setzen.
+
+### Moderne Innenräume (`innen2.js`)
+
+- Ganze Wohnung: `wohnung(s, seed, { art: "wohnen"|"essen"|"buero"|"schlafen", boden: "terrazzo"|"holzbrett"|"sichtbeton", licht })`. Dazu gehören eine bodentiefe Fensterfront mit Leinenvorhängen und Sonnenbahnen.
+- Einzelmöbel:
+  - Sitzen und Liegen: `modulSofa`, `sessel` (Bouclé), `designStuhl`, `bettRahmen`.
+  - Tische: `marmorTisch`, `esstisch`, `kragtisch`.
+  - Regale und Deko: `schwebeRegal`, `vase`, `kunstBild`.
+  - Licht: `pendelleuchte`, `einbauSpot`, `ledLeiste`.
+  - Wand: `akustikPaneele`, `wandSpiegel`.
+
+### 3D-Schrift (`typo.js`)
+
+- `text3d(s, "TEXT", { x, y, z, ry, hoehe, farbe, tiefe, neon, metall })` steht im Raum, wirft echte Schatten und kann als Neon leuchten.
+- `update(T, { start, dauer, flackern })` blendet sanft ein und skaliert dabei leicht hoch.
+
 ## Fallen
 
 - `cam()` hat nur 400 m Sichtweite. Für alles, was weiter weg steht (Horizont, Kraftwerk, Bögen), `camFar(3000+)` nehmen und den Nebel weit genug setzen, sonst ist es unsichtbar.
@@ -320,3 +415,6 @@ Gilt ab dem nächsten Video. Reihenfolge der Bausteine im `<script>`: Basis-Helf
 - Bei `sed`/Python-Ersetzungen keine `//`-Kommentare mitten in einzeilige Blöcke setzen, sonst wird der Rest der Zeile auskommentiert.
 - Hex-Farben in Materialien ohne Textur werden (Three r149, legacy) linear behandelt, Canvas-Texturen als sRGB. Farben, die zu Hautkarten passen müssen (Lippen, Lidschatten), deshalb mit `new THREE.Color(hex).convertSRGBToLinear()` setzen.
 - Fehlersuche bei einem schwarzen Snapshot: Script mit Playwright im Browser laden und `pageerror` ausgeben (Vorlage `dbg.cjs` im Scratchpad-Muster: kleiner HTTP-Server, `three.min.js` und `gsap` laden, dann das Script).
+- Multiply-Ebenen (Blending) über dem Boden vermeiden: mit HalfFloat-Ziel und Nebel wird der Boden schwarz. Für Schatten echte Schattenwerfer nehmen.
+- `blobGeo()` ist nicht indiziert und wirkt deshalb facettiert. Für weiche Kronen `blob2()` aus `natur3.js` nehmen.
+- Kamera nie direkt hinter Sitzlehnen oder in Lichtbahnen setzen. Vorher die Maße prüfen: Sitzhöhe ≈ 0.55 m, Dach ≈ 1.45 m.

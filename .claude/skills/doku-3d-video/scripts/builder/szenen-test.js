@@ -1,100 +1,117 @@
-      const SHOTS = ["gesicht1", "gesicht2", "autos", "stadt", "berge", "zivil", "militaer", "tiere1", "tiere2", "wasser", "zimmer"].map((id, i) => ({ id, t0: i, t1: i + 1 })); const DUR = SHOTS.length;
-      // ===== Gesichter =====
+      const SHOTS = ["stadt", "fenster", "land", "gesichter", "autoinnen", "wohnung", "nacht", "gewitter", "schnee", "himmel", "typo"].map((id, i) => ({ id, t0: i * 2, t1: i * 2 + 2 })); const DUR = SHOTS.length * 2;
+      const P = (o) => Object.assign({}, POST_AUS, o);
+      // ===== 1+2: Urbane Straßenschlucht am Tag (Mehrfamilienhäuser, Klinker, Glas, Loft, Mixed-Use) =====
       (function () {
-        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "tag", wolken: 0.4, sonne: [0.3, 0.5, 0.8] });
-        s.add(new THREE.HemisphereLight(0xeef4ff, 0x6a6458, 0.35)); const d = sun(s, 0xfff2e0, 2.0, [8, 14, 18], 6); umgebung(s, him);
-        box(40, 0.1, 40, M(0x8a8a86, { roughness: 0.9, map: texPflaster() }), 0, -0.05, 0, s); box(40, 6, 0.3, M(0xb8b0a4, { roughness: 0.9 }), 0, 3, -3, s);
-        const defs = [["europaeisch", "m", { bart: "dreitage", unrein: true }], ["afrikanisch", "f", { schmuck: true }], ["asiatisch", "m", {}], ["arabisch", "f", { kopftuch: true }], ["suedasiatisch", "m", { bart: "vollbart" }], ["lateinamerikanisch", "f", { sommersprossen: false }], ["europaeisch", "f", { sommersprossen: true, alter: "alt" }], ["arabisch", "m", { stil: "traditionell" }]];
-        const L = defs.map(([h, k, o], i) => { const p = person(1000 + i * 3, Object.assign({ herkunft: h, kind: k, alter: "mittel", jacke: false }, o)); p.position.set((i % 4) * 0.42 - 0.63, 0, Math.floor(i / 4) * -2.2); p.rotation.y = 0; s.add(p); return p; });
-        [0, 1].forEach((j) => { const c = cam(); c.fov = 34; c.updateProjectionMatrix(); W["gesicht" + (j + 1)] = { scene: s, camera: c, update(t, T) { const z = j * -2.2; c.position.set(0, 1.66, z + 1.75); c.lookAt(0, 1.6, z); him.update(T); L.forEach((p, k) => idle(p, T + k)); } }; });
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "tag", wolken: 0.5, wolkenTyp: "cumulus", sonne: [-0.35, 0.55, -0.75] }); s.fog = new THREE.Fog(0xb8cce0, 90, 380);
+        s.add(new THREE.HemisphereLight(0xdde8ff, 0x9a9a90, 0.95)); const d = sun(s, 0xfff0d8, 2.6, [-30, 50, -65], 50); d.shadow.mapSize.set(4096, 4096); d.shadow.camera.far = 220; d.target.position.set(0, 0, -25); umgebung(s, him);
+        box(600, 0.1, 600, material("asphalt", { wiederholen: [60, 60] }), 0, -0.12, -100, s); strasse(s, 150, { zebraZ: -16 }); strassenSchaeden(s, 140, 3);
+        const links = [["mfh", "putz"], ["mfh", "klinker"], ["loft"], ["mfh", "vhf"], ["mfh", "putz"]], rechts = [["mfh", "klinker"], ["reihen"], ["mfh", "putz"], ["mfh", "vhf"]];
+        let z = 4; links.forEach(([t, f], i) => { const h = t === "loft" ? loft(40 + i, {}) : mehrfamilienhaus(40 + i, { fassade: f, etagen: 4 + (i % 3) }); h.rotation.y = Math.PI / 2; const w = h.userData.w; h.position.set(-7.6, 0, z - w / 2); s.add(h); z -= w + 0.3; });
+        z = 4; rechts.forEach(([t, f], i) => { const h = t === "reihen" ? reihenhaeuser(60 + i, { anzahl: 4 }) : mehrfamilienhaus(60 + i, { fassade: f, etagen: 5 + (i % 2) }); h.rotation.y = -Math.PI / 2; const w = h.userData.w; h.position.set(t === "reihen" ? 7.6 + 3.2 : 7.6, 0, z - w / 2); s.add(h); z -= w + 0.3; });
+        const mt = mixedTower(5, {}); mt.position.set(-40, 0, -175); s.add(mt); const hh = hochhaus(77, { typ: "glas", w: 26, d: 22, etagen: 30 }); hh.position.set(30, 0, -190); s.add(hh);
+        for (let k = 0; k < 4; k++) schief(laterne(s, -4.0, -6 - k * 22, -1, false), k);
+        ampel(s, -3.9, -14.4, 0, { phase: 3 }); verkehrsschild(s, 4.1, -10, "tempo30", Math.PI); verkehrsschild(s, -4.1, -30, "einbahn", 0, { schief: 1 }); muelltonne(s, -5.4, -8, { fuell: 0.95, seed: 4 }); muelltonne(s, 5.5, -19, { fuell: 0.2, seed: 5 }); muell(s, 0, -12, 8, 30, 9, 0.002);
+        const parken = [["stufenheck", -2.6, -24, 0, 0x8ac8b0, "uni"], ["kombi", 2.6, -32, Math.PI, null, "metallic"], ["suv", -2.6, -38, 0, 0x1a1a1c, "matt"]].map(([ty, x, z2, ry, f, la], k) => { const c = fahrzeug(30 + k, ty, { farbe: f ?? undefined, lackArt: la }); c.position.set(x, 0, z2); c.rotation.y = ry; s.add(c); return c; });
+        const fahrt = fahrzeug(39, "coupe", { farbe: 0xc8202a, lackArt: "metallic" }); s.add(fahrt); const abg = abgas(fahrt, 2, { staerke: 0.3 });
+        const HK = ["europaeisch", "afrikanisch", "asiatisch", "arabisch", "suedasiatisch", "europaeisch"]; const ppl = HK.map((h, k) => { const p = person(2000 + k, { herkunft: h, stil: k === 2 ? "business" : "alltag" }); p.position.set(k % 2 ? 5.3 : -5.3, 0.14, -6 - k * 3); p.rotation.y = k % 2 ? 0 : Math.PI; s.add(p); return p; });
+        const hund1 = hund(5, { rasse: "schaeferhund" }); hund1.position.set(-4.6, 0.14, -8); hund1.rotation.y = Math.PI; s.add(hund1);
+        const tauben = []; for (let k = 0; k < 7; k++) { const t = taube(40 + k); t.position.set(-1 + (k % 4) * 0.35, 0.0, -3.5 - Math.floor(k / 4) * 0.5); t.rotation.y = k; s.add(t); tauben.push(t); } const flucht = taubenFlucht(tauben, 1.0);
+        const dm = dampf(s, 1.6, 0.02, -21, { wind: 0.2 }); const tuete = papierTuete(s, [-3, 0, -6], [3.5, 0, -2], { dauer: 6 }); const laub = laubWind(s, -6.5, -12, 13, 4, 30, { y: 0.0 }); const ws = wolkenSchatten(s, { licht: d, n: 5, bereich: 110, groesse: 16 });
+        const c1 = cam(), c2 = cam(); const K1 = { art: "dollyIn", von: [1.5, 1.6, 8], nach: [0.8, 1.7, 2], blick: [-1, 8, -60], dauer: 2, hand: 0.6, fov: 50 };
+        function upd(T, t) { him.update(T); ws.update(T); ppl.forEach((p, k) => { const base = -6 - k * 3; p.position.z = k % 2 ? base + ((T * 1.2) % 5) : base - ((T * 1.2) % 5); walk(p, T + k * 0.3, 1); }); hund1.position.z = -8 - ((T * 1.2) % 5); tierLaufen(hund1, T, 1.2);
+          const sx = -40 + t * 14; fahrt.position.set(1.75, 0, sx * -1 - 10); fahrt.rotation.y = 0; fahren(fahrt, T, t * 14); abg.update(T); flucht.update(t); dm.update(T); tuete.update(T); laub.update(T); }
+        W.stadt = { scene: s, camera: c1, post: P({ uStrahlen: 0.5, uFlare: 0.25 }), update(t, T) { kamera(c1, t, K1); upd(T, t); } };
+        W.fenster = { scene: s, camera: c2, post: P({}), update(t, T) { kamera(c2, t, { art: "seitlich", von: [1.5, 2.4, -6], nach: [1.5, 2.7, -14], blickVersatz: [6, 1.4, -2.5], dauer: 2, hand: 0.3, fov: 42 }); upd(T, t); } };
       })();
-      // ===== Autos: alle Bauformen auf dem Parkplatz =====
+      // ===== 3: Ländliche Landschaft (Bauernhof Fachwerk, Einfamilienhaus, Bungalow, Bäume, Felder) =====
       (function () {
-        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "abend", wolken: 0.35, sonne: [-0.7, 0.18, -0.4] });
-        s.add(new THREE.HemisphereLight(0xffe8d0, 0x4a4038, 0.35)); const d = sun(s, 0xffc890, 2.4, [-30, 9, -18], 20); d.shadow.mapSize.set(4096, 4096); umgebung(s, him);
-        const t = texAsphalt().clone(); t.needsUpdate = true; t.repeat.set(6, 6); box(80, 0.1, 80, M(0xffffff, { map: t, roughness: 0.85 }), 0, -0.05, 0, s);
-        const typen = Object.keys(KAROSSEN), felgen = ["speichen5", "vielspeichen", "doppelspeichen", "stahl", "turbine", "offroad"], cars = [];
-        typen.forEach((ty, i) => { const c = fahrzeug(20 + i, ty, { felge: ty === "gelaende" ? "offroad" : felgen[i % 5] }); const row = i % 2, col = Math.floor(i / 2); c.position.set(-6 + col * 2.6, 0, row ? -4 : 2.5); c.rotation.y = row ? 0 : Math.PI; if (ty === "stretch") { c.position.set(4, 0, -9.5); c.rotation.y = Math.PI / 2; } s.add(c); cars.push(c);
-          box(0.1, 0.01, 5, M(0xf2f2f0, PO), c.position.x + 1.3, 0.003, c.position.z, s); });
-        const abg = abgas(cars[0], 3, { staerke: 0.4 });
-        const c = cam(); W.autos = { scene: s, camera: c, update(tt, T) { c.position.set(9, 4.2, 10); c.lookAt(-1, 0.6, -1); him.update(T); cars.forEach((k, i) => fahren(k, T + i, 0)); abg.update(T); } };
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "abend", wolken: 0.55, wolkenTyp: "altocumulus", sonne: [0.75, 0.22, -0.6] }); s.fog = new THREE.Fog(0xe8c8a8, 80, 700);
+        s.add(new THREE.HemisphereLight(0xffe8d0, 0x4a5a2a, 0.4)); const d = sun(s, 0xffc890, 2.6, [70, 22, -60], 60); d.shadow.mapSize.set(4096, 4096); d.shadow.camera.far = 250; umgebung(s, him);
+        const ter = gelaende(s, 400, 400, 5, { z: -80, amp: 0.8 }); bergkette(s, { z: -200, abstand: 250, schritt: 200, hoehe: 70, lagen: 3, seed: 8, nah: 0x6a7a5a, fern: 0xc8b0a0, schnee: false });
+        const weg = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 300, 4, 60), material("asphalt", { wiederholen: [1, 60] })); weg.rotation.x = -Math.PI / 2; const wp = weg.geometry.attributes.position; for (let i = 0; i < wp.count; i++) { const zz = -wp.getY(i); wp.setX(i, wp.getX(i) + Math.sin(zz * 0.03) * 8); wp.setZ(i, ter.h(wp.getX(i), zz - 80) + 0.04); } weg.geometry.computeVertexNormals(); weg.position.z = -80; weg.receiveShadow = true; s.add(weg);
+        const hof = bauernhof(3, {}); hof.position.set(-22, ter.h(-22, -45), -45); hof.rotation.y = 0.5; s.add(hof); const rauch = schornsteinRauch(s, -22 + 1.4, ter.h(-22, -45) + 11.6, -45 - 5.6, { wind: 0.6 });
+        const efh = einfamilienhaus2(4, { stil: "fachwerk" }); efh.position.set(18, ter.h(18, -40), -40); efh.rotation.y = -0.5; s.add(efh); const efh2 = einfamilienhaus2(5, { stil: "modern" }); efh2.position.set(30, ter.h(30, -75), -75); efh2.rotation.y = -0.3; s.add(efh2);
+        const bung = bungalow(6, {}); bung.position.set(-40, ter.h(-40, -95), -95); bung.rotation.y = 0.3; s.add(bung);
+        [["eiche", -6, -18], ["birke", 9, -20], ["kiefer", -12, -60], ["kirsche", 10, -28], ["weide", -9, -30], ["olive", 9, -12], ["zypresse", 12, -55], ["linde", -30, -20], ["eiche", 22, -18]].forEach(([a, x, z2], k) => baum(s, x, z2, a, { y: ter.h(x, z2) - 0.05, seed: k + 2 }));
+        hecke(s, -5, -24, 10, { y: ter.h(-5, -24), seed: 2 }); bewuchs(s, -14, -14, 10, 8, 1200, "wildblumen", { hfn: (x, z2) => ter.h(x, z2) }); bewuchs(s, 6, -26, 14, 10, 9000, "weizen", { hfn: (x, z2) => ter.h(x, z2), seed: 4 }); bewuchs(s, -26, -32, 8, 6, 60, "lavendel", { hfn: (x, z2) => ter.h(x, z2) });
+        bewuchs(s, -4, -6, 8, 3, 900, "wildblumen", { hfn: (x, z2) => ter.h(x, z2), seed: 7 }); grasAufGelaende(s, ter, -16, -16, 32, 14, 14000, 3, { h: 0.2 });
+        const kuehe = [[-14, -40], [-10, -42]].map(([x, z2], k) => { const t = saeugetier(20 + k, "kuh"); t.position.set(x, ter.h(x, z2), z2); t.rotation.y = k * 2; s.add(t); return t; }); const hofhund = hund(9, { rasse: "labrador" }); hofhund.position.set(-17, ter.h(-17, -36), -36); s.add(hofhund);
+        const v = vogelFormation(s, -80, 40, -160, 9, { groesse: 0.8, tempo: 7 }); const pb = pusteblumen(s, -3, ter.h(-3, -6) + 0.6, -6, 30);
+        const c = cam(); W.land = { scene: s, camera: c, post: P({ uStrahlen: 0.7, uFlare: 0.2 }), update(t, T) { kamera(c, t, { art: "fahrt", weg: [[0, 3.2, 6], [1.5, 2.6, 0], [2.5, 2.4, -6]], blick: [-4, 4, -60], dauer: 2, hand: 0.4, fov: 52 }); him.update(T); rauch.update(T); kuehe.forEach((k) => k.userData.anim(T)); tierIdle(hofhund, T); kopfHeben(hofhund, T, 4 + 1.0); v.update(T); pb.update(T); } };
       })();
-      // ===== Stadt: Ampeln, Schilder, Müll, Schäden, Leute aller Herkunft, fahrende Autos mit Abgas, Morgennebel =====
+      // ===== 4: Gesichter Mann/Frau mit Tiefenschärfe =====
       (function () {
-        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "dunst", wolken: 0.6, sonne: [0.5, 0.25, -0.6] }); nebel(s, 0xc4c8cc, 0.008);
-        s.add(new THREE.HemisphereLight(0xdde4ea, 0x5a5650, 0.5)); const d = sun(s, 0xfff0d8, 1.6, [20, 12, -26], 30); umgebung(s, him);
-        box(400, 0.1, 400, M(0x3a3c3e, { roughness: 0.95 }), 0, -0.12, -100, s); strasse(s, 120, { zebraZ: -14 }); strassenSchaeden(s, 110, 4);
-        let z = 6, i = 0; while (z > -110) { const w = 10 + (i % 3) * 2; const h = altbau(800 + i, w, 5, {}); h.rotation.y = Math.PI / 2; h.position.set(-7.5, 0, z - w / 2); s.add(h); z -= w; i++; }
-        z = 6; i = 0; while (z > -110) { const w = 16; const h = hochhaus(900 + i, { typ: ["platte", "beton", "ziegel"][i % 3], w, d: 12, etagen: 7 + (i % 3) * 2 }); h.rotation.y = -Math.PI / 2; h.position.set(7.6 + 6, 0, z - w / 2); s.add(h); z -= w + 1; i++; }
-        const amps = [ampel(s, -3.9, -12.2, 0, { phase: 0 }), ampel(s, 3.9, -15.8, Math.PI, { phase: 7 })];
-        verkehrsschild(s, -4.1, -3, "stop", 0, { schief: 1 }); verkehrsschild(s, 4.1, -22, "vorfahrt", Math.PI); verkehrsschild(s, -4.1, -26, "tempo30", 0, { schief: -1 }); verkehrsschild(s, 4.1, -32, "parkverbot", Math.PI); verkehrsschild(s, -4.1, -40, "einbahn", 0); verkehrsschild(s, 4.1, -8, "fussgaenger", Math.PI); verkehrsschild(s, -4.1, -48, "baustelle", 0);
-        [[-5.6, -6, 1], [5.4, -10, 0.3], [-5.8, -19, 0.95], [5.5, -27, 0.6], [-5.5, -33, 0.1]].forEach(([x, z2, f], k) => muelltonne(s, x, z2, { fuell: f, seed: k + 3 }));
-        muell(s, -5.4, -9, 3, 40, 7); muell(s, 5.2, -18, 3, 30, 8); muell(s, 0, -10, 6, 25, 9, 0.002);
-        for (let k = 0; k < 4; k++) schief(laterne(s, -4.0, -6 - k * 20, -1, false), k, 1.2);
-        const HK = ["europaeisch", "afrikanisch", "asiatisch", "arabisch", "suedasiatisch", "lateinamerikanisch", "europaeisch", "europaeisch"];
-        const ppl = HK.map((h, k) => { const p = person(1200 + k, { herkunft: h, stil: k === 2 ? "business" : k === 5 ? "sport" : "alltag", alter: k === 7 ? "alt" : undefined }); p.position.set(k % 2 ? 5.4 : -5.4, 0.14, -4 - k * 2.5); p.rotation.y = k % 2 ? 0 : Math.PI; s.add(p); return p; });
-        const cars = [["kombi", -1.75, 0], ["suv", 1.75, Math.PI], ["steilheck", -1.75, 0], ["minivan", 1.75, Math.PI]].map(([ty, x, ry], k) => { const c = autoPlus(fahrzeug(60 + k, ty), { licht: true, spot: false, seed: k }); c.position.set(x, 0, -8 - k * 12); c.rotation.y = ry; s.add(c); return { c, abg: abgas(c, k + 1, { staerke: 0.45 }) }; });
-        const nb = nebelSchwaden(s, { x: 0, z: -60, breite: 30, tiefe: 80, y: 0.5, hoehe: 3, dichte: 0.18, groesse: 10 });
-        const c = cam(); W.stadt = { scene: s, camera: c, update(t, T) { c.position.set(4.4, 1.65, 3); c.lookAt(-0.5, 2.0, -30); him.update(T); amps.forEach((a) => a.update(T));
-          ppl.forEach((p, k) => { const v = 1.2, base = -4 - k * 2.5; p.position.z = k % 2 ? base + ((T * v) % 6) : base - ((T * v) % 6); walk(p, T + k * 0.37, 1); });
-          cars.forEach(({ c: car, abg }, k) => { const strecke = T * 6, zz = -6 - ((k * 12 + strecke) % 70); car.position.z = k % 2 ? -76 - zz - 6 : zz; fahren(car, T, strecke); abg.update(T); }); nb.update(T); } };
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "tag", wolken: 0.4, sonne: [0.5, 0.45, 0.75] }); s.add(new THREE.HemisphereLight(0xeef4ff, 0x6a6458, 0.3)); const d = sun(s, 0xfff0e0, 2.2, [10, 12, 16], 6); umgebung(s, him);
+        box(60, 0.1, 60, material("verbundpflaster", { wiederholen: [30, 30] }), 0, -0.05, 0, s); const bg = mehrfamilienhaus(9, { fassade: "klinker" }); bg.position.set(0, 0, -10); s.add(bg); baum(s, -4, -6, "birke", { seed: 3 }); baum(s, 4, -7, "linde", { seed: 4 });
+        const L = [["europaeisch", "m", { bart: "dreitage" }], ["europaeisch", "f", {}], ["afrikanisch", "m", {}], ["asiatisch", "f", { schmuck: true }]].map(([h, k, o], i) => { const p = person(3000 + i * 5, Object.assign({ herkunft: h, kind: k, alter: "mittel", jacke: false }, o)); p.position.set((i % 2) * 0.42 - 0.21, 0, Math.floor(i / 2) * -1.2); s.add(p); return p; });
+        const c = cam(); W.gesichter = { scene: s, camera: c, post: P({ uDof: 1, uUnscharfAn: 1, uFokus: 1.65, uBlende: 0.35 }), update(t, T) { kamera(c, t, { art: "dollyIn", von: [0.05, 1.67, 2.0], nach: [0.0, 1.66, 1.6], blick: [0, 1.62, 0], dauer: 2, fov: 32, hand: 0.25 }); him.update(T); L.forEach((p, k) => idle(p, T + k)); } };
       })();
-      // ===== Berge, Nebel, Weide mit Tieren =====
+      // ===== 5: Auto-Innenraum (Leder, Ambiente-LED, OLED, Panoramadach) am Abend =====
       (function () {
-        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "tag", wolken: 0.5, sonne: [0.4, 0.45, -0.7] }); s.fog = new THREE.Fog(0xb8c8d8, 120, 1600);
-        s.add(new THREE.HemisphereLight(0xe0ecff, 0x5a6a3a, 0.45)); const d = sun(s, 0xfff2da, 2.2, [40, 50, -60], 40); umgebung(s, him);
-        const ber = berge(s, { z: -520, breite: 1500, tiefe: 600, hoehe: 260, seed: 5, baeume: 2500 }); bergkette(s, { z: -700, abstand: 300, schritt: 300, hoehe: 160, lagen: 3, seed: 3 });
-        const ter = gelaende(s, 160, 160, 3, { z: -60, amp: 0.6 }); grasAufGelaende(s, ter, -20, -30, 40, 30, 20000, 2, { h: 0.2 });
-        const bn = bodenNebel(s, { x: 0, z: -260, breite: 900, tiefe: 400, y: 8, hoehe: 30, dichte: 0.4, schichten: 5 });
-        const tiere = [["kuh", -4, -22], ["kuh", 2, -26], ["pferd", 6, -20], ["reh", -9, -30], ["fuchs", 0, -16]].map(([a, x, z2], k) => { const t = saeugetier(70 + k, a, {}); t.position.set(x, ter.h(x, z2), z2); t.rotation.y = 0.6 + k; s.add(t); return t; });
-        const adler = vogel(3, "adler", { bewegung: "gleiten" }); adler.position.set(-3, 14, -40); s.add(adler);
-        const c = camFar(4000); W.berge = { scene: s, camera: c, update(t, T) { c.position.set(0, 2.2, -4); c.lookAt(0, 18, -300); him.update(T); bn.update(T); tiere.forEach((k) => k.userData.anim(T)); adler.userData.anim(T); adler.position.x = -3 + Math.sin(T * 0.3) * 8; adler.rotation.z = Math.cos(T * 0.3) * 0.3; } };
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "abend", wolken: 0.3, wolkenTyp: "cirrus", sonne: [-0.6, 0.12, -0.8] }); s.add(new THREE.HemisphereLight(0xffd8c0, 0x3a3030, 0.3)); const d = sun(s, 0xffb070, 2.0, [-40, 8, -50], 12); umgebung(s, him); const innenLicht = new THREE.PointLight(0xffd8b0, 2.0, 3.5, 2); innenLicht.position.set(0, 1.3, -0.2); s.add(innenLicht);
+        box(200, 0.1, 200, material("asphalt", { wiederholen: [40, 40] }), 0, -0.05, 0, s); const car = fahrzeug(7, "stufenheck", { farbe: 0x1e2a44, lackArt: "metallic", innen: "leder", innenFarbe: 0x5a3a24, ambiente: 0xff7a3a, holz: true, panorama: true }); s.add(car);
+        const fahrer = person(3100, { kind: "f", herkunft: "lateinamerikanisch" }); fahrer.position.set(-0.4, -0.2, 0.25); fahrer.scale.multiplyScalar(1); car.add(fahrer); const u = fahrer.userData;
+        const c = cam(); W.autoinnen = { scene: s, camera: c, post: P({ uAnamorph: 0.5 }), update(t, T) { kamera(c, t, { art: "dollyIn", von: [0.0, 1.3, -1.0], nach: [0.0, 1.27, -0.7], blick: [-0.25, 1.0, 1.2], dauer: 2, fov: 70, hand: 0.4 }); him.update(T);
+          u.hipL.rotation.x = u.hipR.rotation.x = -1.35; u.kneeL.rotation.x = u.kneeR.rotation.x = 1.25; u.shL.rotation.x = u.shR.rotation.x = -0.9; u.elL.rotation.x = u.elR.rotation.x = -0.5; idle(fahrer, T); u.shL.rotation.x = u.shR.rotation.x = -0.95; } };
       })();
-      // ===== Flugzeuge: zivil und militärisch auf dem Vorfeld =====
+      // ===== 6: Moderne Wohnung mit Sonnenstrahlen und Staub im Licht =====
       (function () {
-        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "tag", wolken: 0.35, sonne: [0.5, 0.5, 0.6] }); s.fog = new THREE.Fog(0xb8c8dc, 200, 2400);
-        s.add(new THREE.HemisphereLight(0xe8f0ff, 0x6a6a64, 0.45)); const d = sun(s, 0xfff2e0, 2.4, [80, 90, 70], 90); d.shadow.camera.far = 400; d.shadow.mapSize.set(4096, 4096); umgebung(s, him);
-        box(2000, 0.1, 2000, M(0x9a9a96, { roughness: 0.9, map: texNoise("beton", "#a4a4a0", "#9a9a96", "#b0b0ac", 4000, 3) }), 0, -0.05, 0, s);
-        const zivil = [["a350", 0, 0], ["a320", -55, 15], ["atr72", 48, 20], ["bizjet", 30, 55], ["cessna", 10, 62], ["segler", -12, 64], ["ul", -24, 60], ["b747f", -110, -20]];
-        const mil = [["eurofighter", 400, 40], ["f35", 425, 40], ["b2", 412, -10], ["a400m", 370, -40], ["awacs", 455, -40], ["x15", 412, 60]];
-        const flz = [...zivil, ...mil].map(([ty, x, z], k) => { const f = flugzeug(ty, { seed: k, fahrwerk: true, nachbrenner: ty === "eurofighter" }); const F = FLUG[ty]; f.position.set(x, F.nurfluegel ? 0.6 : F.R * 1.35 + Math.max(0.2, F.R * 0.3) + 0.05, z); f.rotation.y = Math.PI * 0.85; s.add(f); return f; });
-        const himmelsJet = flugzeug("a350", { seed: 9, kondens: true, kondensLaenge: 500 }); himmelsJet.position.set(-100, 260, -600); himmelsJet.rotation.y = Math.PI / 2; s.add(himmelsJet);
-        const c1 = camFar(4000), c2 = camFar(4000);
-        function upd(T) { him.update(T); flz.forEach((f) => flugzeugUpdate(f, T)); himmelsJet.position.x = -100 + T * 40; }
-        W.zivil = { scene: s, camera: c1, update(t, T) { c1.position.set(30, 7, 120); c1.lookAt(-10, 10, 0); upd(T); } };
-        W.militaer = { scene: s, camera: c2, update(t, T) { c2.position.set(440, 6, 110); c2.lookAt(410, 4, 0); upd(T); } };
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "tag", wolken: 0.3, sonne: [0.8, 0.35, 0.2] }); s.add(new THREE.HemisphereLight(0xf2f0ea, 0x8a7a6a, 0.3)); const d = sun(s, 0xfff0d8, 2.4, [16, 7, 4], 8); umgebung(s, him);
+        const wg = wohnung(s, 3, { art: "wohnen", licht: true, boden: "holzbrett" }); const st = staubLicht(s, 0, 3.4, 0.2, 2.6, -2.5, 2.5, 300, { hell: 1.2, groesse: 0.012 });
+        const p = person(3200, { kind: "m", herkunft: "suedasiatisch", stil: "alltag" }); p.position.set(-0.6, -0.31, -2.35); s.add(p); const kat = katze(4, { fell: "grau" }); kat.position.set(0.6, 0, -1.2); s.add(kat);
+        const c = cam(); W.wohnung = { scene: s, camera: c, post: P({ uStrahlen: 0.0 }), update(t, T) { kamera(c, t, { art: "orbit", mitte: [-0.3, 0, -1.5], radius: 4.2, hoehe: 1.55, start: 0.5, grad: 0.25, blick: [-0.4, 0.9, -1.6], dauer: 2, fov: 55, hand: 0.3 }); st.update(T); idle(p, T); const u = p.userData; u.hipL.rotation.x = u.hipR.rotation.x = -1.45; u.kneeL.rotation.x = u.kneeR.rotation.x = 1.5; tierIdle(kat, T); } };
       })();
-      // ===== Tiere: alle Klassen =====
+      // ===== 7: Nacht, Regen, Neon, anamorphe Lichtstreifen, Tropfen auf der Scheibe =====
       (function () {
-        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "tag", wolken: 0.4, sonne: [0.3, 0.6, 0.7] });
-        s.add(new THREE.HemisphereLight(0xeef6ff, 0x5a6a3a, 0.45)); const d = sun(s, 0xfff2da, 2.2, [10, 20, 14], 12); umgebung(s, him);
-        const ter = gelaende(s, 60, 60, 8, { amp: 0.1, kiesFlecken: true }); grasAufGelaende(s, ter, -8, -8, 16, 12, 9000, 4, { h: 0.12 });
-        const A = []; const setz = (t, x, z, ry = 0.4) => { t.position.set(x, ter.h(x, z) + (t.userData.schwebt ?? 0), z); t.rotation.y = ry; s.add(t); A.push(t); return t; };
-        // Reihe 1: Vögel + Säuger
-        setz(vogel(1, "spatz", { groesse: 2 }), -1.4, -1.5); setz(vogel(2, "rabe"), -0.9, -1.6); setz(vogel(3, "moewe"), -0.3, -1.7); setz(vogel(4, "ente"), 0.3, -1.6); setz(vogel(5, "pinguin"), 0.95, -1.7); setz(vogel(6, "adler"), 1.7, -1.9, -0.3);
-        setz(hund(7, { rasse: "beagle" }), -1.8, -3.2); setz(katze(8, { fell: "getigert" }), -0.9, -3.1); setz(saeugetier(9, "fuchs"), 0.2, -3.3); setz(saeugetier(10, "baer", {}), 2.2, -4.5, -0.5);
-        const ele = setz(saeugetier(11, "elefant"), -3.5, -9, 0.7);
-        // Kleintiere vergrößert (Test), Reptilien, Amphibien, Wirbellose
-        const kl = [[reptil(1, "eidechse"), -1.2, 0.2, 3], [reptil(2, "schlange"), -0.4, 0.4, 1.4], [reptil(3, "schildkroete"), 0.4, 0.2, 2], [amphibie(4, "frosch"), 1.1, 0.4, 3], [amphibie(5, "molch"), 1.6, 0.1, 3],
-          [insekt(6, "kaefer"), -1.4, 1.1, 8], [insekt(7, "ameise"), -0.9, 1.15, 14], [insekt(8, "biene"), -0.4, 1.1, 10], [insekt(9, "libelle"), 0.2, 1.1, 2.5], [spinnentier(10, "spinne"), 0.8, 1.1, 6], [spinnentier(11, "skorpion"), 1.4, 1.1, 3], [weichtier(12, "schnecke"), 1.9, 1.15, 3]];
-        kl.forEach(([t, x, z, gr]) => { t.scale.setScalar(gr); setz(t, x, z, 0.2); });
-        setz(reptil(13, "krokodil"), 3.5, -1.5, -1.2);
-        const w2 = new THREE.Scene(); w2.background = new THREE.Color(0x0e3a5a); w2.fog = new THREE.FogExp2(0x0e4a6a, 0.09); w2.add(new THREE.HemisphereLight(0x8ad0ff, 0x2a3a2a, 0.9)); const dw = sun(w2, 0xc8f0ff, 1.4, [3, 12, 4], 8);
-        box(60, 0.1, 60, M(0xd8c8a0, { roughness: 1, map: texNoise("sand", "#d8c8a0", "#c8b890", "#e8dcc0", 5000, 2) }), 0, -0.05, 0, w2); for (let i = 0; i < 30; i++) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(0.1 + (i % 4) * 0.08, 0), M(0x6a6a5a)); st.position.set(-3 + (i * 37 % 60) / 10, 0.05, -2 + (i * 53 % 40) / 10); w2.add(st); }
-        for (let i = 0; i < 12; i++) { const sg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.03, 0.8 + (i % 3) * 0.4, 6), M(0x3a7a3a, { roughness: 0.6 })); sg.position.set(-2.5 + i * 0.45, 0.4, -1.5 + (i % 3) * 0.3); sg.rotation.z = Math.sin(i) * 0.2; w2.add(sg); }
-        const WA = []; [[fisch(1, "forelle", { groesse: 2 }), -0.9, 0.9, 0.6], [fisch(2, "goldfisch", { groesse: 3 }), 0.6, 1.3, 0.8], [fisch(3, "thunfisch", { groesse: 0.6 }), 0.2, 2.1, -1.0], [fisch(4, "hai", { groesse: 0.6 }), -0.8, 2.8, -2.4], [weichtier(5, "tintenfisch"), 0.9, 0.05, 0.2], [qualle(6), -0.5, 1.6, 1.0], [qualle(7, { farbe: 0xe8a0c0 }), 1.0, 2.2, -0.2]].forEach(([t, x, y, z]) => { t.position.set(x, y, z); t.rotation.y = 1.2; w2.add(t); WA.push(t); });
-        const wal1 = saeugetier(8, "wal"); wal1.position.set(-6, 6, -16); wal1.rotation.y = 1.4; w2.add(wal1); WA.push(wal1);
-        const c3 = cam(); W.wasser = { scene: w2, camera: c3, update(t, T) { c3.position.set(0.3, 1.2, 4.2); c3.lookAt(0, 1.4, 0); WA.forEach((a) => a.userData.anim(T)); } };
-        const c1 = cam(), c2 = cam();
-        function upd(T) { him.update(T); A.forEach((t) => t.userData.anim ? t.userData.anim(T) : tierIdle(t, T)); }
-        W.tiere1 = { scene: s, camera: c1, update(t, T) { c1.position.set(0.3, 1.5, 3.2); c1.lookAt(0, 0.4, -3); upd(T); } };
-        W.tiere2 = { scene: s, camera: c2, update(t, T) { c2.position.set(0.3, 1.3, 4.6); c2.lookAt(0.2, 0.35, 0.9); upd(T); } };
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "nacht", wolken: 0.7, wolkenTyp: "stratus", sonne: [0.3, 0.6, -0.7], stadtLicht: 0.8 }); s.fog = new THREE.FogExp2(0x0a0e18, 0.02);
+        s.add(new THREE.HemisphereLight(0x2a3a5a, 0x0a0a0e, 0.12)); umgebung(s, him); box(400, 0.1, 400, material("asphaltnass", { wiederholen: [40, 40] }), 0, -0.12, -100, s); strasse(s, 100, { zebraZ: -12 });
+        s.traverse((m) => { if (m.isMesh && m.geometry.type === "BoxGeometry" && Math.abs(m.position.y) < 0.1 && m.geometry.parameters.height <= 0.16) nass(m.material, 0.9); });
+        let z = 4; for (let i = 0; i < 5; i++) { const h = mehrfamilienhaus(80 + i, { fassade: ["putz", "klinker", "vhf"][i % 3], licht: true, etagen: 5 }); h.rotation.y = Math.PI / 2; h.position.set(-7.6, 0, z - h.userData.w / 2); s.add(h); z -= h.userData.w + 0.3; }
+        z = 4; for (let i = 0; i < 5; i++) { const h = mehrfamilienhaus(90 + i, { fassade: ["klinker", "putz"][i % 2], licht: true, etagen: 6 }); h.rotation.y = -Math.PI / 2; h.position.set(7.6, 0, z - h.userData.w / 2); s.add(h); z -= h.userData.w + 0.3; }
+        for (let k = 0; k < 4; k++) { laterne(s, -4.0, -4 - k * 20, -1, true); laterne(s, 4.0, -14 - k * 20, 1, true); } [[-1.2, -8], [2, -15], [-0.4, -25]].forEach(([x, z2], k) => pfuetze(s, x, z2, 1 + k * 0.3));
+        const neon = text3d(s, "BAR", { x: 7.5, y: 4.2, z: -18, ry: -Math.PI / 2, hoehe: 0.9, neon: 0xff2a8a }); const neon2 = text3d(s, "24/7", { x: -7.5, y: 3.8, z: -30, ry: Math.PI / 2, hoehe: 0.8, neon: 0x2ad8ff });
+        const autos = [["fliessheck", -1.75, 0], ["suv", 1.75, Math.PI]].map(([ty, x, ry], k) => { const c = autoPlus(fahrzeug(70 + k, ty, { unterboden: k ? null : 0x3a6aff }), { licht: true, seed: k, spot: k === 0 }); c.position.set(x, 0, -10 - k * 14); c.rotation.y = ry; s.add(c); return { c, sp: reifenSpritzer(c, { seed: k }) }; });
+        const rain = regen(s, -8, 8, -40, 6, 14, 5000, 4); const spr = regenSpritzer(s, -6, 6, -30, 6, 220, 5, 0.03); const leute = [0, 1].map((k) => { const p = person(3300 + k, { jacke: true }); p.position.set(k ? 5.4 : -5.4, 0.14, -8 - k * 6); p.rotation.y = k ? 0 : Math.PI; regenschirm(p, k ? 0xc82a2a : 0x2a2a2e); s.add(p); return p; });
+        const c = cam(); const scheibe = fensterTropfen(c, 0.9, 1.6, { n: 50 }); scheibe.m.position.set(0, 0, -0.5); s.add(c);
+        W.nacht = { scene: s, camera: c, post: P({ uAnamorph: 1.0 }), update(t, T) { kamera(c, t, { art: "dollyIn", von: [0.6, 1.4, 6], nach: [0.3, 1.45, 3], blick: [-0.5, 2.5, -40], dauer: 2, hand: 0.5, fov: 50 }); him.update(T); rain.update(T); spr.update(T); scheibe.update(T); neon.update(T, { flackern: true }); neon2.update(T);
+          autos.forEach(({ c: car, sp }, k) => { const st = T * 7; car.position.z = k ? -36 + (st % 40) : -10 - (st % 40); fahren(car, T, st); sp.update(T); }); leute.forEach((p, k) => { walk(p, T + k, 0.8); pose(p, T); }); } };
       })();
-      // ===== Wohnzimmer am Abend =====
+      // ===== 8: Gewitter über der Landstraße (Cumulonimbus, Nieselregen, Bäume im Sturm) =====
       (function () {
-        const s = new THREE.Scene(); s.background = new THREE.Color(0x101418); s.add(new THREE.HemisphereLight(0x8aa0c0, 0x2a2420, 0.25)); const d = sun(s, 0x8ab0e8, 0.6, [20, 8, 4], 6);
-        const z = zimmer(s, 5, { art: "wohnzimmer", licht: true, tv: true });
-        const p = person(1500, { kind: "f", herkunft: "asiatisch" }); p.position.set(-0.6, -0.2, -1.5); s.add(p); p.userData.hipL.rotation.x = -1.4; p.userData.hipR.rotation.x = -1.4; p.userData.kneeL.rotation.x = 1.4; p.userData.kneeR.rotation.x = 1.4;
-        const kat = katze(3, { fell: "rot" }); kat.position.set(0.2, 0.52, -1.9); tierSitzen(kat); s.add(kat);
-        const c = cam(); W.zimmer = { scene: s, camera: c, update(t, T) { c.position.set(1.9, 1.5, 0.9); c.lookAt(-0.5, 0.8, -1.5); idle(p, T); const u = p.userData; u.hipL.rotation.x = u.hipR.rotation.x = -1.45; u.kneeL.rotation.x = u.kneeR.rotation.x = 1.5; } };
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "gewitter", wolken: 0.9, sonne: [0.2, 0.4, -0.9] }); s.fog = new THREE.Fog(0x2a2c32, 30, 300);
+        s.add(new THREE.HemisphereLight(0x5a6070, 0x1a1c1e, 0.35)); const d = sun(s, 0x9aa0b0, 0.5, [10, 30, -40], 30); umgebung(s, him);
+        const ter = gelaende(s, 300, 300, 9, { z: -60, amp: 0.6 }); grasAufGelaende(s, ter, -14, -30, 28, 30, 12000, 5, { h: 0.25 });
+        const weg = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 200), material("asphaltnass", { wiederholen: [1, 40] })); weg.rotation.x = -Math.PI / 2; weg.position.set(0, ter.h(0, -60) + 0.05, -60); s.add(weg);
+        const hof = einfamilienhaus2(12, { stil: "fachwerk", licht: true }); hof.position.set(-12, ter.h(-12, -30), -30); hof.rotation.y = 0.6; s.add(hof);
+        [["eiche", 7, -18], ["birke", -6, -12], ["linde", 9, -34], ["kiefer", -18, -45]].forEach(([a, x, z2], k) => baum(s, x, z2, a, { y: ter.h(x, z2), seed: k + 8 }));
+        const lp = laterne(s, 3, -10, 1, true); const ns = niesel(s, -10, 10, -30, 6, 14, 7000); const blitz = new THREE.DirectionalLight(0xc8d8ff, 0); blitz.position.set(0, 50, -60); s.add(blitz);
+        const c = cam(); W.gewitter = { scene: s, camera: c, post: P({}), update(t, T) { WIND.staerke.value = 3.5; kamera(c, t, { art: "dollyOut", von: [1.5, 1.7, 2], nach: [1.8, 1.9, 6], blick: [-2, 4, -60], dauer: 2, hand: 0.8, fov: 55 });
+          him.update(T); ns.update(T); const bl = (t > 1.1 && t < 1.18) || (t > 1.26 && t < 1.3); blitz.intensity = bl ? 6 : 0; him.mat.uniforms.uZen.value.set(bl ? 0.5 : 0.06, bl ? 0.5 : 0.07, bl ? 0.6 : 0.1); } , };
+      })();
+      // ===== 9: Winterdorf: Schnee, tiefe Wintersonne, Atem in der Kälte =====
+      (function () {
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "tag", wolken: 0.25, wolkenTyp: "cirrus", sonne: [0.6, 0.12, -0.75] }); s.fog = new THREE.Fog(0xd8e0ea, 60, 400);
+        s.add(new THREE.HemisphereLight(0xe0ecff, 0xc8d0e0, 0.55)); const d = sun(s, 0xffd8b0, 2.4, [60, 12, -70], 40); d.shadow.mapSize.set(4096, 4096); umgebung(s, him);
+        box(400, 0.1, 400, material("schnee", { wiederholen: [50, 50] }), 0, -0.05, -100, s); const pfad = box(3, 0.02, 200, material("gestreut", { wiederholen: [1, 50] }), 0, 0.01, -80, s);
+        const H = [einfamilienhaus2(21, { stil: "fachwerk", licht: true }), einfamilienhaus2(22, { stil: "klassisch", licht: true }), bungalow(23, { licht: true })]; [[-12, -16, 0.5], [12, -22, -0.5], [-14, -45, 0.3]].forEach(([x, z2, ry], i) => { H[i].position.set(x, 0, z2); H[i].rotation.y = ry; s.add(H[i]); });
+        const schneeM = material("schnee", { wiederholen: [4, 4] }); H.forEach((h) => h.traverse((m) => { if (!m.isMesh) return; if (m.geometry.type === "ExtrudeGeometry" || m.geometry.type === "ConeGeometry" || (m.material.map && m.material.map.image === matTex("rasen").t.image)) m.material = schneeM; })); // Dächer und Gärten verschneit
+        [["kiefer", -4, -26], ["kiefer", 6, -34], ["kiefer", 5, -12], ["zypresse", -6, -9]].forEach(([a, x, z2], k) => baum(s, x, z2, a, { seed: k + 20 }));
+        const sn = schnee(s, -15, 15, -40, 6, 14, 4000); const lps = [laterne(s, 2, -6, 1, false)];
+        const leute = [person(3400, { kind: "f", jacke: true, herkunft: "europaeisch" }), person(3401, { kind: "m", jacke: true, herkunft: "afrikanisch" })]; leute.forEach((p, k) => { p.position.set(-0.6 + k * 1.1, 0, -4 - k); p.rotation.y = Math.PI * 0.9; s.add(p); }); const atm = leute.map((p) => atem(p));
+        const ch = schornsteinRauch(s, -12 + 2.6 * Math.cos(0.5) - 5 * Math.sin(0.5), 13.5, -16 - 5 * Math.cos(0.5) - 2.6 * Math.sin(0.5), { farbe: 0xc8ccd4, wind: 0.3 });
+        const c = cam(); W.schnee = { scene: s, camera: c, post: P({ uStrahlen: 0.6 }), update(t, T) { WIND.staerke.value = 0.6; kamera(c, t, { art: "kran", von: [3, 6, 8], nach: [2.4, 1.7, 4], blick: [-2, 2.5, -24], dauer: 2, fov: 55, hand: 0.3 }); him.update(T); sn.update(T); atm.forEach((a) => a.update(T)); leute.forEach((p, k) => walk(p, T + k, 0.6)); ch.update(T); } };
+      })();
+      // ===== 10: Himmel: Cirrus mit Halo und Kondensstreifen über Feld =====
+      (function () {
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "tag", wolken: 0.45, wolkenTyp: "cirrus", halo: 1, sonne: [0.25, 0.55, -0.8] }); s.fog = new THREE.Fog(0xa8c0dc, 150, 900); s.add(new THREE.HemisphereLight(0xe8f0ff, 0x5a6a3a, 0.4)); const d = sun(s, 0xfff2e0, 2.2, [10, 60, -80], 30); umgebung(s, him);
+        const ter = gelaende(s, 300, 300, 4, { z: -60, amp: 0.5 }); bewuchs(s, -20, -30, 40, 28, 16000, "weizen", { hfn: (x, z2) => ter.h(x, z2), seed: 9 }); baum(s, 8, -40, "eiche", { y: ter.h(8, -40), seed: 4 });
+        const jet = flugzeug("a350", { seed: 5, kondens: true, kondensLaenge: 700 }); jet.position.set(-150, 300, -500); jet.rotation.y = Math.PI / 2 - 0.2; s.add(jet);
+        const c = camFar(4000); W.himmel = { scene: s, camera: c, post: P({ uFlare: 0.12 }), update(t, T) { WIND.staerke.value = 1; kamera(c, t, { art: "schwenk", pos: [0, 1.4, 4], blickVon: [-0.3, 2.2, -2], blickNach: [0.3, 3.0, -2], dauer: 2, fov: 70 }); him.update(T); jet.position.x = -150 + T * 30; flugzeugUpdate(jet, T); } };
+      })();
+      // ===== 11: 3D-Typografie in der Straße (wirft Schatten, steht im Raum) =====
+      (function () {
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "abend", wolken: 0.4, sonne: [-0.5, 0.25, -0.8] }); s.add(new THREE.HemisphereLight(0xffe0c8, 0x4a4038, 0.35)); const d = sun(s, 0xffc890, 2.6, [-40, 18, -60], 25); d.shadow.mapSize.set(4096, 4096); umgebung(s, him);
+        box(300, 0.1, 300, material("betonplatten", { wiederholen: [60, 60] }), 0, -0.05, -50, s); const w1 = box(30, 14, 1, material("sichtbeton", { wiederholen: [10, 5] }), 0, 7, -14, s);
+        const t1 = text3d(s, "WAS WÄRE", { x: 0, y: 3.4, z: -6, hoehe: 1.1, farbe: 0xf6f2ea, tiefe: 0.18 }), t2 = text3d(s, "WENN?", { x: 0, y: 2.0, z: -6, hoehe: 1.4, farbe: 0x3a8ae8, tiefe: 0.2, metall: 0.3 });
+        const c = cam(); W.typo = { scene: s, camera: c, post: P({ uDof: 1, uUnscharfAn: 1, uFokus: 13, uBlende: 0.8 }), update(t, T) { kamera(c, t, { art: "orbit", mitte: [0, 0, -6], radius: 13, hoehe: 2.0, start: -0.3, grad: 0.4, blick: [0, 2.7, -6], dauer: 2, fov: 42, hand: 0.2 }); him.update(T); t1.update(t, { start: 0.1, dauer: 0.7 }); t2.update(t, { start: 0.45, dauer: 0.7 }); } };
       })();

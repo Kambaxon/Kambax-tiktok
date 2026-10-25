@@ -1,8 +1,12 @@
       // ===== Fahrzeuge v2: Bauformen, Reifen mit Profil, Felgentypen, Federung, Abgase (braucht: rng, box, cyl, M, extrudeSide, LACK, kennzeichenTex, KENNZ, particles) =====
-      // fahrzeug(seed, typ, { farbe, felge, felgenFarbe, kennzeichen })
+      // fahrzeug(seed, typ, { farbe, felge, felgenFarbe, kennzeichen, lackArt: "uni"|"metallic"|"matt", carbon, innen: "leder"|"stoff"|"alcantara", innenFarbe, ambiente (LED-Farbe), holz, panorama, unterboden (Leuchtfarbe) })
       //   typ: "stufenheck"|"fliessheck"|"steilheck"|"coupe"|"kombi"|"shooting"|"suv"|"gelaende"|"targa"|"minivan"|"stretch"
       //   felge: "speichen5"|"vielspeichen"|"doppelspeichen"|"stahl"|"turbine"|"offroad"
       // Danach optional autoPlus(car, { licht, bremse }) für Scheinwerfer/Lichtkegel. Bewegung: fahren(car, T, strecke), abgas(car, seed).
+      const FLAKE = {};
+      function FLAKE_TEX(normal) { const k = normal ? "n" : "r"; if (FLAKE[k]) return FLAKE[k]; const q = rng(normal ? 5 : 7); const t = canvasTex(256, 256, (g) => { g.fillStyle = normal ? "rgb(128,128,255)" : "rgb(90,90,90)"; g.fillRect(0, 0, 256, 256);
+          for (let i = 0; i < 9000; i++) { g.fillStyle = normal ? `rgb(${(80 + q() * 96) | 0},${(80 + q() * 96) | 0},255)` : `rgb(${(40 + q() * 120) | 0},${(40 + q() * 120) | 0},${(40 + q() * 120) | 0})`; g.fillRect(q() * 256, q() * 256, 1, 1); } });
+        t.encoding = THREE.LinearEncoding; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(8, 8); FLAKE[k] = t; return t; }
       const KAROSSEN = {
         stufenheck: { body: [[-2.4, 0.32], [2.4, 0.32], [2.42, 0.62], [2.1, 0.8], [1.0, 0.9], [-1.6, 0.94], [-2.35, 0.9], [-2.42, 0.62]], glas: [[-1.5, 0.9], [0.95, 0.9], [0.3, 1.4], [-0.95, 1.42], [-1.6, 0.95]], tueren: 4, r: 0.33 },
         fliessheck: { body: [[-2.35, 0.32], [2.4, 0.32], [2.42, 0.62], [2.1, 0.8], [1.0, 0.9], [-2.0, 0.94], [-2.35, 0.86], [-2.4, 0.62]], glas: [[-2.0, 0.92], [0.95, 0.9], [0.3, 1.4], [-0.75, 1.42], [-2.1, 0.95]], tueren: 4, r: 0.34 },
@@ -48,12 +52,15 @@
         const d = K.dehnen || 0, dehn = (p) => [p[0] > 0.2 ? p[0] + d / 2 : p[0] < -0.2 ? p[0] - d / 2 : p[0] * (1 + d), p[1]];
         const body = K.body.map(dehn), glas = K.glas.map(dehn); const L = body[1][0] - body[0][0], W = K.kastig ? 1.92 : K.tief ? 1.84 : typ === "suv" || typ === "minivan" ? 1.9 : 1.8, zf = body[1][0], zh = body[0][0];
         const farbe = o.farbe ?? (typ === "stretch" ? pick([0x111114, 0xf2f2f0]) : pick(LACK));
-        const lack = new THREE.MeshPhysicalMaterial({ color: farbe, metalness: 0.55, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.06 });
+        const lackArt = o.lackArt ?? (r() < 0.45 ? "metallic" : r() < 0.12 ? "matt" : "uni");
+        const lack = new THREE.MeshPhysicalMaterial({ color: farbe, metalness: lackArt === "metallic" ? 0.75 : lackArt === "matt" ? 0.2 : 0.35, roughness: lackArt === "matt" ? 0.55 : lackArt === "metallic" ? 0.38 : 0.3, clearcoat: lackArt === "matt" ? 0 : 1, clearcoatRoughness: 0.05 });
+        if (lackArt === "metallic") { lack.roughnessMap = FLAKE_TEX(); lack.normalMap = FLAKE_TEX(true); lack.normalScale = new THREE.Vector2(0.08, 0.08); } // Metallic-Flakes: funkelnde Mikro-Struktur unter dem Klarlack
+        const carbonM = o.carbon ? material("carbon", { wiederholen: [4, 4] }) : null;
         const glasM = new THREE.MeshStandardMaterial({ color: 0x1e2a34, roughness: 0.03, metalness: 0.5, transparent: true, opacity: typ === "stretch" ? 0.85 : 0.58, depthWrite: false, envMapIntensity: 1.6 });
         const dunkel = M(0x18181a, { roughness: 0.7 }), chrom = M(0xd8dce0, { metalness: 0.95, roughness: 0.18 }), gummiM = M(0x0e0e0e, { roughness: 0.8 });
         const b = extrudeSide(body, W, lack, 0.07); kar.add(b);
         // Glasaufbau, Dach, Säulen
-        if (!K.offen) { kar.add(extrudeSide(glas, W - 0.14, glasM, 0.03)); const roof = [glas[3], glas[2], [glas[2][0] - 0.06, glas[2][1] + 0.07], [glas[3][0], glas[3][1] + 0.08]]; kar.add(extrudeSide(roof, W - 0.1, lack, 0.025)); }
+        if (!K.offen) { const gh = extrudeSide(glas, W - 0.14, glasM, 0.03); gh.castShadow = false; kar.add(gh); const roof = [glas[3], glas[2], [glas[2][0] - 0.06, glas[2][1] + 0.07], [glas[3][0], glas[3][1] + 0.08]]; kar.add(extrudeSide(roof, W - 0.1, o.panorama ? glasM : carbonM ?? lack, 0.025)); if (o.panorama) for (const sx of [-1, 1]) box(0.08, 0.06, glas[2][0] - glas[3][0], lack, sx * (W / 2 - 0.1), glas[3][1] + 0.06, (glas[2][0] + glas[3][0]) / 2, kar); }
         else { const ws = [[glas[1][0], glas[1][1]], [glas[2][0], glas[2][1]], [glas[2][0] - 0.06, glas[2][1]], [glas[1][0] - 0.12, glas[1][1]]]; kar.add(extrudeSide(ws, W - 0.2, glasM, 0.02));
           const bugel = extrudeSide([[glas[0][0] - 0.05, glas[0][1]], [glas[0][0] + 0.25, glas[0][1]], [glas[3][0] + 0.2, glas[3][1] + 0.06], [glas[3][0] - 0.05, glas[3][1] + 0.06]], W - 0.1, lack, 0.03); kar.add(bugel); } // Targa-Bügel
         const strebe = (z1, y1, z2, y2, x, dicke = 0.07) => { const a = new THREE.Vector3(x, y1, z1), c = new THREE.Vector3(x, y2, z2); const m = box(dicke, a.distanceTo(c), dicke, lack, 0, 0, 0, kar); m.position.copy(a).add(c).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), c.clone().sub(a).normalize()); };
@@ -72,11 +79,19 @@
         }
         if (typ === "minivan") box(0.01, 0.02, 0.9, dunkel, W / 2 + 0.004, glas[0][1] - 0.05, tz[0] - 0.55, kar); // Schiebetür-Schiene
         // Innenraum
-        const sitzM = M(pick([0x2a2a2c, 0x5a4a3a, 0x3a3a4a, 0xc8b89a]), { roughness: 0.75 }), sy = glas[0][1] - 0.36;
+        const innen = o.innen ?? pick(["leder", "stoff", "stoff", "alcantara"]), innenC = o.innenFarbe ?? pick([0x2a2a2c, 0x5a3a24, 0xc8b89a, 0x3a3a44, 0x8a2a22]);
+        const sitzM = material(innen === "leder" ? "leder" : innen === "alcantara" ? "wildleder" : "mikrofaser", { farbe: innenC, wiederholen: [1, 1] }), naht = M(new THREE.Color(innenC).offsetHSL(0, 0, innenC === 0x2a2a2c ? 0.25 : 0.12).getHex(), { roughness: 0.8 }), sy = glas[0][1] - 0.36;
         const reihen = [glas[1][0] - 0.75]; for (let zz = reihen[0] - 0.95; zz > glas[0][0] + 0.2 && reihen.length < (typ === "stretch" ? 4 : typ === "minivan" ? 3 : nT >= 4 ? 2 : 1); zz -= 0.95) reihen.push(zz);
-        reihen.forEach((zz, ri) => { for (const sx of ri ? [-0.42, 0, 0.42] : [-0.4, 0.4]) { box(ri ? 0.4 : 0.48, 0.16, 0.5, sitzM, sx, sy, zz, kar); box(ri ? 0.4 : 0.48, 0.55, 0.12, sitzM, sx, sy + 0.32, zz - 0.27, kar); box(0.24, 0.14, 0.1, sitzM, sx, sy + 0.66, zz - 0.29, kar); } });
-        box(W - 0.3, 0.2, 0.45, M(0x1e1e20, { roughness: 0.6 }), 0, sy + 0.32, glas[1][0] - 0.12, kar); const disp = box(0.3, 0.12, 0.02, new THREE.MeshBasicMaterial({ color: 0x3a6aaa }), 0.1, sy + 0.48, glas[1][0] - 0.3, kar); disp.rotation.x = -0.4;
-        const lenk = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.022, 10, 28), M(0x111111, { roughness: 0.5 })); lenk.position.set(-0.4, sy + 0.45, glas[1][0] - 0.45); lenk.rotation.x = -0.4; kar.add(lenk);
+        reihen.forEach((zz, ri) => { for (const sx of ri ? [-0.42, 0, 0.42] : [-0.4, 0.4]) { const bw = ri ? 0.4 : 0.48; const sitz = box(bw, 0.16, 0.5, sitzM, sx, sy, zz, kar); const lehne = box(bw, 0.55, 0.12, sitzM, sx, sy + 0.32, zz - 0.27, kar); box(0.24, 0.14, 0.1, sitzM, sx, sy + 0.66, zz - 0.29, kar);
+          for (const nx of [-bw * 0.28, bw * 0.28]) { box(0.006, 0.005, 0.48, naht, sx + nx, sy + 0.082, zz, kar); box(0.006, 0.52, 0.005, naht, sx + nx, sy + 0.32, zz - 0.21, kar); } } }); // Ziernähte
+        const dash = box(W - 0.3, 0.2, 0.45, material(innen === "alcantara" ? "wildleder" : "kunstleder", { farbe: 0x1e1e20 }), 0, sy + 0.32, glas[1][0] - 0.12, kar);
+        if (o.holz ?? r() < 0.3) box(W - 0.4, 0.04, 0.02, material("poliertesholz", { farbe: 0x7a4a2a }), 0, sy + 0.3, glas[1][0] - 0.345, kar); else box(W - 0.4, 0.035, 0.02, material("edelstahl"), 0, sy + 0.3, glas[1][0] - 0.345, kar); // Zierleiste Holz/Alu
+        const oled = new THREE.MeshBasicMaterial({ color: new THREE.Color(0x4a8ae8).multiplyScalar(1.3), toneMapped: false }); const disp = box(0.42, 0.14, 0.012, oled, 0.12, sy + 0.5, glas[1][0] - 0.32, kar); disp.rotation.x = -0.35; const kombi = box(0.3, 0.1, 0.012, oled, -0.4, sy + 0.47, glas[1][0] - 0.28, kar); kombi.rotation.x = -0.25; // Displays
+        box(0.22, 0.2, 0.7, material("edelstahl"), 0, sy + 0.02, reihen[0] + 0.05, kar); const wahl = cyl(0.02, 0.025, 0.08, M(0x1a1a1a, { roughness: 0.4 }), 0, sy + 0.16, reihen[0] + 0.2, kar, 12); // Mittelkonsole + Wählhebel
+        for (const vx of [-0.55, -0.15, 0.15, 0.55]) for (let k = 0; k < 4; k++) box(0.12, 0.008, 0.02, M(0x111111), vx, sy + 0.38 + k * 0.018, glas[1][0] - 0.345, kar); // Lüftungsdüsen
+        if (o.ambiente) { const amb = new THREE.MeshBasicMaterial({ color: new THREE.Color(o.ambiente).multiplyScalar(2.5), toneMapped: false }); box(W - 0.4, 0.008, 0.008, amb, 0, sy + 0.23, glas[1][0] - 0.345, kar); for (const sx of [-1, 1]) box(0.008, 0.008, glas[1][0] - glas[0][0] - 0.3, amb, sx * (W / 2 - 0.12), sy + 0.2, (glas[1][0] + glas[0][0]) / 2, kar); const al = new THREE.PointLight(o.ambiente, 0.6, 2.2, 2); al.position.set(0, sy + 0.4, (glas[1][0] + glas[0][0]) / 2); kar.add(al); }
+        box(W - 0.3, 0.01, glas[1][0] - glas[0][0], material("mikrofaser", { farbe: 0x1a1a1c, wiederholen: [3, 3] }), 0, body[0][1] + 0.2, (glas[1][0] + glas[0][0]) / 2, kar); // Fußmatten
+        const lenk = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.024, 12, 32), material("leder", { farbe: 0x1a1a1a })); lenk.position.set(-0.4, sy + 0.45, glas[1][0] - 0.45); lenk.rotation.x = -0.4; kar.add(lenk); const lnabe = cyl(0.06, 0.06, 0.03, M(0x1a1a1c), -0.4, sy + 0.45, glas[1][0] - 0.45, kar, 16); lnabe.rotation.x = Math.PI / 2 - 0.4; box(0.3, 0.02, 0.02, M(0x1a1a1c), -0.4, sy + 0.45, glas[1][0] - 0.45, kar).rotation.x = -0.4;
         // Front: Scheinwerfer (Basis-Material für autoPlus), Kühlergrill je Typ, Stoßfänger, Nebelleuchten
         const licht = new THREE.MeshBasicMaterial({ color: 0xfff6e0 }), rueck = new THREE.MeshBasicMaterial({ color: 0xc81a1a });
         const fy = body[2][1] + 0.02, fH = K.kastig ? 0.2 : 0.11;
@@ -107,6 +122,8 @@
         const wheels = [[-1, 1], [1, 1], [-1, -1], [1, -1]].map(([sx, sz]) => reifenRad(g, sx * (W / 2 - 0.12), sz * achse + (zf + zh) / 2, rR, rW, fe, feC, sattel));
         // Radläufe (dunkle Bögen)
         wheels.forEach((wh) => { const bo = new THREE.Mesh(new THREE.TorusGeometry(rR + 0.06, 0.04, 6, 20, Math.PI), dunkel); bo.rotation.y = Math.PI / 2; bo.position.set(wh.position.x + Math.sign(wh.position.x) * 0.08, rR, wh.position.z); kar.add(bo); });
+        if (carbonM) { box(0.8, 0.012, 0.9, carbonM, 0, body[3] ? body[3][1] + 0.01 : 0.9, zf - 0.6, kar); for (const sx of [-1, 1]) box(0.13, 0.095, 0.2, carbonM, sx * (W / 2 + 0.071), glas[1][1] + 0.08, glas[1][0] - 0.15, kar); } // Carbon-Haube/Spiegel
+        if (o.unterboden) { const ug = box(W - 0.3, 0.02, L - 1.2, new THREE.MeshBasicMaterial({ color: new THREE.Color(o.unterboden).multiplyScalar(2.5), toneMapped: false }), 0, 0.14, (zf + zh) / 2, kar); const ul = new THREE.PointLight(o.unterboden, 2.5, 4, 2); ul.position.set(0, 0.1, (zf + zh) / 2); kar.add(ul); }
         kar.position.y = K.tief ? -0.02 : 0;
         g.userData = { wheels, L, karosse: kar, rR, typ, felgenFertig: true, details: true, auspuff: rohre.map((xx) => new THREE.Vector3(xx, body[0][1] - 0.02, zh - 0.12)), phase: r() * 6.28 };
         return g;

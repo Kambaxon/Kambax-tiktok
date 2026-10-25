@@ -58,17 +58,29 @@
           g.fillStyle = "#" + base.getHexString(); g.fillRect(0, 0, W, H);
           const fx = W * 0.25, dot = (x, y, rad, col) => { g.fillStyle = col; g.beginPath(); g.arc(x, y, rad, 0, 7); g.fill(); };
           const weich = (x, y, rad, col) => { const gr = g.createRadialGradient(x, y, 0, x, y, rad); gr.addColorStop(0, col); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2); };
-          for (let i = 0; i < 6000; i++) { const v = (q() - 0.5) * 0.07; g.fillStyle = v > 0 ? `rgba(255,240,230,${v})` : `rgba(90,40,30,${-v})`; g.fillRect(q() * W, q() * H, 1.4, 1.4); } // Poren
+          const pa = o.mann ? 0.1 : 0.055, pg = o.mann ? 1.9 : 1.15; for (let i = 0; i < (o.mann ? 7000 : 5000); i++) { const v = (q() - 0.5) * pa; g.fillStyle = v > 0 ? `rgba(255,240,230,${v})` : `rgba(90,40,30,${-v})`; g.fillRect(q() * W, q() * H, pg, pg); } // Poren (Männer größer)
+          if (teil !== "kiefer") { if (o.mann) { weich(fx, H * 0.36, 70, "rgba(255,240,225,.10)"); for (const sx of [-1, 1]) weich(fx + sx * 30, H * 0.43, 24, "rgba(60,30,25,.18)"); } // Brauenwulst: Licht oben, Schatten in der Augenhöhle
+            else { for (const sx of [-1, 1]) { weich(fx + sx * 46, H * 0.52, 22, "rgba(255,235,225,.16)"); weich(fx + sx * 52, H * 0.6, 26, "rgba(90,40,40,.06)"); } weich(fx, H * 0.3, 60, "rgba(255,240,230,.08)"); } // Wangenknochen-Glanz, weiche Stirn
+            weich(fx, H * 0.53, 9, "rgba(255,245,235,.18)"); } // Nasenrücken-Licht
           if (teil !== "kiefer") {
             for (const sx of [-1, 1]) { weich(fx + sx * 44, H * 0.57, 34, `rgba(200,60,60,${o.wangenrot})`); weich(fx + sx * 30, H * 0.45, 26, "rgba(70,35,30,.22)"); weich(fx + sx * 30, H * 0.5, 14, "rgba(60,30,40,.12)"); g.strokeStyle = "rgba(70,35,30,.3)"; g.lineWidth = 1.5; g.beginPath(); g.ellipse(fx + sx * 30, H * 0.44, 15, 7, 0, Math.PI * 1.1, Math.PI * 1.9); g.stroke(); } // Wangen, Augenhöhlen, Lidfalte
             if (o.sommersprossen) for (let i = 0; i < 140; i++) dot(fx + (q() - 0.5) * 110, H * (0.47 + q() * 0.14), 0.7 + q() * 1.0, `rgba(130,70,30,${0.12 + q() * 0.18})`);
-            if (o.falten) { g.strokeStyle = "rgba(70,35,25,.22)"; g.lineWidth = 1.1; for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(fx - 40, H * (0.28 + k * 0.03)); g.quadraticCurveTo(fx, H * (0.27 + k * 0.03), fx + 40, H * (0.28 + k * 0.03)); g.stroke(); }
+            if (o.falten) { g.strokeStyle = o.mann ? "rgba(60,30,20,.32)" : "rgba(70,35,25,.18)"; g.lineWidth = o.mann ? 1.6 : 0.9; for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(fx - 40, H * (0.28 + k * 0.03)); g.quadraticCurveTo(fx, H * (0.27 + k * 0.03), fx + 40, H * (0.28 + k * 0.03)); g.stroke(); }
               for (const sx of [-1, 1]) for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(fx + sx * 34, H * 0.47); g.lineTo(fx + sx * 44, H * (0.44 + k * 0.03)); g.stroke(); g.beginPath(); g.moveTo(fx + sx * 12, H * 0.56); g.quadraticCurveTo(fx + sx * 20, H * 0.63, fx + sx * 18, H * 0.68); g.stroke(); } }
           }
           if (o.unrein) for (let i = 0; i < 10 + q() * 14; i++) { const x = fx + (q() - 0.5) * 120, y = H * (teil === "kiefer" ? 0.45 + q() * 0.3 : 0.3 + q() * 0.4); dot(x, y, 1.2 + q() * 1.6, `rgba(190,60,50,${0.35 + q() * 0.25})`); if (q() < 0.3) dot(x + 2, y + 1, 1, "rgba(110,50,35,.35)"); }
           if (o.bartschatten > 0) { const y0 = teil === "kiefer" ? H * 0.3 : H * 0.62; for (let i = 0; i < 9000 * o.bartschatten; i++) { const x = fx + (q() - 0.5) * (teil === "kiefer" ? 230 : 150), y = y0 + q() * (H * 0.95 - y0); if (teil !== "kiefer" && Math.abs(x - fx) < 14 && y < H * 0.66) continue; g.fillStyle = `rgba(30,24,22,${0.12 + q() * 0.18})`; g.fillRect(x, y, 1.2, 1.2); } }
         });
       }
+      // Haut: warmer Unterflächen-Schimmer (Näherung für Subsurface Scattering) + samtiger Rand (Pfirsichflaum); Männer etwas glänzender (mehr Talg)
+      function hautM(map, rough = 0.55, mann = false) { const m = new THREE.MeshPhysicalMaterial({ color: 0xffffff, map, roughness: mann ? rough - 0.1 : rough, metalness: 0, sheen: 0.35, sheenColor: new THREE.Color(0xffc8b0), sheenRoughness: 0.6, clearcoat: mann ? 0.12 : 0.05, clearcoatRoughness: 0.5 });
+        m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace("#include <lights_fragment_end>", "#include <lights_fragment_end>\n reflectedLight.directDiffuse *= vec3(1.07, 0.97, 0.93); reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(0.09, 0.025, 0.015);"); }; return m; }
+      const IRIS_TEX = {};
+      function texIris(farbe) { if (IRIS_TEX[farbe]) return IRIS_TEX[farbe]; const c = new THREE.Color(farbe), q = rng(farbe % 991);
+        const t = canvasTex(128, 128, (g) => { g.clearRect(0, 0, 128, 128); const gr = g.createRadialGradient(64, 64, 10, 64, 64, 64); gr.addColorStop(0, "#" + c.clone().offsetHSL(0, 0.05, 0.12).getHexString()); gr.addColorStop(0.55, "#" + c.getHexString()); gr.addColorStop(0.88, "#" + c.clone().multiplyScalar(0.55).getHexString()); gr.addColorStop(1, "#" + c.clone().multiplyScalar(0.25).getHexString());
+          g.fillStyle = gr; g.beginPath(); g.arc(64, 64, 63, 0, 7); g.fill(); for (let i = 0; i < 90; i++) { const a = q() * Math.PI * 2, r0 = 16 + q() * 8, r1 = 40 + q() * 22; g.strokeStyle = q() < 0.5 ? `rgba(255,255,255,${0.08 + q() * 0.12})` : `rgba(0,0,0,${0.1 + q() * 0.15})`; g.lineWidth = 0.8 + q() * 1.2; g.beginPath(); g.moveTo(64 + Math.cos(a) * r0, 64 + Math.sin(a) * r0); g.lineTo(64 + Math.cos(a + (q() - 0.5) * 0.2) * r1, 64 + Math.sin(a) * r1); g.stroke(); }
+          g.fillStyle = "rgba(200,170,90,.25)"; g.beginPath(); g.arc(64, 64, 24, 0, 7); g.fill(); g.fillStyle = "#050505"; g.beginPath(); g.arc(64, 64, 15 + q() * 3, 0, 7); g.fill(); });
+        IRIS_TEX[farbe] = t; return t; }
       function person(seed, o = {}) {
         const r = rng(seed * 7919 + 13), g = new THREE.Group();
         const pick = (a) => a[Math.floor(r() * a.length)], vr = (k = 0.15) => 1 + (r() - 0.5) * 2 * k;
@@ -79,7 +91,7 @@
         const skinC = o.skin ?? pick(H.haut);
         let hairC = o.hairColor ?? (alt && r() < 0.8 ? pick([0xd8d4cc, 0xb8b4ae, 0x8a8682, 0xeae6e0]) : r() < 0.06 ? pick([0xb04a24, 0x8a5aa0, 0xd8b070]) : pick(H.haar));
         const behaart = o.behaart ?? (m && !kindlich ? (herkunft === "asiatisch" ? r() * 0.3 : r()) : 0);
-        const skin = S(0xffffff, 0.55, { map: texHaut(skinC) }), armSkin = behaart > 0.35 ? S(0xffffff, 0.6, { map: texHaut(skinC, behaart) }) : skin;
+        const skin = hautM(texHaut(skinC), 0.55, m), armSkin = behaart > 0.35 ? hautM(texHaut(skinC, behaart), 0.6, m) : skin;
         const hair = S(hairC, 0.7);
         const stil = o.stil ?? "alltag", trad = stil === "traditionell", business = stil === "business";
         const topType = o.top ?? (business ? "hemd" : stil === "sport" ? pick(["tshirt", "hoodie"]) : pick(m ? ["tshirt", "hemd", "pulli", "hoodie", "langarm", "tshirt"] : ["tshirt", "langarm", "pulli", "hemd", "hoodie", "tshirt"]));
@@ -146,7 +158,7 @@
         const taille = m ? 0.152 * wide : 0.13 * wide;
         const torso = mk(new THREE.CylinderGeometry(0.188 * wide * (m ? 1.04 : 0.95), taille, 0.5, 24), top, 0, 1.24, 0); torso.scale.z = 0.6;
         const shoulders = mk(new THREE.SphereGeometry(0.207 * wide * (m ? 1.04 : 0.95), 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), top, 0, 1.455, 0); shoulders.scale.set(1, 0.44, 0.62);
-        if (oberweite > 0.05) { for (const sx of [-1, 1]) { const b = mk(new THREE.SphereGeometry(0.075, 32, 20), top, sx * 0.045 * wide, 1.33, 0.025 + oberweite * 0.022); b.scale.set(0.82, 0.8, 0.95); } }
+        if (oberweite > 0.05) { for (const sx of [-1, 1]) { const b = mk(new THREE.SphereGeometry(0.072, 32, 20), top, sx * 0.045 * wide, 1.335, 0.012 + oberweite * 0.02); b.scale.set(0.85, 0.78, 0.9); } }
         if (bauch > 0.15) { const bb = mk(new THREE.SphereGeometry(0.13, 24, 16), top, 0, 1.1, 0.01 + bauch * 0.05); bb.scale.set(1.25 * wide, 1.1, 0.55 + bauch * 0.3); }
         if (unten === "rock" || unten === "kleid") { const sk = mk(new THREE.CylinderGeometry(0.17 * becken, 0.27 * becken, unten === "kleid" ? 0.42 : 0.38, 28, 1, true), bottom, 0, 0.72, 0); sk.scale.z = 0.8; sk.material.side = THREE.DoubleSide; }
         // Oberteil-Details
@@ -215,12 +227,12 @@
         const form = o.kopfform ?? pick(["oval", "oval", "rund", "eckig", "herz", "lang"]);
         const KF = { oval: [0.92, 1.1, 1.0, 0.95, 0.82], rund: [0.99, 1.03, 1.0, 1.02, 0.78], eckig: [0.96, 1.06, 0.98, 1.1, 0.86], herz: [0.95, 1.08, 1.0, 0.84, 0.8], lang: [0.87, 1.17, 1.0, 0.9, 0.9] }[form];
         const fac = { wange: H.wange * vr(0.12), nB: H.nase[0] * vr(0.12), nP: H.nase[1] * vr(0.15), nL: H.nase[2] * vr(0.1), lippe: H.lippe * vr(0.15), lid: H.lid * vr(0.06),
-          augAbst: 0.043 * vr(0.07), augGr: vr(0.1), mundB: vr(0.12), ohr: vr(0.15), ohrAb: (r() - 0.3) * 0.5, kinn: vr(0.15) };
+          augAbst: 0.043 * vr(0.07), augGr: vr(0.1) * (o.augenGross ?? 1.1), mundB: vr(0.12), ohr: vr(0.15), ohrAb: (r() - 0.3) * 0.5, kinn: vr(0.15) };
         const gOpt = { wangenrot: !m ? 0.12 + r() * 0.1 : 0.05 + r() * 0.08, sommersprossen: o.sommersprossen ?? (herkunft === "europaeisch" && r() < 0.15), unrein: o.unrein ?? (!alt && r() < 0.18),
-          bartschatten: m && !kindlich ? (behaart > 0.2 ? 0.4 + behaart * 0.6 : 0.2) : 0, falten: alt };
-        const faceSkin = S(0xffffff, 0.5, { map: texGesicht(seed, skinC, gOpt, "kopf") }), jawSkin = S(0xffffff, 0.52, { map: texGesicht(seed, skinC, gOpt, "kiefer") });
+          bartschatten: m && !kindlich ? (behaart > 0.2 ? 0.4 + behaart * 0.6 : 0.2) : 0, falten: alt, mann: m && !kindlich };
+        const faceSkin = hautM(texGesicht(seed, skinC, gOpt, "kopf"), 0.5, m), jawSkin = hautM(texGesicht(seed, skinC, gOpt, "kiefer"), 0.52, m);
         const skull = mk(new THREE.SphereGeometry(0.12, 40, 30), faceSkin, 0, 0, 0, head); skull.scale.set(KF[0] * (m ? 1.02 : 0.98) * (0.97 + fac.wange * 0.03), KF[1], KF[2]);
-        const jawM = mk(new THREE.SphereGeometry(0.085, 32, 24), jawSkin, 0, -0.05 - (KF[4] - 0.82) * 0.1, 0.012 + (m ? 0.004 : 0) * fac.kinn); jawM.scale.set(KF[3] * (m ? 1.05 : 0.9), KF[4] * (m ? 1.04 : 0.98), 0.92 * fac.kinn); head.add(jawM);
+        const jawM = mk(new THREE.SphereGeometry(0.085, 32, 24), jawSkin, 0, -0.05 - (KF[4] - 0.82) * 0.1, 0.012 + (m ? 0.004 : 0) * fac.kinn); jawM.scale.set(KF[3] * (m ? 1.1 : 0.88), KF[4] * (m ? 1.04 : 0.98), 0.92 * fac.kinn); head.add(jawM);
         if (form === "eckig" || m) for (const sx of [-1, 1]) mk(new THREE.SphereGeometry(0.03, 14, 10), jawSkin, sx * 0.06 * KF[3], -0.075, 0.03, head).scale.set(0.8, 1, 1.2); // Kieferwinkel
         // Ohren: Muschel, Krempe, Läppchen; Größe und Abstand variieren
         const ohren = [];
@@ -239,10 +251,10 @@
           const e = new THREE.Group(); e.position.set(sx * fac.augAbst, 0.02, 0.1); e.scale.setScalar(fac.augGr); face.add(e);
           const ball = new THREE.Group(); ball.scale.y = fac.lid; e.add(ball);
           mk(new THREE.SphereGeometry(0.022, 20, 14), white, 0, 0, 0, ball).scale.set(1.2, 0.95, 0.55);
-          mk(new THREE.SphereGeometry(0.0128, 18, 12), irisRand, 0, -0.001, 0.0092, ball).scale.z = 0.42;
-          mk(new THREE.SphereGeometry(0.0115, 18, 12), iris, 0, -0.001, 0.0099, ball).scale.z = 0.42;
-          mk(new THREE.SphereGeometry(0.0055, 12, 8), pupil, 0, -0.001, 0.0138, ball).scale.z = 0.4;
-          mk(new THREE.SphereGeometry(0.0026, 6, 4), S(0xffffff, 0.05), sx * 0.003 + 0.002, 0.004, 0.0152, ball);
+          const irisD = mk(new THREE.CircleGeometry(0.0122, 32), new THREE.MeshStandardMaterial({ map: texIris(irisC), roughness: 0.3, transparent: true, alphaTest: 0.05 }), 0, -0.0008, 0.0125, ball); irisD.castShadow = false;
+          const hornhaut = mk(new THREE.SphereGeometry(0.0128, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.0, metalness: 0, transparent: true, opacity: 0.18, clearcoat: 1, clearcoatRoughness: 0, envMapIntensity: 3, depthWrite: false }), 0, -0.0008, 0.0119, ball); hornhaut.rotation.x = Math.PI / 2; hornhaut.scale.set(1, 0.38, 1); hornhaut.castShadow = false;
+          const glanz1 = mk(new THREE.SphereGeometry(0.0026, 8, 6), new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffffff).multiplyScalar(1.6), toneMapped: false }), sx * 0.002 + 0.0035, 0.0045, 0.0165, ball); glanz1.castShadow = false;
+          const glanz2 = mk(new THREE.SphereGeometry(0.0011, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffffff }), sx * 0.002 - 0.004, -0.004, 0.0163, ball); glanz2.castShadow = false;
           // Oberlid als Hautkappe (bei asiatischer Lidfalte tiefer), unten feine Lidkante
           const wimpern = mk(new THREE.TorusGeometry(0.0192, m ? 0.0014 : 0.002, 6, 22, Math.PI * 0.8), S(m ? 0x3a2a22 : 0x120c0a, 0.6), 0, 0.0, 0.0085, e); wimpern.rotation.set(-0.35, 0, Math.PI * 0.1); wimpern.scale.set(1.22, 0.95 * fac.lid, 1); // Lidkante mit Wimpern
           if (!m) for (let l = 0; l < 4; l++) { const lash = mk(new THREE.BoxGeometry(0.0025, 0.008, 0.0018), S(0x111111), sx * (0.008 + l * 0.0075), 0.018, 0.009, e); lash.rotation.z = sx * (0.25 + l * 0.22); }
@@ -257,7 +269,7 @@
         for (const sx of [-1, 1]) { mk(new THREE.SphereGeometry(0.0072, 14, 10), faceSkin, sx * nb * 0.78, -0.024 * nl, 0.104 + 0.005 * np, face).scale.set(1, 0.85, 0.9); // Nasenflügel
           mk(new THREE.SphereGeometry(0.0042, 8, 6), S(new THREE.Color(skinC).multiplyScalar(0.35).getHex(), 0.8), sx * nb * 0.45, -0.03 * nl, 0.11 + 0.006 * np, face).scale.set(1.1, 0.5, 0.8); } // Nasenlöcher
         // Mund: Ober- und Unterlippe, Philtrum, Mundwinkel
-        const lipC = !m && r() < 0.4 ? pick([0xa8424a, 0x9a4a4a, 0xb85a62, 0x8a4a5a]) : new THREE.Color(skinC).lerp(new THREE.Color(0xa85a5a), 0.35).offsetHSL(0, 0, -0.04).getHex(), lip = S(new THREE.Color(lipC).convertSRGBToLinear(), 0.45); // Hex-Farben wie die Hautkarte (sRGB) behandeln
+        const lipC = !m && r() < 0.4 ? pick([0xa8424a, 0x9a4a4a, 0xb85a62, 0x8a4a5a]) : new THREE.Color(skinC).lerp(new THREE.Color(0xa85a5a), 0.35).offsetHSL(0, 0, -0.04).getHex(), lip = new THREE.MeshPhysicalMaterial({ color: new THREE.Color(lipC).convertSRGBToLinear(), roughness: 0.4, clearcoat: m ? 0.15 : 0.5, clearcoatRoughness: 0.2, sheen: 0.3, sheenColor: new THREE.Color(0xffd0c8) }); // Hex-Farben wie die Hautkarte (sRGB) behandeln
         const mb = 0.034 * fac.mundB, ld = fac.lippe;
         const ober = mk(new THREE.CapsuleGeometry(0.0038 * ld, mb, 4, 12), lip, 0, -0.0565, 0.105, face); ober.rotation.z = Math.PI / 2; ober.scale.set(1, 1, 0.8);
         const unterL = mk(new THREE.CapsuleGeometry(0.0046 * ld, mb * 0.82, 4, 12), lip, 0, -0.0565 - 0.0082 * ld, 0.103, face); unterL.rotation.z = Math.PI / 2; unterL.scale.set(1, 1, 0.85);
