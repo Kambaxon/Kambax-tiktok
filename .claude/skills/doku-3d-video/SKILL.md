@@ -559,6 +559,14 @@ Die Szenen-Datei `scripts/builder/szenen-hudson.js` ist eine Vorlage für Flugze
 
 ## Fallen
 
+- **Nicht-numerische Post-Uniforms** (Arrays/Vektoren wie `uHitzePunkte`) setzt `POST_STANDARD` nicht zurück. Ohne Reset verzerrt das Hitzeflimmern aus einem Shot alle folgenden Shots, sodass Seile und Kanten wellig und schwammig wirken. `bauen.py` setzt `uHitzePunkte` deshalb jedes Bild auf 0.
+- **Schärfe wie bei ZUSAMMEN:**
+  - Skala 1 bei Szenen mit feinen Linien.
+  - Keine Bewegungsunschärfe in Luft- und Wassershots.
+  - Spiegelauflösung (`aufl`) ≥ 0.5, Wasserwellen ≤ 0.4.
+  - Tiefenschärfe nur dort, wo sie gewollt ist, und nie so stark, dass das Hauptmotiv weich wird.
+- **Vor jedem Render dem User Prüfbilder zeigen** (Snapshots aller Shots) und auf sein OK warten.
+
 - `cam()` hat nur 400 m Sichtweite. Für alles, was weiter weg steht (Horizont, Kraftwerk, Bögen), `camFar(3000+)` nehmen und den Nebel weit genug setzen, sonst ist es unsichtbar.
 - Portrait-Fenster: Hintergrundobjekte genau durch die Öffnung planen (Winkel = atan(Höhe/Entfernung)).
 

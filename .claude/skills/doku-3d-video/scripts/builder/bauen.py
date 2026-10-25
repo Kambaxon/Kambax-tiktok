@@ -16,7 +16,7 @@ tail = '''
       let _holdId = null; // hold-Shots (Standbild unter Panels) nur einmal rendern, das Canvas behält das Bild
       let _letztesT = null; // Timeline und hf-seek liefern denselben Zeitpunkt (einmal gerundet): nur einmal rendern
       function renderAt(T) { if (_letztesT !== null && Math.abs(T - _letztesT) < 1e-4) return; _letztesT = T; let sh = SHOTS[SHOTS.length - 1]; for (const x of SHOTS) if (T >= x.t0 && T < x.t1) { sh = x; break; } if (sh.hold) { if (_holdId === sh.id) return; _holdId = sh.id; } else _holdId = null; const w = W[sh.id]; WIND.staerke.value = 1;
-        Object.entries(POST_STANDARD).forEach(([k, v]) => (POST.uniforms[k].value = v)); POST.look(w.look ?? "neutral"); Object.entries(w.post || {}).forEach(([k, v]) => { if (Array.isArray(v)) POST.uniforms[k].value.set(...v); else POST.uniforms[k].value = v; });
+        Object.entries(POST_STANDARD).forEach(([k, v]) => (POST.uniforms[k].value = v)); POST.uniforms.uHitzePunkte.value.forEach((v) => v.set(0, 0, 0, 0)); POST.look(w.look ?? "neutral"); Object.entries(w.post || {}).forEach(([k, v]) => { if (Array.isArray(v)) POST.uniforms[k].value.set(...v); else POST.uniforms[k].value = v; });
         let vorher = null; if (POST.uniforms.uBewegung.value > 0) { wind(T - 1 / 30); w.update(T - sh.t0 - 1 / 30, T - 1 / 30); w.camera.updateMatrixWorld(); _vp.multiplyMatrices(w.camera.projectionMatrix, w.camera.matrixWorldInverse); vorher = _vp; }
         wind(T); w.update(T - sh.t0, T); w.camera.updateMatrixWorld(); POST.render(w.scene, w.camera, T, vorher); }
       const clock = { t: 0 }; const tl = gsap.timeline({ paused: true });

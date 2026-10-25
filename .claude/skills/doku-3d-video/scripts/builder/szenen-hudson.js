@@ -113,7 +113,7 @@
       stadt(B, 12, { x0: -3900, x1: -800, dx: 95, z0: -3800, z1: 9000, h: (x, z, r) => 10 + r() * 25 + (z > 5000 ? Math.exp(-(((z - 6500) / 1200) ** 2)) * r() * 150 : 0), leer: 0.15 });
       stadt(B, 13, { x0: -3900, x1: -1000, dx: 110, z0: -18000, z1: -3800, y: 80, h: (x, z, r) => 8 + r() * 22, leer: 0.35 });
       stufenTurm(B, 1850, 1700, 380, M(0xb8b0a0, { roughness: 0.7 }));
-      const wasserB = spiegelflaeche(B, 1400, 30000, { y: 0, z: -3000, maske: "voll", staerke: 0.85, rau: 0.22, aufl: 0.33, wasser: { farbe: 0x2c3e46, wellen: 0.7 } });
+      const wasserB = spiegelflaeche(B, 1400, 30000, { y: 0, z: -3000, maske: "voll", staerke: 0.85, rau: 0.18, aufl: 0.5, wasser: { farbe: 0x2c3e46, wellen: 0.4 } });
       const schollen = []; { const r = rng(77); const eisM = M(0xe8eef2, { roughness: 0.6 }); for (let i = 0; i < 70; i++) { const e = new THREE.Mesh(new THREE.CircleGeometry(2 + r() * 6, 7), eisM); e.rotation.x = -Math.PI / 2; e.position.set((r() - 0.5) * 1200, 0.08, -1200 + r() * 2600); e.scale.y = 0.6 + r() * 0.6; B.add(e); schollen.push(e); } }
       const wasserBillig = new THREE.Mesh(new THREE.PlaneGeometry(1400, 30000), M(0x3e5a68, { roughness: 0.12, metalness: 0.0 })); wasserBillig.rotation.x = -Math.PI / 2; wasserBillig.position.set(0, 0, -3000); B.add(wasserBillig);
       function spiegelAn(an) { wasserB.m.visible = an; wasserBillig.visible = !an; B.userData.spiegel = an ? [wasserB] : []; } // Kabine/Cockpit: billiges Glanzwasser statt zweitem Szenen-Render
@@ -140,7 +140,7 @@
       function allesAus() { zeigen(gaense, false); zeigen(faehren, false); zeigen(flosse, false); zeigen(leuteFluegel, false); rauch.forEach((r) => (r.pts.visible = false)); feuer.forEach((r) => (r.pts.visible = false)); federn.pts.visible = false; gischt.pts.visible = false; kielwasser.visible = false; innenAn(false); }
       function fans(T, aus) { a320.userData.fanWinkel = aus ? KNALL * 1.6 + (T - KNALL) * 0.5 : T * 1.6; flugzeugUpdate(a320, T); }
       function basisB(T, spiegel = true) { POST.uniforms.uNebelFarbe.value.set(0.74, 0.8, 0.88); himB.update(T); wasserB.update(T); bruecke.update(T); spiegelAn(spiegel); }
-      const KLAR = { uSSAA: 1, uBloom: 0.35, uHalation: 0.03, uChroma: 0, uSplit: 0.12, uSplitSchatten: [0.22, 0.42, 0.5], uBokehOval: 0.55, uBokeh: 0.4, uAnamorph: 0.06, uStrahlen: 0.25, uFlare: 0.05, uSchaerfe: 0.3, uKlarheit: 0.2, uRolloff: 0.2, uAO: 0, uKorn: 0, uVig: 0.3 };
+      const KLAR = { uSSAA: 1, uBloom: 0.35, uHalation: 0.03, uChroma: 0, uSplit: 0.12, uSplitSchatten: [0.22, 0.42, 0.5], uBokehOval: 0.55, uBokeh: 0.4, uAnamorph: 0.06, uStrahlen: 0.25, uFlare: 0.05, uSchaerfe: 0.4, uKlarheit: 0.24, uRolloff: 0.2, uAO: 0, uKorn: 0, uVig: 0.3 };
       const LUFT = Object.assign({}, KLAR, { uNebel: 0.0022, uNebelHoehe: 90 }); // Höhennebel über dem Fluss (pro Meter, daher sehr klein)
 
       // ---------- Szene A: LaGuardia, Rollbahn entlang x, Bucht und Skyline im Süden (−z) ----------
@@ -168,7 +168,7 @@
       function hitzeA(cam) { jetA.updateMatrixWorld(true); hitzePunkte(POST, cam, abgasA.map((p) => ({ pos: v3(p.x, p.y, p.z - 3).applyMatrix4(jetA.matrixWorld), radius: 0.07, staerke: 0.8 }))); }
 
       // 1) Am Fenster: Rollen zur Startbahn, Blick nach rechts über die Tragfläche zur Skyline
-      W.fenster = { scene: A, camera: c.fenster, look: "tealOrange", post: Object.assign({}, KLAR, { uDof: 1, uUnscharfAn: 1, uFokus: 4.5, uBlende: 2.5, uBokeh: 0.6, uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55] }),
+      W.fenster = { scene: A, camera: c.fenster, look: "tealOrange", post: Object.assign({}, KLAR, { uDof: 0, uUnscharfAn: 0, uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55] }),
         update(t, T) { himA.update(T); jetA.position.set(200 - t * 6, 2.6, 0); jetA.rotation.set(0, -Math.PI / 2, 0); jetA.updateMatrixWorld(true); a320A.userData.fanWinkel = T * 1.6; flugzeugUpdate(a320A, T);
           nachbarn.forEach((n, i) => n.setze(0, T + i)); const cam = c.fenster; const pz = kabA.Z0 + kabA.L / 2 - 2.2 - 18 * 0.81 - 0.1;
           const lokal = v3(-1.36, 0.36 + Math.sin(t * 0.7) * 0.004, pz + 0.04), ziel = v3(-5, 0.6, pz + 1.5 + t * 0.06); zielen(cam, lokal.applyMatrix4(jetA.matrixWorld), ziel.applyMatrix4(jetA.matrixWorld), 54); cam.rotation.z += Math.sin(t * 9) * 0.0015; } };
@@ -180,7 +180,7 @@
 
       // Flugbahn in B: Vogelschlag nördlich, dann Linkskurve nach Süden über den Hudson, Wasserung bei z = 0
       // 3) Gänse: Kamera vor dem Flugzeug, der Schwarm kreuzt – Knall, Feuer, Stille
-      W.gaense = { scene: B, camera: c.gaense, look: "tealOrange", post: Object.assign({}, LUFT, { uBewegung: 0.3, uSplit: 0.1, uSplitSchatten: [0.2, 0.4, 0.55] }),
+      W.gaense = { scene: B, camera: c.gaense, look: "tealOrange", post: Object.assign({}, LUFT, { uBewegung: 0, uSplit: 0.1, uSplitSchatten: [0.2, 0.4, 0.55] }),
         update(t, T) { basisB(T); allesAus(); const z = -14000 - t * 0, pos = v3(2600, 860 + t * 6, -15500 + t * 95); setJet(pos, Math.PI * 0.82, 0.12, 0.05); fans(T, T > KNALL);
           zeigen(gaense, true); gaense.forEach((g, i) => { const reihe = Math.floor(i / 2), sx = i % 2 ? 1 : -1, k = (T - KNALL) * 30; const p = v3(sx * reihe * 3.0 + Math.sin(i) * 1.5, 0.5 + Math.sin(i * 2.1) * 1.5, 4 + (KNALL - T) * 55 + reihe * 2.6); p.applyMatrix4(jet.matrixWorld); g.position.copy(p); g.rotation.y = jet.rotation.y + Math.PI * 0.95 + Math.sin(i) * 0.1; g.visible = T < KNALL + 0.12 && i !== 3; g.userData.anim(T + i * 0.13); });
           const nach = T - KNALL; rauch.forEach((r) => { r.pts.visible = nach > 0; r.update(T); r.mat.opacity = clamp(nach * 1.2, 0, 0.75); }); feuer.forEach((f) => { f.pts.visible = nach > 0 && nach < 1.6; f.update(T); f.mat.opacity = 0.95 * (1 - nach / 1.6); }); federn.pts.visible = nach > 0 && nach < 1.2; federn.update(nach);
@@ -213,7 +213,7 @@
           const k = ease((t - 0.3) / 1.2); passagiere.forEach((p, i) => { if (p.piv) { p.piv.visible = true; p.setze(k * (0.85 + (i % 3) * 0.05), T + i); } else if (p.sil) { p.sil.rotation.x = k * 0.9; p.sil.position.y = -0.26 - k * 0.15; } });
           const zr = kab.Z0 + kab.L / 2 - 2.2 - 2 * 0.81, cam = c.brace, p = v3(0.25, 0.45, zr - 0.9 + t * 0.08).applyMatrix4(jet.matrixWorld), z2 = v3(-1.4, -0.15, zr + 0.5 + t * 0.08).applyMatrix4(jet.matrixWorld); zielen(cam, p, z2, 62); wackeln(cam, T, 1.4 + t * 0.6); } };
       // 10) Wasserung: tiefe Kamera über dem Wasser, Aufsetzen, Gischt
-      W.wasserung = { scene: B, camera: c.wasserung, look: "tealOrange", post: Object.assign({}, LUFT, { uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55], uBewegung: 0.5 }),
+      W.wasserung = { scene: B, camera: c.wasserung, look: "tealOrange", post: Object.assign({}, LUFT, { uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55], uBewegung: 0 }),
         update(t, T) { basisB(T); allesAus(); const nach = T - AUFSETZEN, v = nach < 0 ? 64 : 64 * Math.exp(-nach * 0.75), weg = nach < 0 ? nach * 64 : (64 / 0.75) * (1 - Math.exp(-nach * 0.75));
           const y = nach < 0 ? 2.2 + Math.max(0, -nach) * 4.2 : 1.6 + Math.exp(-nach * 3) * 0.6 * Math.abs(Math.sin(nach * 6)); const pos = v3(-80, y, -300 + weg); setJet(pos, Math.PI, nach < 0 ? 0.1 : 0.1 * Math.exp(-nach * 1.5), 0); fans(T, true);
           gischt.pts.visible = nach > 0; gischt.update(nach); gischt.pts.position.set(pos.x, 0, pos.z - 6); gischt.mat.opacity = clamp(0.6 * (1 - nach / 5) * Math.min(1, v / 20), 0, 0.6);
