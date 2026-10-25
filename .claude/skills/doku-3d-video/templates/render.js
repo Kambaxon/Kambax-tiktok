@@ -148,12 +148,13 @@
         const opt = Object.assign({ bloom: 0.55, schwelle: 1.0, belichtung: rend.toneMappingExposure || 0.62, vignette: 0.28, samples: 4, tiltMitte: 0.45 }, o);
         const mk = (w, h, s = 0, typ = THREE.HalfFloatType, tiefe = false) => new THREE.WebGLRenderTarget(w, h, { type: typ, samples: s, depthBuffer: s > 0 || tiefe, stencilBuffer: s > 0 || tiefe, // mit Stencil -> 24-bit-Tiefe statt 16 bit
           minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
-        const haupt = mk(Wd, Ht, opt.samples), akku = mk(Wd, Ht);
+        const sk = opt.skala ?? 1, RW = Math.round(Wd * sk), RH = Math.round(Ht * sk); // skala < 1: Szene intern kleiner rendern (Tempo), Post skaliert hoch
+        const haupt = mk(RW, RH, opt.samples), akku = mk(RW, RH);
         const kopieM = new THREE.ShaderMaterial({ uniforms: { tSrc: { value: null }, uW: { value: 1 } }, vertexShader: VS_QUAD, fragmentShader: `uniform sampler2D tSrc; uniform float uW; varying vec2 vUv; void main(){ gl_FragColor = vec4(texture2D(tSrc, vUv).rgb * uW, 1.0); }`, depthTest: false, depthWrite: false, toneMapped: false, blending: THREE.AdditiveBlending, transparent: true });
         const JITTER = [[0.25, 0.75], [0.75, 0.25], [0.375, 0.125], [0.875, 0.625], [0.125, 0.375], [0.625, 0.875], [0.5, 0.5], [0.0625, 0.9375]];
         const stufen = [2, 4, 8].map((f) => ({ a: mk(Wd / f, Ht / f), b: mk(Wd / f, Ht / f), w: Wd / f, h: Ht / f }));
         const unscharf = { a: mk(Wd / 3, Ht / 3), b: mk(Wd / 3, Ht / 3), w: Wd / 3, h: Ht / 3 };
-        const tiefeRT = mk(Wd / 2, Ht / 2, 0, THREE.UnsignedByteType, true);
+        const tiefeRT = mk(RW / 2, RH / 2, 0, THREE.UnsignedByteType, true), strahlRT = mk(Wd / 4, Ht / 4);
         const tiefeM = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }), tonM = new THREE.MeshStandardMaterial({ color: 0xd8d4cc, roughness: 0.85 }), drahtM = new THREE.MeshBasicMaterial({ color: 0x8ab8ff, wireframe: true, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false });
         const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2)); quad.frustumCulled = false;
         const qs = new THREE.Scene(); qs.add(quad); const qc = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -168,7 +169,7 @@
             c += texture2D(tSrc, vUv + uDir * 3.2308).rgb * 0.0702703; c += texture2D(tSrc, vUv - uDir * 3.2308).rgb * 0.0702703;
             gl_FragColor = vec4(c, 1.0); }`);
         const v3 = (a) => new THREE.Vector3(...a), U = {
-          tSzene: { value: haupt.texture }, tB1: { value: stufen[0].a.texture }, tB2: { value: stufen[1].a.texture }, tB3: { value: stufen[2].a.texture }, tUnscharf: { value: unscharf.a.texture }, tTiefe: { value: tiefeRT.texture },
+          tSzene: { value: haupt.texture }, tB1: { value: stufen[0].a.texture }, tB2: { value: stufen[1].a.texture }, tStrahlen: { value: strahlRT.texture }, tB3: { value: stufen[2].a.texture }, tUnscharf: { value: unscharf.a.texture }, tTiefe: { value: tiefeRT.texture },
           uBloom: { value: opt.bloom }, uBel: { value: opt.belichtung }, uSat: { value: 1.08 }, uKon: { value: 1.05 }, uVig: { value: opt.vignette }, uTint: { value: v3([1, 1, 1]) }, uBlau: { value: 0.012 },
           uStrahlen: { value: 0 }, uFlare: { value: 0 }, uAnamorph: { value: 0 }, uSonnePos: { value: new THREE.Vector2(0.5, 0.8) }, uSicht: { value: 0 }, uSonnenFarbe: { value: v3([1, 0.9, 0.75]) },
           uTilt: { value: 0 }, uTiltMitte: { value: opt.tiltMitte }, uDof: { value: 0 }, uFokus: { value: 10 }, uBlende: { value: 0.6 }, uBokeh: { value: 0 }, uNear: { value: 0.1 }, uFar: { value: 400 }, uUnscharfAn: { value: 0 },
@@ -179,11 +180,11 @@
           uMono: { value: 0 }, uKreuz: { value: 0 }, uSchwarz: { value: 0 }, uRolloff: { value: 0 },
           uSchaerfe: { value: 0 }, uKlarheit: { value: 0 }, uHalation: { value: 0 }, uKorn: { value: 0 },
           uKontur: { value: 0 }, uToon: { value: 0 }, uHalbton: { value: 0 }, uGlitch: { value: 0 }, uVHS: { value: 0 }, uScan: { value: 0 }, uLeck: { value: 0 }, uKratzer: { value: 0 }, uTon: { value: 0 }, uDraht: { value: 0 },
-          uZeit: { value: 0 }, uAufl: { value: new THREE.Vector2(Wd, Ht) }, uSSAA: { value: 1 }, uHitzePunkte: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
+          uZeit: { value: 0 }, uAufl: { value: new THREE.Vector2(RW, RH) }, uSSAA: { value: 1 }, uHitzePunkte: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
         };
         const endM = sm(U, `
           #include <packing>
-          uniform sampler2D tSzene, tB1, tB2, tB3, tUnscharf, tTiefe;
+          uniform sampler2D tSzene, tB1, tB2, tB3, tUnscharf, tTiefe, tStrahlen;
           uniform float uBloom, uBel, uSat, uKon, uVig, uBlau, uStrahlen, uFlare, uAnamorph, uSicht, uTilt, uTiltMitte, uDof, uFokus, uBlende, uBokeh, uNear, uFar, uUnscharfAn;
           uniform float uAO, uNebel, uNebelHoehe, uBewegung, uChroma, uVerzerrung, uHitze, uHitzeY, uSplit, uMono, uKreuz, uSchwarz, uRolloff, uSchaerfe, uKlarheit, uHalation, uKorn;
           uniform float uKontur, uToon, uHalbton, uGlitch, uVHS, uScan, uLeck, uKratzer, uZeit; uniform vec4 uHitzePunkte[4];
@@ -233,8 +234,7 @@
             // ---- Bloom, Halation, Lichtstrahlen, Flares, anamorphe Streifen ----
             vec3 b = texture2D(tB1, uv).rgb * 0.5 + texture2D(tB2, uv).rgb * 0.3 + texture2D(tB3, uv).rgb * 0.35; c += b * uBloom;
             if (uHalation > 0.0) c += texture2D(tB3, uv).rgb * vec3(1.0, 0.35, 0.15) * uHalation;
-            if (uStrahlen > 0.0 && uSicht > 0.0) { vec2 dl = (uv - uSonnePos) / 48.0; vec2 tc = uv; float dec = 1.0; vec3 acc = vec3(0.0);
-              for (int i = 0; i < 48; i++) { tc -= dl; float hm = brauchtTiefe ? step(0.9999, tiefeRoh(tc)) : 1.0; acc += texture2D(tB2, tc).rgb * dec * hm; dec *= 0.962; } c += acc / 48.0 * uStrahlen * uSicht * 2.5 * uSonnenFarbe; }
+            if (uStrahlen > 0.0 && uSicht > 0.0) c += texture2D(tStrahlen, uv).rgb * uStrahlen * uSicht * 2.5 * uSonnenFarbe; // Strahlen kommen aus eigenem Pass in 1/4-Auflösung
             if (uFlare > 0.0) { vec2 uvf = vec2(1.0) - uv; vec2 gv = (vec2(0.5) - uvf) * 0.34; vec3 fl = vec3(0.0);
               for (int i = 0; i < 5; i++) { vec2 off = fract(uvf + gv * float(i)); float w = pow(1.0 - length(vec2(0.5) - off) / 0.7071, 8.0); vec3 tint = vec3(0.6 + 0.4 * sin(float(i) * 1.7), 0.6 + 0.4 * sin(float(i) * 1.7 + 2.1), 0.6 + 0.4 * sin(float(i) * 1.7 + 4.2)); fl += texture2D(tB3, off).rgb * w * tint; }
               vec2 hv = normalize(gv + 1e-5) * 0.42; float hw = pow(1.0 - length(vec2(0.5) - fract(uvf + hv)) / 0.7071, 6.0); fl += texture2D(tB3, fract(uvf + hv)).rgb * hw * vec3(0.7, 0.8, 1.0) * 0.6; c += fl * uFlare; }
@@ -263,6 +263,11 @@
             vec2 q = vUv - 0.5; q.x *= 0.5625; c *= 1.0 - uVig * smoothstep(0.25, 0.85, length(q) * 1.25);
             gl_FragColor = vec4(srgb(clamp(c, 0.0, 1.0)), 1.0);
           }`);
+        const strahlM = sm({ tB2: { value: stufen[1].a.texture }, tTiefe: { value: tiefeRT.texture }, uSonnePos: { value: new THREE.Vector2() }, uMaske: { value: 0 } }, `#include <packing>
+          uniform sampler2D tB2, tTiefe; uniform vec2 uSonnePos; uniform float uMaske; varying vec2 vUv;
+          void main(){ vec2 dl = (vUv - uSonnePos) / 48.0; vec2 tc = vUv; float dec = 1.0; vec3 acc = vec3(0.0);
+            for (int i = 0; i < 48; i++) { tc -= dl; float hm = uMaske > 0.5 ? step(0.9999, unpackRGBAToDepth(texture2D(tTiefe, tc))) : 1.0; acc += texture2D(tB2, tc).rgb * dec * hm; dec *= 0.962; }
+            gl_FragColor = vec4(acc / 48.0, 1.0); }`);
         const pass = (m, ziel) => { quad.material = m; rend.setRenderTarget(ziel); rend.render(qs, qc); };
         const tmp = new THREE.Vector3(), blick = new THREE.Vector3();
         const P = {
@@ -274,7 +279,7 @@
             (scene.userData.spiegel || []).forEach((sp) => sp.vorRender(rend, scene, camera)); // planare Spiegelungen zuerst
             scene.overrideMaterial = U.uTon.value > 0.5 ? tonM : null; const nS = Math.max(1, Math.min(8, Math.round(U.uSSAA.value)));
             if (nS > 1) { rend.setRenderTarget(akku); rend.setClearColor(0x000000, 1); rend.clear(); const au = rend.shadowMap.autoUpdate; // Supersampling: n leicht versetzte Bilder mitteln (glatte Kanten, auch bei Laub/Schrift)
-              for (let i = 0; i < nS; i++) { const j = JITTER[i]; camera.setViewOffset(Wd, Ht, (j[0] - 0.5), (j[1] - 0.5), Wd, Ht); rend.setRenderTarget(haupt); rend.render(scene, camera); if (i === 0) rend.shadowMap.autoUpdate = false;
+              for (let i = 0; i < nS; i++) { const j = JITTER[i]; camera.setViewOffset(RW, RH, (j[0] - 0.5), (j[1] - 0.5), RW, RH); rend.setRenderTarget(haupt); rend.render(scene, camera); if (i === 0) rend.shadowMap.autoUpdate = false;
                 kopieM.uniforms.tSrc.value = haupt.texture; kopieM.uniforms.uW.value = 1 / nS; quad.material = kopieM; rend.setRenderTarget(akku); const ac = rend.autoClear; rend.autoClear = false; rend.render(qs, qc); rend.autoClear = ac; }
               camera.clearViewOffset(); rend.shadowMap.autoUpdate = au; U.tSzene.value = akku.texture; } else { rend.setRenderTarget(haupt); rend.render(scene, camera); U.tSzene.value = haupt.texture; }
             scene.overrideMaterial = null;
@@ -297,6 +302,7 @@
             if (h) { U.uSonneDir.value.copy(h.sonne); const sf = h.mat.uniforms.uSonnenFarbe.value; U.uSonnenFarbe.value.set(sf.x, sf.y, sf.z).normalize().multiplyScalar(1.2);
               if (U.uStrahlen.value > 0) { camera.getWorldDirection(blick); const dot = blick.dot(h.sonne); tmp.copy(camera.position).addScaledVector(h.sonne, 100).project(camera);
                 U.uSonnePos.value.set(tmp.x * 0.5 + 0.5, tmp.y * 0.5 + 0.5); const rand = Math.max(Math.abs(tmp.x), Math.abs(tmp.y)); U.uSicht.value = dot > 0 ? Math.max(0, Math.min(1, (1.6 - rand) / 0.6)) : 0; } }
+            if (U.uStrahlen.value > 0 && U.uSicht.value > 0) { strahlM.uniforms.uSonnePos.value.copy(U.uSonnePos.value); strahlM.uniforms.uMaske.value = (U.uDof.value > 0.5 || U.uAO.value > 0 || U.uNebel.value > 0 || U.uBewegung.value > 0 || U.uKontur.value > 0) ? 1 : 0; pass(strahlM, strahlRT); }
             pass(endM, null);
           },
         };
@@ -310,3 +316,40 @@
       //   const POST = nachbearbeitung(renderer, { bloom: 0.6 });
       //   in renderAt():  POST.render(w.scene, w.camera)   statt renderer.render(...)
       //   Glühende Objekte (Lampen, Feuer, Scheinwerfer) mit Farbwerten > 1 (z. B. color.multiplyScalar(4)) und toneMapped:false -> sie blühen.
+      // ===== Tempo-Optimierung (wichtig für 70-s-Videos auf CPU-WebGL) =====
+      // tempoOptimieren(W, SHOTS, { zelle, envNurGlanz, hemiPlus, schattenMax (Standard 2048), anisoMax (Standard 2) }) einmal vor dem ersten renderAt aufrufen.
+      // 1) Statische Meshes (Matrix und Sichtbarkeit an 5 Probezeiten je Shot unverändert) werden pro Material und Raumzelle verschmolzen: Tausende Draw Calls weniger.
+      // 2) envNurGlanz: Die PMREM-Umgebung bekommen nur glänzende/metallische Materialien (spart ~30 % Pixelzeit); hemiPlus hebt dafür das Himmelslicht an.
+      function tempoOptimieren(W, SHOTS, o = {}) {
+        const zelle = o.zelle ?? 24, std = THREE.Material.prototype.onBeforeCompile, stdBR = THREE.Object3D.prototype.onBeforeRender, szenen = new Map(), stat = { vorher: 0, nachher: 0, env: 0 };
+        SHOTS.forEach((sh) => { const w = W[sh.id]; if (!w) return; if (!szenen.has(w.scene)) szenen.set(w.scene, []); szenen.get(w.scene).push([w, sh]); });
+        const wert = (src, i, j) => (j === 0 ? src.getX(i) : j === 1 ? src.getY(i) : j === 2 ? src.getZ(i) : src.getW(i));
+        szenen.forEach((liste, scene) => {
+          const proben = new Map(); let erste = true;
+          liste.forEach(([w, sh]) => { for (let k = 0; k <= 4; k++) { const T = sh.t0 + (sh.t1 - sh.t0 - 0.02) * k / 4; wind(T); w.update(T - sh.t0, T); scene.updateMatrixWorld(true);
+            scene.traverse((m) => { if (!m.isMesh) return; let sicht = true; for (let p = m; p; p = p.parent) if (!p.visible) { sicht = false; break; }
+              const e = proben.get(m); if (!e) proben.set(m, erste ? { mw: m.matrixWorld.clone(), sicht, ok: true } : { ok: false }); else if (e.ok && (!e.mw.equals(m.matrixWorld) || e.sicht !== sicht)) e.ok = false; }); erste = false; } });
+          const gruppen = new Map();
+          proben.forEach((e, m) => { stat.vorher++; if (!e.ok || !e.sicht) return; const mat = m.material, g = m.geometry;
+            if (Array.isArray(mat) || m.isInstancedMesh || m.isSkinnedMesh || m.morphTargetInfluences || mat.isShaderMaterial || mat.transparent || mat.alphaTest > 0 || mat.onBeforeCompile !== std || m.customDepthMaterial || m.userData.tiefeMat || m.userData.keineTiefe || m.userData.dynamisch || m.renderOrder || !g.attributes.normal || m.onBeforeRender !== stdBR) return;
+            const c = new THREE.Vector3().setFromMatrixPosition(m.matrixWorld), A = g.attributes;
+            const key = mat.id + "|" + (m.castShadow ? 1 : 0) + (m.receiveShadow ? 1 : 0) + (m.frustumCulled ? 1 : 0) + "|" + Math.floor(c.x / zelle) + "," + Math.floor(c.z / zelle) + "|" + ["uv", "uv2", "color", "tangent"].map((a) => (A[a] ? A[a].itemSize : 0)).join("");
+            if (!gruppen.has(key)) gruppen.set(key, []); gruppen.get(key).push(m); });
+          gruppen.forEach((ms) => { if (ms.length < 2) return; let n = 0;
+            const teile = ms.map((m) => { const g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone(); g.applyMatrix4(m.matrixWorld);
+              if (m.matrixWorld.determinant() < 0) Object.values(g.attributes).forEach((at) => { for (let i = 0; i + 2 < at.count; i += 3) for (let j = 0; j < at.itemSize; j++) { const a = wert(at, i + 1, j), b = wert(at, i + 2, j); at.array[(i + 1) * at.itemSize + j] = b; at.array[(i + 2) * at.itemSize + j] = a; } });
+              n += g.attributes.position.count; return g; });
+            const namen = Object.keys(teile[0].attributes).filter((a) => ["position", "normal", "uv", "uv2", "color", "tangent"].includes(a) && teile.every((g) => g.attributes[a] && g.attributes[a].itemSize === teile[0].attributes[a].itemSize));
+            const neu = new THREE.BufferGeometry();
+            namen.forEach((a) => { const is = teile[0].attributes[a].itemSize, arr = new Float32Array(n * is); let off = 0;
+              teile.forEach((g) => { const src = g.attributes[a]; for (let i = 0; i < src.count; i++) for (let j = 0; j < is; j++) arr[(off + i) * is + j] = wert(src, i, j); off += src.count; }); neu.setAttribute(a, new THREE.BufferAttribute(arr, is)); });
+            neu.computeBoundingSphere(); neu.computeBoundingBox(); teile.forEach((g) => g.dispose());
+            const mesh = new THREE.Mesh(neu, ms[0].material); mesh.castShadow = ms[0].castShadow; mesh.receiveShadow = ms[0].receiveShadow; mesh.frustumCulled = ms[0].frustumCulled; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); scene.add(mesh);
+            ms.forEach((m) => m.parent && m.parent.remove(m)); });
+          const amax = o.anisoMax ?? 2; scene.traverse((m) => { if (m.isMesh) (Array.isArray(m.material) ? m.material : [m.material]).forEach((mt) => { for (const k in mt) { const t = mt[k]; if (t && t.isTexture && t.anisotropy > amax) { t.anisotropy = amax; t.needsUpdate = true; } } }); });
+          const smax = o.schattenMax ?? 2048; scene.traverse((l) => { if (l.isLight && l.shadow && l.shadow.mapSize.x > smax) { l.shadow.mapSize.set(smax, smax); if (l.shadow.map) { l.shadow.map.dispose(); l.shadow.map = null; } } });
+          let nach = 0; scene.traverse((m) => { if (m.isMesh) nach++; }); stat.nachher += nach;
+          if (o.envNurGlanz !== false && scene.environment) { const env = scene.environment; scene.environment = null;
+            scene.traverse((m) => { if (!m.isMesh) return; (Array.isArray(m.material) ? m.material : [m.material]).forEach((mt) => { if (mt.isMeshStandardMaterial && !mt.envMap && (mt.metalness > 0.3 || mt.roughness < 0.5 || mt.clearcoat > 0 || mt.transmission > 0)) { mt.envMap = env; mt.needsUpdate = true; stat.env++; } }); });
+            scene.traverse((l) => { if (l.isHemisphereLight) l.intensity *= o.hemiPlus ?? 1.6; }); } });
+        console.log("tempoOptimieren", JSON.stringify(stat)); return stat; }

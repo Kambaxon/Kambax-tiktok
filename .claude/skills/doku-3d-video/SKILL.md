@@ -406,7 +406,7 @@ Beispielszene: `scripts/builder/szenen-zusammen.js` mit zwei Shots: Fahrt die St
 
 Jeder Shot setzt `post: { uName: wert }` und `look`. Vorher wird alles auf `POST_STANDARD` zurückgesetzt.
 
-- **Kantenglättung:** `uSSAA` 1–8 (Jitter-Akkumulation, wirkt wie TAA ohne Schlieren). Für „crystal clear“ 4 nehmen. Kostet entsprechend mehr Renderzeit.
+- **Kantenglättung:** `uSSAA` 1–8 (Jitter-Akkumulation, wirkt wie TAA ohne Schlieren). Jede Stufe kostet einen vollen Szenen-Render. In Videos immer 1, denn das MSAA ×4 reicht. 4 nur für Standbilder oder Thumbnails.
 - **Tiefe und Licht:**
   - `uDof`, `uFokus`, `uBlende` (größer = mehr Schärfentiefe; 1.8–2.5 für Portrait), `uBokeh`
   - `uTilt`
@@ -444,12 +444,42 @@ Jeder Shot setzt `post: { uName: wert }` und `look`. Vorher wird alles auf `POST
 - Bei Gegenlicht nichts Großes in den Fluchtpunkt stellen, sonst verschwindet die Sonne. Die Strahlen in der Totalen nicht über 0.3 setzen, sonst wirkt das Bild milchig.
 - Schrift in Portrait: Breite ≈ 5 × Höhe. Bei FOV 50 braucht man den Abstand ≥ 2 × Textbreite.
 
+## Renderzeit und Tempo-Profil (Pflicht für 70-s-Videos)
+
+Die Cloud rendert mit SwiftShader (CPU-WebGL, 4 Kerne, die bereits alle ausgelastet sind). Mehr Worker bringen deshalb nichts. Gemessen an der dichten Szene „ZUSAMMEN“ (8000 Meshes):
+
+- Vorher: 24 s pro Bild mit SSAA 4, 9 s mit SSAA 1.
+- Kostentreiber:
+  - Pixelschattierung der PBR-Materialien: Mit MeshBasic dauert ein Bild 0,6 s, mit PBR 8 s. Overdraw und MSAA sind nicht die Ursache.
+  - God Rays in voller Auflösung: 1,2 s.
+  - Schattenkarte 4096²: mehrere Sekunden.
+  - Anisotropie 8: +18 %.
+  - Draw Calls spielen dagegen kaum eine Rolle.
+
+Das Tempo-Profil ist im Builder automatisch aktiv:
+
+- `tempoOptimieren(W, SHOTS, window.TEMPO || {})` läuft vor dem ersten Bild:
+  - Verschmilzt statische Meshes pro Material und 24-m-Zelle (8006 → 3838).
+  - Gibt die PMREM-Umgebung nur glänzenden Materialien und hebt dafür das Himmelslicht um ×1.6 an.
+  - Begrenzt Schatten auf 2048 und Anisotropie auf 2.
+  - Abschalten oder anpassen über `window.TEMPO = { envNurGlanz: false, schattenMax: 4096, ... }` in der Szenen-Datei.
+  - Objekte, die sich nur selten bewegen (an den Probezeiten unverändert), bekommen `userData.dynamisch = true`, sonst werden sie eingefroren.
+- `bauen.py <szenen.js> [skala]`: Die interne Renderauflösung ist standardmäßig 0.8. Sie sieht im Vergleich aus wie 1.0 und spart etwa 20 %.
+- God Rays laufen in einem eigenen Pass mit 1/4 Auflösung.
+- In Videos `uSSAA: 1`. `uAO` nur, wenn es wirklich sichtbar hilft.
+- Szenen schlank bauen:
+  - Detailreiche Gebäude nur nahe der Kamera, weiter hinten einfache Blöcke.
+  - Spiegelflächen und Rauch nur dort, wo sie im Bild sind.
+  - Lieber Shots mit Himmel oder Weite als volle Häuserschluchten.
+- Vor dem Render messen: Ein Benchmark mit 2–3 Bildern zeigt die Zeit pro Bild. Mit 2100 multiplizieren und dem User ansagen.
+- Render-Aufruf für schwere Szenen: `npx hyperframes render -o renders/x.mp4 -q delivery -w 1 --low-memory-mode --player-ready-timeout 600000 --protocol-timeout 900000 --browser-timeout 600`. Sonst bricht der Render beim Laden nach 45 s ab.
+
 ## Fallen
 
 - `cam()` hat nur 400 m Sichtweite. Für alles, was weiter weg steht (Horizont, Kraftwerk, Bögen), `camFar(3000+)` nehmen und den Nebel weit genug setzen, sonst ist es unsichtbar.
 - Portrait-Fenster: Hintergrundobjekte genau durch die Öffnung planen (Winkel = atan(Höhe/Entfernung)).
 
-- **Qualität vor Tempo** (Wunsch des Users): immer 1080×1920, `-q delivery`, volle Schatten und Kantenglättung. Ein 70-s-Render dauert in der Cloud (CPU-WebGL) etwa 40–60 Min. Das vorher ansagen und nicht herunterregeln.
+- **Renderzeit-Budget** (Wunsch des Users: „ne das zu lange, will ja immer 70 sekunden videos“): Ein 70-s-Video (2100 Bilder) muss in etwa 1 Stunde fertig sein, also höchstens ~1,5–2 s pro Bild. Immer 1080×1920 und `-q delivery`, aber mit dem Tempo-Profil (siehe unten). Die Dauer vorher grob ansagen.
 
 - `pkill -f <muster>` trifft die eigene Shell, wenn das Muster im Befehl steht. Prozesse stattdessen per PID beenden.
 - Die Piper-Stimme klingt synthetisch (16 kHz). Biete eine eigene Aufnahme oder eine ElevenLabs-Datei an.

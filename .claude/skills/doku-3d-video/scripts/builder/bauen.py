@@ -1,5 +1,6 @@
 # Baut compositions/welt.html aus allen Vorlagen + einer Szenen-Datei.
-# Aufruf im Projektordner: python3 <skill>/scripts/builder/bauen.py <szenen.js>
+# Aufruf im Projektordner: python3 <skill>/scripts/builder/bauen.py <szenen.js> [skala]
+# skala = interne Renderauflösung (Standard 0.8, optisch wie 1.0, spart ~20 %; 1 nur für Standbilder/kurze Clips)
 # Szenen-Datei: SHOTS, DUR, W.<id> = { scene, camera, look, post: { uName: wert }, update(t, T) }.
 import sys
 B = "/home/user/kambax-tiktok/.claude/skills/doku-3d-video/scripts/builder/"
@@ -18,10 +19,10 @@ tail = '''
         wind(T); w.update(T - sh.t0, T); w.camera.updateMatrixWorld(); POST.render(w.scene, w.camera, T, vorher); }
       const clock = { t: 0 }; const tl = gsap.timeline({ paused: true });
       tl.fromTo(clock, { t: 0 }, { t: DUR, duration: DUR, ease: "none", onUpdate: () => renderAt(clock.t) }, 0);
-      window.addEventListener("hf-seek", (e) => renderAt(e.detail.time)); renderAt(0); window.__timelines["welt"] = tl;
+      window.addEventListener("hf-seek", (e) => renderAt(e.detail.time)); tempoOptimieren(W, SHOTS, window.TEMPO || {}); renderAt(0); window.__timelines["welt"] = tl;
     })();
   </script>
 </template>
 '''
-post = "\n      const POST = nachbearbeitung(renderer, { bloom: 0.5 });\n      const POST_STANDARD = {}; Object.entries(POST.uniforms).forEach(([k, u]) => { if (typeof u.value === \"number\") POST_STANDARD[k] = u.value; });\n      const POST_AUS = {}; // (alt) – alle Effekte werden pro Shot automatisch auf Standard zurückgesetzt\n"
+post = "\n      const POST = nachbearbeitung(renderer, { bloom: 0.5, skala: " + (sys.argv[2] if len(sys.argv) > 2 else "0.8") + " });\n      const POST_STANDARD = {}; Object.entries(POST.uniforms).forEach(([k, u]) => { if (typeof u.value === \"number\") POST_STANDARD[k] = u.value; });\n      const POST_AUS = {}; // (alt) – alle Effekte werden pro Shot automatisch auf Standard zurückgesetzt\n"
 open("compositions/welt.html", "w").write(head + lib + post + rd(sys.argv[1]) + tail); print("ok")

@@ -31,7 +31,7 @@
           leute.forEach((p, k) => { const base = [-9, -12, -26, -20][k]; p.position.z = base + (k % 2 ? 1 : -1) * ((T * 1.1) % 6); walk(p, T + k * 0.4, 0.9); }); hd.position.z = -9.6 - ((T * 1.1) % 6); tierLaufen(hd, T, 1.1);
           tauben.forEach((tb, k) => taubePicken(tb, T + k * 0.6)); titel.g.position.y = textPos.y + Math.sin(T * 0.9) * 0.05; titel.g.rotation.y = Math.sin(T * 0.4) * 0.03; }
         const leerlauf = abgas(autos[1], 7, { staerke: 0.18, n: 18 }); const auspuffW = () => autos[1].userData.auspuff.map((p) => ({ pos: p.clone().add(new THREE.Vector3(0, 0.25, -0.3)).applyMatrix4(autos[1].matrixWorld), radius: 0.05, staerke: 0.5 }));
-        const KLAR = { uSSAA: 4, uBloom: 0.38, uHalation: 0.04, uChroma: 0, uSchaerfe: 0.3, uKlarheit: 0.22, uRolloff: 0.2, uAO: 0.5, uNebel: 0.08, uNebelHoehe: 3, uKorn: 0 };
+        const KLAR = { uSSAA: 1, uBloom: 0.38, uHalation: 0.04, uChroma: 0, uSchaerfe: 0.3, uKlarheit: 0.22, uRolloff: 0.2, uAO: 0.5, uNebel: 0.08, uNebelHoehe: 3, uKorn: 0 };
         W.weit = { scene: s, camera: c1, look: "golden", post: Object.assign({}, KLAR, { uStrahlen: 0.28, uFlare: 0.08, uDof: 1, uUnscharfAn: 1, uBlende: 1.8, uBokeh: 0.6, uVig: 0.32 }),
           update(t, T) { kamera(c1, t, { art: "dollyIn", von: [0.9, 1.75, 7], nach: [0.4, 1.9, -1.5], blick: [0, 3.0, -40], blickNach: [0, 3.1, -30], dauer: 4, fov: 46, hand: 0.45 }); titel.update(t, { start: 0.6, dauer: 1.2 }); upd(T, t);
             POST.uniforms.uFokus.value = c1.position.distanceTo(textPos); POST.uniforms.uNebelFarbe.value.set(0.95, 0.78, 0.6); leerlauf.update(T); autos[1].updateMatrixWorld(); hitzePunkte(POST, c1, auspuffW()); } };
