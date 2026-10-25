@@ -906,7 +906,7 @@
       // HDR-Nachbearbeitung v3: Szene linear in HalfFloat-MSAA-Ziel, dann ein Kompositions-Shader mit (fast) allen Kino-Effekten.
       // Alle Effekte sind Uniforms (0 = aus) und lassen sich pro Shot setzen: POST.uniforms.uName.value = ...  (in bauen.py: post: P({ uName: wert }))
       //  Licht/Tiefe: uStrahlen (Lichtstrahlen), uAO (Umgebungsverdeckung), uNebel + uNebelFarbe + uNebelHoehe (Höhen-/Tiefennebel mit Sonnenstreuung), uBewegung (Bewegungsunschärfe der Kamera)
-      //  Optik:  uDof + uFokus + uBlende (Tiefenschärfe), uBokeh (runde Lichter in der Unschärfe), uTilt + uTiltMitte, uFlare, uAnamorph, uChroma (Farbsäume), uVerzerrung (+ Tonne / − Kissen), uVig, uHitze (Hitzeflimmern) + uHitzeY
+      //  Optik:  uDof + uFokus + uBlende (Tiefenschärfe), uBokeh (runde Lichter in der Unschärfe), uBokehOval (<1 = ovale anamorphe Bokeh-Lichter, z. B. 0.55), uTilt + uTiltMitte, uFlare, uAnamorph, uChroma (Farbsäume), uVerzerrung (+ Tonne / − Kissen), uVig, uHitze (Hitzeflimmern) + uHitzeY
       //  Farbe:  uSat, uKon, uBel, uLift/uGamma/uGain (vec3), uSplitSchatten/uSplitLicht (vec3) + uSplit, uMono (Schwarzweiß), uKreuz (Cross-Processing), uSchwarz (Schwarzwert), uRolloff (weiche Lichter), uTint
       //  Finish: uSchaerfe, uKlarheit, uHalation, uKorn (Filmkorn – Standard aus!), uBloom, uSchwelle
       //  Stil:   uKontur (Umrisslinien aus Tiefe), uToon (Farbstufen), uHalbton, uGlitch, uVHS, uScan (CRT-Zeilen), uLeck (Lichtlecks), uKratzer, uTon (Ton-/Clay-Look, Szene grau), uDraht (Drahtgitter-Overlay)
@@ -949,7 +949,7 @@
         const v3 = (a) => new THREE.Vector3(...a), U = {
           tSzene: { value: haupt.texture }, tB1: { value: stufen[0].a.texture }, tB2: { value: stufen[1].a.texture }, tStrahlen: { value: strahlRT.texture }, tB3: { value: stufen[2].a.texture }, tUnscharf: { value: unscharf.a.texture }, tTiefe: { value: tiefeRT.texture },
           uBloom: { value: opt.bloom }, uBel: { value: opt.belichtung }, uSat: { value: 1.08 }, uKon: { value: 1.05 }, uVig: { value: opt.vignette }, uTint: { value: v3([1, 1, 1]) }, uBlau: { value: 0.012 },
-          uStrahlen: { value: 0 }, uFlare: { value: 0 }, uAnamorph: { value: 0 }, uSonnePos: { value: new THREE.Vector2(0.5, 0.8) }, uSicht: { value: 0 }, uSonnenFarbe: { value: v3([1, 0.9, 0.75]) },
+          uStrahlen: { value: 0 }, uBokehOval: { value: 1 }, uFlare: { value: 0 }, uAnamorph: { value: 0 }, uSonnePos: { value: new THREE.Vector2(0.5, 0.8) }, uSicht: { value: 0 }, uSonnenFarbe: { value: v3([1, 0.9, 0.75]) },
           uTilt: { value: 0 }, uTiltMitte: { value: opt.tiltMitte }, uDof: { value: 0 }, uFokus: { value: 10 }, uBlende: { value: 0.6 }, uBokeh: { value: 0 }, uNear: { value: 0.1 }, uFar: { value: 400 }, uUnscharfAn: { value: 0 },
           uAO: { value: 0 }, uNebel: { value: 0 }, uNebelFarbe: { value: v3([0.8, 0.85, 0.9]) }, uNebelHoehe: { value: 8 }, uBewegung: { value: 0 },
           uInvProj: { value: new THREE.Matrix4() }, uCamWelt: { value: new THREE.Matrix4() }, uPrevVP: { value: new THREE.Matrix4() }, uSonneDir: { value: new THREE.Vector3(0, 1, 0) },
@@ -963,7 +963,7 @@
         const endM = sm(U, `
           #include <packing>
           uniform sampler2D tSzene, tB1, tB2, tB3, tUnscharf, tTiefe, tStrahlen;
-          uniform float uBloom, uBel, uSat, uKon, uVig, uBlau, uStrahlen, uFlare, uAnamorph, uSicht, uTilt, uTiltMitte, uDof, uFokus, uBlende, uBokeh, uNear, uFar, uUnscharfAn;
+          uniform float uBokehOval, uBloom, uBel, uSat, uKon, uVig, uBlau, uStrahlen, uFlare, uAnamorph, uSicht, uTilt, uTiltMitte, uDof, uFokus, uBlende, uBokeh, uNear, uFar, uUnscharfAn;
           uniform float uAO, uNebel, uNebelHoehe, uBewegung, uChroma, uVerzerrung, uHitze, uHitzeY, uSplit, uMono, uKreuz, uSchwarz, uRolloff, uSchaerfe, uKlarheit, uHalation, uKorn;
           uniform float uKontur, uToon, uHalbton, uGlitch, uVHS, uScan, uLeck, uKratzer, uZeit; uniform vec4 uHitzePunkte[4];
           uniform vec3 uTint, uSonnenFarbe, uNebelFarbe, uLift, uGamma, uGain, uSplitSchatten, uSplitLicht, uSonneDir; uniform vec2 uSonnePos, uAufl;
@@ -1001,7 +1001,7 @@
               if (uDof > 0.5) coc = clamp(abs(dist - uFokus) / max(0.1, uFokus * uBlende), 0.0, 1.0);
               if (uTilt > 0.0) coc = max(coc, smoothstep(0.08, 0.42, abs(uv.y - uTiltMitte)) * uTilt);
               vec3 bl = texture2D(tUnscharf, uv).rgb;
-              if (uBokeh > 0.0 && coc > 0.05) { vec3 bk = vec3(0.0); float rr = coc * 0.022; for (int i = 0; i < 16; i++) { float a = float(i) / 16.0 * 6.2832; bk += texture2D(tB1, uv + vec2(cos(a), sin(a)) * rr * vec2(0.5625, 1.0)).rgb; } bl += bk / 16.0 * uBokeh * 2.0 * coc; }
+              if (uBokeh > 0.0 && coc > 0.05) { vec3 bk = vec3(0.0); float rr = coc * 0.022; for (int i = 0; i < 16; i++) { float a = float(i) / 16.0 * 6.2832; bk += texture2D(tB1, uv + vec2(cos(a), sin(a)) * rr * vec2(0.5625 * uBokehOval, 1.0)).rgb; } bl += bk / 16.0 * uBokeh * 2.0 * coc; }
               c = mix(c, bl, coc); }
             // ---- Höhen-/Tiefennebel mit Lichtstreuung zur Sonne ----
             if (uNebel > 0.0 && brauchtTiefe) { float hf = exp(-max(wp.y, 0.0) / max(0.1, uNebelHoehe)); float f = 1.0 - exp(-dist * 0.02 * uNebel * hf); if (zr >= 0.9999) f = uNebel * 0.25;
@@ -1638,7 +1638,7 @@
         const mk = (geo, m, x, y, z, p = g) => { const ms = new THREE.Mesh(geo, m); ms.position.set(x, y, z); ms.castShadow = true; p.add(ms); return ms; };
         const koerper = M(grau, { roughness: 0.8, map: texFell("kurz", 5) }), dunkel = M(new THREE.Color(grau).offsetHSL(0, 0, -0.18).getHex(), { roughness: 0.8 });
         mk(new THREE.SphereGeometry(0.075, 20, 14), koerper, 0, 0.17, 0).scale.set(0.95, 0.9, 1.45);
-        mk(new THREE.SphereGeometry(0.06, 18, 12), M(0x4a6a5a, { roughness: 0.35, metalness: 0.45 }), 0, 0.22, 0.07).scale.set(0.9, 1, 0.9); // schillernder Hals
+        mk(new THREE.SphereGeometry(0.06, 18, 12), M([0x4a6a5a, 0x6a4a7a, 0x4a5e6e, 0x5a6a4a][Math.floor(r() * 4)], { roughness: 0.3, metalness: 0.5 }), 0, 0.22, 0.07).scale.set(0.9, 1, 0.9); // schillernder Hals (grün/violett/blau)
         const kopf = new THREE.Group(); kopf.position.set(0, 0.27, 0.1); g.add(kopf);
         mk(new THREE.SphereGeometry(0.034, 16, 12), dunkel, 0, 0, 0, kopf);
         const sch = mk(new THREE.ConeGeometry(0.008, 0.03, 8), M(0x2a2624, { roughness: 0.5 }), 0, -0.004, 0.044, kopf); sch.rotation.x = Math.PI / 2;
@@ -1648,11 +1648,20 @@
           mk(new THREE.SphereGeometry(0.06, 16, 10), koerper, sx * 0.01, -0.01, -0.04, f).scale.set(0.25, 0.6, 1.6);
           mk(new THREE.SphereGeometry(0.04, 12, 8), M(0x2e2e34, { roughness: 0.8 }), sx * 0.008, -0.004, -0.11, f).scale.set(0.3, 0.45, 1.2); // dunkle Handschwingen
           fluegel.push(f); }
-        mk(new THREE.BoxGeometry(0.07, 0.012, 0.09), dunkel, 0, 0.16, -0.14).rotation.x = 0.25; // Schwanzfächer
+        const muster = o.muster ?? ["einfarbig", "binden", "gehaemmert", "gescheckt"][Math.floor(r() * 4)], bindenM = M(0x2a2a2e, { roughness: 0.85 }), weissM = M(0xeeeae2, { roughness: 0.85 }); // Gefieder-Varianten
+        fluegel.forEach((f, i) => { const sx = i ? 1 : -1;
+          if (muster === "binden") for (const z of [-0.03, -0.065]) mk(new THREE.SphereGeometry(0.03, 10, 6), bindenM, sx * 0.024, 0.002, z, f).scale.set(0.35, 0.18, 0.5);
+          if (muster === "gehaemmert") for (let k = 0; k < 5; k++) mk(new THREE.SphereGeometry(0.012, 8, 6), bindenM, sx * 0.024, -0.01 + (k % 2) * 0.016, -0.01 - k * 0.022, f).scale.set(0.4, 0.6, 1);
+          if (muster === "gescheckt" && r() < 0.8) mk(new THREE.SphereGeometry(0.03, 10, 6), weissM, sx * 0.022, -0.005, -0.03 - r() * 0.04, f).scale.set(0.4, 0.7, 1); });
+        if (muster === "gescheckt") mk(new THREE.SphereGeometry(0.04, 12, 8), weissM, 0, 0.15, 0.02).scale.set(1, 0.6, 1.2);
+        const schwanz = mk(new THREE.BoxGeometry(0.07, 0.012, 0.09), dunkel, 0, 0.16, -0.14); schwanz.rotation.x = 0.25; // Schwanzfächer
         const fussM = M(0xc84a4a, { roughness: 0.6 }); for (const sx of [-1, 1]) { cyl(0.004, 0.004, 0.07, fussM, sx * 0.022, 0.05, 0.01, g, 6); for (const a of [-0.5, 0, 0.5]) { const z = box(0.004, 0.003, 0.03, fussM, sx * 0.022 + Math.sin(a) * 0.012, 0.015, 0.02 + Math.cos(a) * 0.012, g); z.rotation.y = a; } }
-        g.userData = { kopf, fluegel, phase: r() * 6.28 }; if (o.groesse) g.scale.setScalar(o.groesse); return g;
+        g.userData = { kopf, fluegel, schwanz, rumpf: g.children[0], phase: r() * 6.28, muster }; g.scale.setScalar((o.groesse ?? 1) * (0.9 + r() * 0.2)); return g;
       }
-      function taubePicken(t, T) { const u = t.userData, k = T * 3 + u.phase, pick = Math.max(0, Math.sin(k * 2)) ** 4; u.kopf.position.set(0, 0.27 - pick * 0.17, 0.1 + pick * 0.08 + Math.sin(k * 4) * 0.008); u.kopf.rotation.x = pick * 1.1; }
+      function taubePicken(t, T) { const u = t.userData, k = T * 3 + u.phase, pick = Math.max(0, Math.sin(k * 2)) ** 4; u.kopf.position.set(0, 0.27 - pick * 0.17, 0.1 + pick * 0.08 + Math.sin(k * 4) * 0.008); u.kopf.rotation.x = pick * 1.1;
+        const blick = Math.sin(k * 0.37) * 0.45 + Math.sin(k * 1.13) * 0.2; u.kopf.rotation.y = blick * (1 - pick); u.kopf.rotation.z = Math.sin(k * 0.61) * 0.12 * (1 - pick); // Umschauen, Kopf schräg legen
+        if (u.schwanz) u.schwanz.rotation.x = 0.25 + Math.sin(k * 1.7) * 0.06 + pick * 0.15; if (u.rumpf) u.rumpf.scale.set(0.95, 0.9 + Math.sin(T * 5 + u.phase) * 0.012, 1.45); // Schwanzwippen, Atmen
+        u.fluegel.forEach((f, i) => (f.rotation.z = (i ? 1 : -1) * Math.max(0, Math.sin(k * 0.23 + 1)) ** 12 * 0.25)); } // gelegentliches Flügelschütteln
       function taubeFliegen(t, T) { const u = t.userData, k = T * 22 + u.phase; u.fluegel.forEach((f, i) => { const s = i ? 1 : -1; f.rotation.z = s * (0.3 + Math.sin(k) * 1.1); f.scale.set(1, 1, 1); f.children[0].scale.set(1.6, 0.25, 1.4); }); }
 
       // ===== Fahrzeuge v2: Bauformen, Reifen mit Profil, Felgentypen, Federung, Abgase (braucht: rng, box, cyl, M, extrudeSide, LACK, kennzeichenTex, KENNZ, particles) =====
@@ -2717,7 +2726,7 @@
         return g; }
 
       // ===== Typografie v1: Schrift im 3D-Raum (wirft Schatten, kann leuchten, steht hinter Gebäudekanten oder im Nebel) =====
-      // text3d(s, "TEXT", { x, y, z, ry, hoehe (m), farbe, schrift, gewicht, neon (Leuchtfarbe), tiefe (m, Extrusion durch Schichten), schatten })
+      // text3d(s, "TEXT", { x, y, z, ry, hoehe (m), farbe, schrift, gewicht, neon (Leuchtfarbe), tiefe (m, Extrusion durch Schichten), schatten, kontrast (true|Deckkraft: weicher dunkler Halo dahinter) })
       //   -> { g, update(T, { start, dauer }) }  sanftes Einblenden + leichtes Hochskalieren (deterministisch)
       function text3d(s, text, o = {}) {
         const fontPx = 160, schrift = `${o.gewicht ?? 800} ${fontPx}px ${o.schrift ?? "Montserrat, 'Helvetica Neue', Arial, sans-serif"}`;
@@ -2733,10 +2742,14 @@
         const seite = new THREE.MeshStandardMaterial({ map: tex, color: farbe.clone().multiplyScalar(0.55), transparent: true, alphaTest: 0.4, roughness: 0.5, side: THREE.DoubleSide });
         for (let i = 0; i < schichten; i++) { const p = new THREE.Mesh(new THREE.PlaneGeometry(W, H), i === 0 ? front : seite); p.position.z = -i * (tiefe / schichten); p.castShadow = o.schatten !== false; p.receiveShadow = i === 0;
           p.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.4, side: THREE.DoubleSide }); p.userData.tiefeMat = p.customDepthMaterial; grp.add(p); planes.push(p); }
+        if (o.kontrast) { const kv = document.createElement("canvas"), pad = 60; kv.width = bw + pad * 2; kv.height = bh + pad * 2; const k2 = kv.getContext("2d"); k2.font = schrift; k2.textBaseline = "middle"; k2.textAlign = "center";
+          k2.shadowColor = "rgba(0,0,0,1)"; k2.shadowBlur = 38; k2.fillStyle = "rgba(0,0,0,0.6)"; k2.fillText(text, kv.width / 2, kv.height / 2 + fontPx * 0.04); const kt = new THREE.CanvasTexture(kv);
+          const kp = new THREE.Mesh(new THREE.PlaneGeometry(W * kv.width / bw, H * kv.height / bh), new THREE.MeshBasicMaterial({ map: kt, color: 0x1a120a, transparent: true, opacity: o.kontrast === true ? 0.32 : o.kontrast, depthWrite: false, toneMapped: false }));
+          kp.position.z = -tiefe - 0.05; kp.userData.keineTiefe = true; grp.add(kp); planes.push(kp); kp.userData.basisOpazitaet = kp.material.opacity; } // weicher Kontrastschatten hinter der Schrift (Lesbarkeit vor hellem Gegenlicht)
         if (neon) { const glow = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.15, H * 1.6), new THREE.MeshBasicMaterial({ map: tex, color: new THREE.Color(o.neon).multiplyScalar(0.8), transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); glow.position.z = 0.02; grp.add(glow);
           const l = new THREE.PointLight(o.neon, 2.2, H * 8, 2); l.position.z = H * 0.6; grp.add(l); }
         return { g: grp, breite: W, update(T, a = {}) { const st = a.start ?? 0, du = a.dauer ?? 0.8, k = Math.min(1, Math.max(0, (T - st) / du)), e = 1 - Math.pow(1 - k, 3);
-          grp.visible = k > 0; grp.scale.setScalar(0.92 + 0.08 * e); grp.position.y = (o.y ?? 0) - (1 - e) * H * 0.15; planes.forEach((p, i) => { p.material.opacity = a.wischen ? 1 : e; });
+          grp.visible = k > 0; grp.scale.setScalar(0.92 + 0.08 * e); grp.position.y = (o.y ?? 0) - (1 - e) * H * 0.15; planes.forEach((p, i) => { p.material.opacity = (a.wischen ? 1 : e) * (p.userData.basisOpazitaet ?? 1); });
           if (a.wischen) { grp.scale.setScalar(1); grp.position.y = o.y ?? 0; wisch.constant = -W / 2 + W * 1.1 * e; wisch.normal.set(-1, 0, 0); grp.updateMatrixWorld(true); planes.forEach((p) => { if (!p.material.clippingPlanes) p.material.needsUpdate = true; p.material.clippingPlanes = [wisch.clone().applyMatrix4(grp.matrixWorld)]; }); } if (a.flackern && neon) front.color.setScalar(0).add(new THREE.Color(o.neon).multiplyScalar(3 * (Math.sin(T * 31) > -0.85 ? 1 : 0.2))); } };
       }
       // Titel, der aus dem Nebel auftaucht: Schrift + Nebelschwaden davor, die sich lichten
@@ -2880,7 +2893,7 @@
         z = 4; [0, 1, 2, 3].forEach((i) => { const h = brutalismus(90 + i, { etagen: 6 + (i % 3) * 2, breite: 22 }); h.rotation.y = -Math.PI / 2; const w = h.userData.w; h.position.set(RAND, 0, z - w / 2); s.add(h); z -= w + 2; });
         const ferne = hochhaus(5, { typ: "beton", w: 24, d: 18, etagen: 16 }); ferne.position.set(34, 0, -190); s.add(ferne);
         // Oldtimer am Bordstein
-        const autos = [["oldtimer", -2.35, -4, 0, 0x9ad0b8], ["oldtimer", 2.35, -15, Math.PI, 0xf0e2c0], ["stufenheck", -2.35, -22, 0, 0x7a2a2a], ["oldtimer", 2.35, -34, Math.PI, 0x3a5a8a]].map(([ty, x, z2, ry, f], k) => { const c = fahrzeug(110 + k, ty, { farbe: f, lackArt: "uni", felge: "stahl" }); c.position.set(x, 0.02, z2); c.rotation.y = ry; s.add(c); return c; });
+        const autos = [["oldtimer", -2.35, -4, 0, 0x9ad0b8], ["oldtimer", 2.35, -15, Math.PI, 0xf0e2c0], ["stufenheck", -2.35, -22, 0, 0x7a2a2a], ["oldtimer", 2.35, -34, Math.PI, 0x3a5a8a]].map(([ty, x, z2, ry, f], k) => { const c = fahrzeug(110 + k, ty, { farbe: f, lackArt: ["matt", "uni", "metallic", "matt"][k], felge: "stahl" }); c.position.set(x, 0.02, z2); c.rotation.y = ry; s.add(c); return c; });
         // Leben: Menschen, Hund, Tauben, Laub, Staub im Licht, Rauch aus Schornsteinen, Nebel
         const leute = [["europaeisch", "f", -5.0, -9, Math.PI], ["afrikanisch", "m", 5.0, -12, 0], ["asiatisch", "m", -4.6, -26, Math.PI], ["arabisch", "f", 5.2, -20, 0]].map(([h, k, x, z2, ry], i) => { const p = person(4000 + i, { herkunft: h, kind: k, jacke: true }); p.position.set(x, 0.14, z2); p.rotation.y = ry; s.add(p); return p; });
         const hd = hund(41, { rasse: "beagle" }); hd.position.set(-4.4, 0.14, -9.6); hd.rotation.y = Math.PI; s.add(hd);
@@ -2891,24 +2904,25 @@
         const laub = laubWind(s, -6, -16, 12, 8, 30, { y: 0.03 }); const staub = staubLicht(s, -3, 3, 0.3, 4, -22, -4, 500, { hell: 1.8, farbe: 0xffd8a0 });
         const sp = spiegelflaeche(s, 6.5, 120, { y: 0.045, z: -52, maske: "pfuetzen", staerke: 0.95, rau: 0.4, wiederholen: [1.2, 22] }); // nasse Pfützen spiegeln Häuser, Licht und Schrift
         // Schwebende 3D-Schrift
-        const textPos = new THREE.Vector3(0, 3.2, -15); const titel = text3d(s, "ZUSAMMEN", { x: textPos.x, y: textPos.y, z: textPos.z, hoehe: 1.05, farbe: 0xf6efe2, tiefe: 0.16, metall: 0.15 });
+        const textPos = new THREE.Vector3(0, 3.2, -15); const titel = text3d(s, "ZUSAMMEN", { x: textPos.x, y: textPos.y, z: textPos.z, hoehe: 1.05, farbe: 0xf6efe2, tiefe: 0.16, metall: 0.15, kontrast: 0.3 });
         const c1 = cam(), c2 = cam();
         function upd(T, t) { him.update(T); sp.update(T); rauch.forEach((r) => r.update(T)); nebelB.update(T); schwaden.update(T); laub.update(T); staub.update(T);
           leute.forEach((p, k) => { const base = [-9, -12, -26, -20][k]; p.position.z = base + (k % 2 ? 1 : -1) * ((T * 1.1) % 6); walk(p, T + k * 0.4, 0.9); }); hd.position.z = -9.6 - ((T * 1.1) % 6); tierLaufen(hd, T, 1.1);
           tauben.forEach((tb, k) => taubePicken(tb, T + k * 0.6)); titel.g.position.y = textPos.y + Math.sin(T * 0.9) * 0.05; titel.g.rotation.y = Math.sin(T * 0.4) * 0.03; }
         const leerlauf = abgas(autos[1], 7, { staerke: 0.18, n: 18 }); const auspuffW = () => autos[1].userData.auspuff.map((p) => ({ pos: p.clone().add(new THREE.Vector3(0, 0.25, -0.3)).applyMatrix4(autos[1].matrixWorld), radius: 0.05, staerke: 0.5 }));
-        const KLAR = { uSSAA: 1, uBloom: 0.38, uHalation: 0.04, uChroma: 0, uSchaerfe: 0.3, uKlarheit: 0.22, uRolloff: 0.2, uAO: 0.5, uNebel: 0.08, uNebelHoehe: 3, uKorn: 0 };
-        W.weit = { scene: s, camera: c1, look: "golden", post: Object.assign({}, KLAR, { uStrahlen: 0.28, uFlare: 0.08, uDof: 1, uUnscharfAn: 1, uBlende: 1.8, uBokeh: 0.6, uVig: 0.32 }),
-          update(t, T) { kamera(c1, t, { art: "dollyIn", von: [0.9, 1.75, 7], nach: [0.4, 1.9, -1.5], blick: [0, 3.0, -40], blickNach: [0, 3.1, -30], dauer: 3.5, fov: 46, hand: 0.45 }); titel.update(t, { start: 0.6, dauer: 1.2 }); upd(T, t);
+        const KLAR = { uSSAA: 1, uBloom: 0.38, uHalation: 0.04, uChroma: 0, uSchaerfe: 0.3, uKlarheit: 0.22, uRolloff: 0.2, uAO: 0.5, uNebel: 0.08, uNebelHoehe: 3, uKorn: 0, uBokehOval: 0.55, uAnamorph: 0.12, uSplit: 0.12, uSplitSchatten: [0.22, 0.42, 0.5] };
+        W.weit = { scene: s, camera: c1, look: "tealOrange", post: Object.assign({}, KLAR, { uStrahlen: 0.28, uFlare: 0.08, uDof: 1, uUnscharfAn: 1, uBlende: 1.8, uBokeh: 0.6, uVig: 0.32 }),
+          update(t, T) { kamera(c1, t, { art: "dollyIn", von: [0.9, 1.05, 6], nach: [0.55, 1.2, 3.0], blick: [0, 3.2, -30], blickNach: [0, 3.25, -25], dauer: 3.5, fov: 46, hand: 0.45 }); titel.update(t, { start: 0.6, dauer: 1.2 }); upd(T, t);
             POST.uniforms.uFokus.value = c1.position.distanceTo(textPos); POST.uniforms.uNebelFarbe.value.set(0.95, 0.78, 0.6); leerlauf.update(T); autos[1].updateMatrixWorld(); hitzePunkte(POST, c1, auspuffW()); } };
-        W.tief = { scene: s, camera: c2, look: "golden", post: Object.assign({}, KLAR, { uStrahlen: 0.4, uDof: 1, uUnscharfAn: 1, uBlende: 2.2, uBokeh: 0.7, uVig: 0.34 }),
-          update(t, T) { kamera(c2, t, { art: "seitlich", von: [1.7, 0.5, -3.8], nach: [-1.1, 0.75, -4.4], blick: [0.4, 2.5, -15], blickNach: [-0.2, 2.8, -15], dauer: 3.5, fov: 50, hand: 0.3 }); titel.update(3.5 + t, { start: 0.6, dauer: 1.2 }); upd(T, t);
+        W.tief = { scene: s, camera: c2, look: "tealOrange", post: Object.assign({}, KLAR, { uStrahlen: 0.4, uDof: 1, uUnscharfAn: 1, uBlende: 2.2, uBokeh: 0.7, uVig: 0.34 }),
+          update(t, T) { kamera(c2, t, { art: "seitlich", von: [1.2, 0.5, -3.9], nach: [-0.4, 0.62, -4.2], blick: [0.4, 2.5, -15], blickNach: [-0.2, 2.8, -15], dauer: 3.5, fov: 50, hand: 0.3 }); titel.update(3.5 + t, { start: 0.6, dauer: 1.2 }); upd(T, t);
             fokusZug(POST, t, { von: 4.8, nach: c2.position.distanceTo(textPos), start: 0.6, dauer: 1.4 }); POST.uniforms.uNebelFarbe.value.set(0.95, 0.78, 0.6); leerlauf.update(T); autos[1].updateMatrixWorld(); hitzePunkte(POST, c2, auspuffW()); } };
       })();
 
       const _vp = new THREE.Matrix4();
-      function renderAt(T) { let sh = SHOTS[SHOTS.length - 1]; for (const x of SHOTS) if (T >= x.t0 && T < x.t1) { sh = x; break; } const w = W[sh.id]; WIND.staerke.value = 1;
-        Object.entries(POST_STANDARD).forEach(([k, v]) => (POST.uniforms[k].value = v)); POST.look(w.look ?? "neutral"); Object.entries(w.post || {}).forEach(([k, v]) => (POST.uniforms[k].value = v));
+      let _letztesT = null; // Timeline und hf-seek liefern denselben Zeitpunkt (einmal gerundet): nur einmal rendern
+      function renderAt(T) { if (_letztesT !== null && Math.abs(T - _letztesT) < 1e-4) return; _letztesT = T; let sh = SHOTS[SHOTS.length - 1]; for (const x of SHOTS) if (T >= x.t0 && T < x.t1) { sh = x; break; } const w = W[sh.id]; WIND.staerke.value = 1;
+        Object.entries(POST_STANDARD).forEach(([k, v]) => (POST.uniforms[k].value = v)); POST.look(w.look ?? "neutral"); Object.entries(w.post || {}).forEach(([k, v]) => { if (Array.isArray(v)) POST.uniforms[k].value.set(...v); else POST.uniforms[k].value = v; });
         let vorher = null; if (POST.uniforms.uBewegung.value > 0) { wind(T - 1 / 30); w.update(T - sh.t0 - 1 / 30, T - 1 / 30); w.camera.updateMatrixWorld(); _vp.multiplyMatrices(w.camera.projectionMatrix, w.camera.matrixWorldInverse); vorher = _vp; }
         wind(T); w.update(T - sh.t0, T); w.camera.updateMatrixWorld(); POST.render(w.scene, w.camera, T, vorher); }
       const clock = { t: 0 }; const tl = gsap.timeline({ paused: true });
