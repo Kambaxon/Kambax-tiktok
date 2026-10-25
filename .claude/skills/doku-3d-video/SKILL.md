@@ -210,6 +210,99 @@ Gilt ab dem nächsten Video. Reihenfolge der Bausteine im `<script>`: Basis-Helf
   - Oberteile mit Stricktextur.
 - **Thema zuerst:** Tageszeit, Wetter, Gebäudetyp (Platte im Osten, Glas im Bankenviertel, Ziegel im Altbauviertel), Tiere und Effekte immer aus der Geschichte ableiten, nicht wahllos alles einbauen.
 
+## Realismus-Stufe 3: Menschen, Fahrzeuge, Stadt, Natur, Flugzeuge, Tiere
+
+**Zusammenbau:** `python3 <skill>/scripts/builder/bauen.py <szenen.js>` im Projektordner. Das Skript baut `compositions/welt.html` aus allen Vorlagen. Die Szenen-Datei definiert `SHOTS`, `DUR` und `W.<id>`. Gerendert wird mit `POST.render`. Beispiel mit allen Bausteinen: `scripts/builder/szenen-test.js`.
+
+### Menschen (`figuren.js` v5)
+
+- **Herkunft:** `herkunft: "europaeisch"|"afrikanisch"|"asiatisch"|"arabisch"|"suedasiatisch"|"lateinamerikanisch"`. Ohne Angabe wird gemischt (Deutschland-typisch).
+  - Pro Herkunft passen Hauttöne, Haar- und Augenfarben, Nasenform (Breite/Rücken/Länge), Lippenvolumen, Lidform, Wangenknochen und typische Frisuren.
+  - Darstellung immer respektvoll und ohne Karikatur.
+- **Individuelle Gesichter:**
+  - Kopfform (`kopfform`: oval/rund/eckig/herz/lang).
+  - Augenabstand und -größe, Mundbreite, Ohrgröße und -abstand, Kinn.
+  - Augen mit Iris-Rand, Pupille, Glanz, Lidkante und Wimpern. Nase mit Flügeln und Löchern, Ober- und Unterlippe.
+  - Männer mit Kieferwinkeln und Adamsapfel. Frauen mit weicheren Zügen, breiterem Becken und schmalerer Taille.
+- **Haut:** eigene Gesichtskarte mit Poren, Wangenröte und Augenschatten.
+  - Optional: `sommersprossen`, `unrein`, Bartschatten, Falten (`alter: "alt"`).
+  - `behaart` 0..1: Armbehaarung bei Männern.
+- **Frisuren:**
+  - Männer: kurz, buzz, seitenscheitel, pony, mittel, manbun, undercut, glatze, halbglatze, locken, afro, dreads.
+  - Frauen: lang, wellig, bob, pixie, pferdeschwanz, dutt, zoepfe, locken, afro, pony.
+  - Ältere Menschen bekommen graues Haar und häufiger eine Brille.
+- **Kleidung zum Thema:**
+  - `stil: "alltag"|"business"` (Anzug, Krawatte, Halbschuhe) `|"sport"|"traditionell"`.
+  - Traditionell: Thobe und Ghutra mit Agal, Abaya, Hidschab, Dashiki, Kufi, Gele, Kurta. Nur einsetzen, wenn es zum Thema passt.
+  - Muster: streifen, karo, punkte, dashiki. Stoff-, Strick- und Jeansstruktur.
+- **Schmuck nur vereinzelt** (automatisch selten): `uhr` (Armbanduhr links), `ringe`, `schmuck` (Kette, Ohrringe, Armreif).
+- **Gangart:** jede Person hat eine eigene `userData.gang`.
+  - Unterschiede in Schrittweite, Tempo, Wippen, Armschwung und Hüftschwung (Frauen mehr), Vorneigung bei Älteren, selten leichtes Hinken.
+  - `walk()` addiert das Wippen auf die Grundhöhe. Personen auf dem Gehweg (y = 0.14) sinken also nicht mehr ein.
+
+### Fahrzeuge (`fahrzeuge.js`)
+
+- **Bauformen:** `fahrzeug(seed, typ, { farbe, felge, felgenFarbe })` mit `typ`:
+  - Limousinen: stufenheck, fliessheck, steilheck.
+  - Weitere: coupe, kombi, shooting, suv, gelaende, targa, minivan, stretch.
+- **Details:**
+  - Klarlack, Türfugen nach Türzahl, Griffe, Spiegel, Zierleisten.
+  - Kühlergrill (Waben/Quer/Niere), LED-Tagfahrlicht, Nebelleuchten, Diffusor, Auspuff (einfach/doppelt), Haifischflossen-Antenne.
+  - Dachreling, Kunststoffbeplankung (SUV/Gelände), Ersatzrad, Innenraum mit Sitzreihen, Display und Lenkrad.
+- **Räder:** Reifen mit Profil und gewölbter Flanke. Felgen: speichen5, vielspeichen, doppelspeichen, stahl, turbine, offroad. Dazu Bremsscheibe, farbiger Sattel und Radmuttern.
+- **Bewegung:**
+  - `fahren(car, T, strecke, { kurve, bremsen, gas })`: Räder drehen sich passend zur Strecke, die Karosserie federt, nickt und wankt leicht.
+  - `abgas(car, seed, { staerke })` erzeugt Abgaswölkchen; im Winter oder am Morgen stärker.
+- Scheinwerfer und Lichtkegel weiter mit `autoPlus(fahrzeug(...), { licht })`.
+
+### Stadt (`stadt2.js`)
+
+- **Ampeln:** `ampel(s, x, z, ry, { phase })` mit `update(T)` für Rot, Rot-Gelb, Grün und Gelb, dazu Fußgängerampel und Taster.
+- **Verkehrsschilder:** `verkehrsschild(s, x, z, typ, ry, { schief })` mit stop, vorfahrt, vorfahrtAchten, einbahn, parkverbot, halteverbot, tempo30, tempo50, fussgaenger, baustelle.
+- **Müll und Schmutz:**
+  - `muelltonne(s, x, z, { fuell: 0..1, typ: "korb"|"tonne" })`: volle Tonnen quellen über, Müll liegt daneben.
+  - `muell(s, x, z, radius, n)`: Papier, Dosen, Flaschen, Kippen, Laub, Kaugummi- und Ölflecken.
+- **„Nicht alles gerade“:** `strassenSchaeden(s, länge)` (Flickstellen, Schlaglöcher, Risse) und `schief(objekt, seed)` für Laternen, Schilder und Pfosten.
+- **Möbel mit Details:** `zimmer(s, seed, { art: "wohnzimmer"|"schlafzimmer"|"kueche", licht, tv })`. Einzeln verfügbar:
+  - Sitz- und Liegemöbel: `sofa` (Kissen, Armlehnen, Füße), `stuhl`, `bett` (Decke mit Falten, Kissen).
+  - Tische und Stauraum: `tisch` (Holzmaserung, Vase, Tasse, Buch), `regal` (Bücher, Pflanzen), `schrank`.
+  - Ausstattung: `stehlampe`, `fernseher`, `teppich`, `zimmerpflanze`, `bild`.
+
+### Natur (`natur2.js`)
+
+- **Berge:** `berge(s, { breite, tiefe, hoehe, schneegrenze, baumgrenze, baeume })` mit Graten, Farben nach Höhe und Steilheit (Wiese, Wald, Fels, Schnee) und Nadelwald unterhalb der Baumgrenze. Rückgabe `{ hoehe(x, z) }`.
+- **Bergketten:** `bergkette(s, { lagen, abstand })` für ferne Silhouetten mit Luftperspektive. Mit `camFar()` arbeiten.
+- **Nebel:**
+  - `nebel(s, farbe, dichte)` (Dunst)
+  - `bodenNebel(s, {...})` (ziehende Nebelbänke, `update(T)`)
+  - `nebelSchwaden(s, {...})` (treibende Schwaden in Straßen, Wäldern und über Wasser)
+
+### Flugzeuge (`flugzeuge.js`)
+
+- `flugzeug(typ, { farbe, fahrwerk, kondens, nachbrenner })`, echte Maße in Metern, Nase nach +z:
+  - Zivil: a320, a350, b747f, bizjet, atr72, cessna, segler, ul.
+  - Militär: eurofighter, f35, b2, a400m, awacs.
+  - Forschung: x15.
+- Ausstattung: Turbofans mit Fanschaufeln, Turboprops mit Propellern, Positionslichter (rot links, grün rechts), Blitzlicht, Lackierung mit Fensterreihen, Kondensstreifen, Nachbrenner und Raketenflamme.
+- `flugzeugUpdate(f, T)` in jedem Frame aufrufen. Große Szenen mit `camFar(4000)`.
+- Keine echten Airline-Logos; die Lackierungen sind ausgedacht.
+
+### Tiere (`tiere2.js`, zusätzlich zu Hund/Katze/Taube)
+
+- **Säugetiere:** `saeugetier(seed, "pferd"|"kuh"|"reh"|"baer"|"fuchs"|"elefant"|"wal")`.
+- **Vögel:** `vogel(seed, "spatz"|"adler"|"moewe"|"pinguin"|"rabe"|"ente", { bewegung: "picken"|"fliegen"|"gleiten"|"watscheln" })`.
+- **Reptilien und Amphibien:** `reptil(seed, "eidechse"|"krokodil"|"schlange"|"schildkroete")`, `amphibie(seed, "frosch"|"molch")`.
+- **Fische und Quallen:** `fisch(seed, "hai"|"forelle"|"thunfisch"|"goldfisch")`, `qualle(seed)`.
+- **Wirbellose:** `insekt(seed, "kaefer"|"ameise"|"biene"|"libelle")`, `spinnentier(seed, "spinne"|"skorpion")`, `weichtier(seed, "schnecke"|"tintenfisch")`.
+- **Animation:** jedes Tier hat `userData.anim(T)`. Unterwasserszenen: blauer `FogExp2`, Sandboden, Seegras und Steine (siehe Szene `wasser`).
+
+### Angenehm zum Anschauen
+
+- Weiche, ruhige Kamerafahrten.
+- Nebel und Dunst für Tiefe, nie zu dicht (Stadt `FogExp2` ≈ 0.008).
+- Warme Abendlichter.
+- Keine Kamera, durch die Autos oder Figuren hindurchfahren: Fahrwege und Kamera vorher prüfen.
+
 ## Fallen
 
 - `cam()` hat nur 400 m Sichtweite. Für alles, was weiter weg steht (Horizont, Kraftwerk, Bögen), `camFar(3000+)` nehmen und den Nebel weit genug setzen, sonst ist es unsichtbar.
@@ -225,3 +318,5 @@ Gilt ab dem nächsten Video. Reihenfolge der Bausteine im `<script>`: Basis-Helf
 - PMREM (`umgebung`) sieht nur bis 100 m. Deshalb wird die Himmelskuppel dort verkleinert, sonst bleibt die Umgebung schwarz.
 - Render-Ziele ohne Stencil haben nur 16-bit-Tiefe. Dann zeigen Kanten weit weg Treppen. `nachbearbeitung` setzt deshalb `stencilBuffer: true`.
 - Bei `sed`/Python-Ersetzungen keine `//`-Kommentare mitten in einzeilige Blöcke setzen, sonst wird der Rest der Zeile auskommentiert.
+- Hex-Farben in Materialien ohne Textur werden (Three r149, legacy) linear behandelt, Canvas-Texturen als sRGB. Farben, die zu Hautkarten passen müssen (Lippen, Lidschatten), deshalb mit `new THREE.Color(hex).convertSRGBToLinear()` setzen.
+- Fehlersuche bei einem schwarzen Snapshot: Script mit Playwright im Browser laden und `pageerror` ausgeben (Vorlage `dbg.cjs` im Scratchpad-Muster: kleiner HTTP-Server, `three.min.js` und `gsap` laden, dann das Script).

@@ -9,7 +9,6 @@
   <script src="assets/vendor/three.min.js"></script>
   <script>
     (function () {
-      const SHOTS = [{ id: "stadt", t0: 0, t1: 1 }, { id: "fassade", t0: 1, t1: 2 }, { id: "tiere", t0: 2, t1: 3 }, { id: "schuhe", t0: 3, t1: 4 }, { id: "nacht", t0: 4, t1: 5 }, { id: "feuer", t0: 5, t1: 6 }]; const DUR = 6;
       // ---------- Helfer ----------
       function rng(seed) { return function () { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
       const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -89,49 +88,107 @@
         const b = box(w, h, d, mat, x, h / 2, z, s); return { b, mat };
       }
 
-      // ===== Figuren v3: Gesichter, Finger, Kleidung, Frisuren, Bärte, Körperformen =====
+      // ===== Figuren v5: Herkunft, Kopfformen, genaue Gesichter, Hautstruktur, Schmuck, Trachten, Gangarten =====
       // person(seed, {
-      //   kind: "f"|"m", top: "tshirt"|"langarm"|"hemd"|"hoodie"|"pulli", unten: "hose"|"shorts"|"rock"|"kleid",
-      //   schuhe: "sneaker"|"stiefel"|"halbschuh", jacke: bool, hair: "kurz"|"seitenscheitel"|"pony"|"lang"|"dutt"|"locken"|"glatze"|"pferdeschwanz"|"bob"|"afro"|"undercut",
-      //   bart: "keiner"|"vollbart"|"dreitage"|"schnurrbart"|"kinnbart", brille: bool, oberweite: 0..1, bauch: 0..1,
-      //   farbeOben, farbeUnten, skin, hairColor, scale })
-      // userData: hipL, hipR, kneeL, kneeR, shL, shR, elL, elR, head, face, eyes, phase  (idle()/walk() kompatibel)
+      //   kind: "f"|"m", herkunft: "europaeisch"|"afrikanisch"|"asiatisch"|"arabisch"|"suedasiatisch"|"lateinamerikanisch",
+      //   alter: "kind"|"jung"|"mittel"|"alt", kopfform: "oval"|"rund"|"eckig"|"herz"|"lang",
+      //   stil: "alltag"|"business"|"sport"|"traditionell", kopftuch: bool,
+      //   top: "tshirt"|"langarm"|"hemd"|"hoodie"|"pulli", muster: "uni"|"streifen"|"karo"|"punkte"|"dashiki",
+      //   unten: "hose"|"shorts"|"rock"|"kleid", schuhe: "sneaker"|"stiefel"|"halbschuh", jacke: bool,
+      //   hair: "kurz"|"buzz"|"seitenscheitel"|"pony"|"mittel"|"manbun"|"undercut"|"glatze"|"halbglatze"|"locken"|"afro"|"dreads"|
+      //         "lang"|"wellig"|"bob"|"pixie"|"pferdeschwanz"|"dutt"|"zoepfe",
+      //   bart: "keiner"|"vollbart"|"dreitage"|"schnurrbart"|"kinnbart", brille, uhr, ringe, schmuck (bool, sonst selten zufällig),
+      //   unrein, sommersprossen, behaart (0..1), augenfarbe, oberweite, bauch, farbeOben, farbeUnten, skin, hairColor, scale })
+      // userData: hipL, hipR, kneeL, kneeR, shL, shR, elL, elR, head, face, eyes, handL, handR, phase, gang  (idle()/walk() kompatibel)
       const SKIN3 = [0xf6d6bf, 0xeec0a0, 0xe0aa82, 0xc88c64, 0xa86e48, 0x8a5636, 0x6a3e26, 0x4e2c1a];
       const HAIR3 = [0x14100c, 0x2a1c12, 0x4a2e1a, 0x6e4a2a, 0x9a6e3e, 0xc8a464, 0xe2cc98, 0xd8d4cc, 0x8a8682, 0x8e2e1a, 0xb04a24];
       const OBEN3 = [0x2f4f8f, 0xb8352e, 0x3f7d4f, 0xd8a838, 0x5a4a8a, 0x2b2b30, 0xeee8dc, 0x1f6f8b, 0xc8708a, 0x6a5038, 0x8a9aa8, 0xe07a2a, 0x2a6a6a, 0xf2f2f2, 0x9a2a4a];
       const UNTEN3 = [0x283246, 0x353535, 0x4f4232, 0x1f2f46, 0x5a5a5e, 0x6a5a40, 0x3a4a3a, 0x1a1a22, 0x7a6a5a];
       const JACKE3 = [0x2a2e36, 0x4a3a2a, 0x3a4a3a, 0x6a6a70, 0x7a2a22, 0x1e2a44, 0xb89a6a];
+      // Herkunft: Hauttöne, Haarfarben, Augenfarben, Gesichtszüge (Faktoren), typische Frisuren
+      const HERKUNFT = {
+        europaeisch:        { haut: [0xf6d6bf, 0xf2cdb0, 0xeec0a0, 0xe8b898, 0xe0aa82], haar: [0x2a1c12, 0x4a2e1a, 0x6e4a2a, 0x9a6e3e, 0xc8a464, 0xe2cc98, 0x8e2e1a, 0xb04a24], augen: [0x3a6a9a, 0x5a8ab8, 0x4a7a5a, 0x6a7a7a, 0x7a5a2a, 0x4a2e18], nase: [1.0, 1.0, 1.05], lippe: 1.0, lid: 1.0, wange: 1.0, wM: ["kurz", "seitenscheitel", "undercut", "buzz", "mittel", "halbglatze", "pony"], wF: ["lang", "wellig", "bob", "pferdeschwanz", "dutt", "pixie", "zoepfe"] },
+        afrikanisch:        { haut: [0x8a5636, 0x7a4a2c, 0x6a3e26, 0x5a3420, 0x4e2c1a, 0x3e2214], haar: [0x0e0a08, 0x14100c, 0x1e1610], augen: [0x2a1608, 0x3a2010, 0x1e1008], nase: [1.38, 0.72, 0.92], lippe: 1.55, lid: 1.0, wange: 1.05, wM: ["buzz", "afro", "dreads", "glatze", "kurz", "locken"], wF: ["afro", "zoepfe", "dreads", "locken", "dutt", "bob"] },
+        asiatisch:          { haut: [0xf2d6b8, 0xeccaa6, 0xe4bc96, 0xdab08a], haar: [0x0e0a08, 0x14100c, 0x1e1610, 0x3a2414], augen: [0x2a1608, 0x3a2010, 0x24140a], nase: [1.12, 0.6, 0.9], lippe: 1.05, lid: 0.7, wange: 1.25, wM: ["kurz", "seitenscheitel", "pony", "undercut", "mittel"], wF: ["lang", "bob", "pony", "pferdeschwanz", "dutt", "pixie"] },
+        arabisch:           { haut: [0xe2b48c, 0xd8a880, 0xcc9a72, 0xbc8a64], haar: [0x0e0a08, 0x14100c, 0x2a1c12], augen: [0x3a2010, 0x5a3a1a, 0x4a3a1a, 0x5a6a3a], nase: [1.02, 1.3, 1.15], lippe: 1.15, lid: 0.95, wange: 1.05, wM: ["kurz", "seitenscheitel", "undercut", "locken", "buzz"], wF: ["lang", "wellig", "locken", "dutt", "pferdeschwanz"] },
+        suedasiatisch:      { haut: [0xbc8458, 0xac764e, 0x9c6a46, 0x8a5c3c], haar: [0x0e0a08, 0x14100c, 0x1e1610], augen: [0x2a1608, 0x3a2010, 0x4a3018], nase: [1.12, 1.0, 1.05], lippe: 1.2, lid: 0.95, wange: 1.0, wM: ["kurz", "seitenscheitel", "locken", "undercut"], wF: ["lang", "zoepfe", "dutt", "wellig", "pferdeschwanz"] },
+        lateinamerikanisch: { haut: [0xdcae86, 0xcc9a72, 0xbc8a64, 0xac7a56], haar: [0x14100c, 0x2a1c12, 0x4a2e1a], augen: [0x3a2010, 0x5a3a1a, 0x4a5a3a], nase: [1.12, 0.92, 1.0], lippe: 1.25, lid: 0.95, wange: 1.1, wM: ["kurz", "locken", "undercut", "buzz", "seitenscheitel"], wF: ["lang", "wellig", "locken", "pferdeschwanz", "dutt"] },
+      };
+      const HERKUNFT_MIX = ["europaeisch", "europaeisch", "europaeisch", "europaeisch", "afrikanisch", "asiatisch", "arabisch", "arabisch", "suedasiatisch", "lateinamerikanisch"];
+
       const STOFF = {};
-      function texStoff(art) { // weiß-graue Webstruktur, wird mit der Kleidungsfarbe multipliziert
-        if (STOFF[art]) return STOFF[art];
-        const t = canvasTex(128, 128, (g) => { const q = rng(art.length * 31); g.fillStyle = "#f2f2f2"; g.fillRect(0, 0, 128, 128);
+      function texStoff(art, farbe2) { // weiß-graue Webstruktur oder farbiges Muster (dann Materialfarbe = Grundfarbe)
+        const key = art + (farbe2 ?? ""); if (STOFF[key]) return STOFF[key];
+        const t = canvasTex(128, 128, (g) => { const q = rng(art.length * 31 + (farbe2 ?? 0) % 997); g.fillStyle = "#f2f2f2"; g.fillRect(0, 0, 128, 128);
+          const c2 = farbe2 != null ? "#" + new THREE.Color(farbe2).getHexString() : "#333";
           if (art === "jeans") { for (let i = -128; i < 256; i += 3) { g.strokeStyle = `rgba(${q() < 0.5 ? "255,255,255,.35" : "0,0,0,.12"})`; g.lineWidth = 1.2; g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 128, 128); g.stroke(); }
             for (let i = 0; i < 260; i++) { g.fillStyle = `rgba(255,255,255,${q() * 0.25})`; g.fillRect(q() * 128, q() * 128, 1 + q() * 4, 1); } }
           else if (art === "strick") { for (let y = 0; y < 128; y += 4) for (let x = 0; x < 128; x += 4) { g.fillStyle = `rgba(0,0,0,${0.04 + q() * 0.05})`; g.fillRect(x, y, 2, 3); } }
-          else { for (let i = 0; i < 1600; i++) { g.fillStyle = `rgba(0,0,0,${q() * 0.07})`; g.fillRect(q() * 128, q() * 128, 2, 2); } }
+          else if (art === "streifen") { g.fillStyle = c2; for (let y = 0; y < 128; y += 16) g.fillRect(0, y, 128, 6); }
+          else if (art === "karo") { g.globalAlpha = 0.45; g.fillStyle = c2; for (let i = 0; i < 128; i += 32) { g.fillRect(i, 0, 12, 128); g.fillRect(0, i, 128, 12); } g.globalAlpha = 0.8; g.fillRect(0, 0, 0, 0); for (let i = 0; i < 128; i += 32) { g.fillRect(i + 20, 0, 2, 128); g.fillRect(0, i + 20, 128, 2); } g.globalAlpha = 1; }
+          else if (art === "punkte") { g.fillStyle = c2; for (let y = 0; y < 128; y += 16) for (let x = (y / 16) % 2 * 8; x < 128; x += 16) { g.beginPath(); g.arc(x + 4, y + 4, 2.6, 0, 7); g.fill(); } }
+          else if (art === "dashiki") { const cs = ["#d8a020", "#1a1a1a", "#c43a2b", "#2a6a3a", "#f2ece0"]; for (let y = 0; y < 128; y += 32) for (let x = 0; x < 128; x += 32) { g.fillStyle = cs[(x / 32 + y / 32) % 5]; g.beginPath(); g.moveTo(x + 16, y); g.lineTo(x + 32, y + 16); g.lineTo(x + 16, y + 32); g.lineTo(x, y + 16); g.fill(); g.strokeStyle = "#1a1a1a"; g.lineWidth = 2; g.stroke(); g.fillStyle = cs[(x / 32 + y / 32 + 2) % 5]; g.beginPath(); g.arc(x + 16, y + 16, 5, 0, 7); g.fill(); } }
+          if (art !== "jeans") for (let i = 0; i < 900; i++) { g.fillStyle = `rgba(0,0,0,${q() * 0.06})`; g.fillRect(q() * 128, q() * 128, 2, 2); } // Webstruktur
         });
-        t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); STOFF[art] = t; return t;
+        t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); STOFF[key] = t; return t;
+      }
+      // Haut: Poren (+ Armbehaarung). Gesicht: eigene Karte mit Wangenröte, Augenschatten, Sommersprossen, Unreinheiten, Bartschatten, Falten.
+      const HAUT = {};
+      function texHaut(skinC, haare = 0) {
+        const key = skinC + "_" + Math.round(haare * 4); if (HAUT[key]) return HAUT[key];
+        const base = new THREE.Color(skinC);
+        const t = canvasTex(128, 128, (g) => { const q = rng(skinC % 9973 + haare * 7); g.fillStyle = "#" + base.getHexString(); g.fillRect(0, 0, 128, 128);
+          for (let i = 0; i < 1400; i++) { const v = (q() - 0.5) * 0.08; g.fillStyle = v > 0 ? `rgba(255,240,230,${v})` : `rgba(80,30,20,${-v})`; g.fillRect(q() * 128, q() * 128, 1.5, 1.5); }
+          if (haare > 0) { g.strokeStyle = `rgba(30,20,12,${0.18 + haare * 0.25})`; g.lineWidth = 0.7; for (let i = 0; i < 380 * haare; i++) { const x = q() * 128, y = q() * 128; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (q() - 0.5) * 2, y + 3 + q() * 3); g.stroke(); } } });
+        t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2, 2); HAUT[key] = t; return t;
+      }
+      function texGesicht(seed, skinC, o, teil) { // UV einer Kugel: Gesichtsmitte u=0.25, oben v=1 (Canvas oben)
+        const W = 512, H = 256, base = new THREE.Color(skinC), q = rng(seed * 13 + (teil === "kiefer" ? 5 : 1));
+        return canvasTex(W, H, (g) => {
+          g.fillStyle = "#" + base.getHexString(); g.fillRect(0, 0, W, H);
+          const fx = W * 0.25, dot = (x, y, rad, col) => { g.fillStyle = col; g.beginPath(); g.arc(x, y, rad, 0, 7); g.fill(); };
+          const weich = (x, y, rad, col) => { const gr = g.createRadialGradient(x, y, 0, x, y, rad); gr.addColorStop(0, col); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2); };
+          for (let i = 0; i < 6000; i++) { const v = (q() - 0.5) * 0.07; g.fillStyle = v > 0 ? `rgba(255,240,230,${v})` : `rgba(90,40,30,${-v})`; g.fillRect(q() * W, q() * H, 1.4, 1.4); } // Poren
+          if (teil !== "kiefer") {
+            for (const sx of [-1, 1]) { weich(fx + sx * 44, H * 0.57, 34, `rgba(200,60,60,${o.wangenrot})`); weich(fx + sx * 30, H * 0.45, 26, "rgba(70,35,30,.22)"); weich(fx + sx * 30, H * 0.5, 14, "rgba(60,30,40,.12)"); g.strokeStyle = "rgba(70,35,30,.3)"; g.lineWidth = 1.5; g.beginPath(); g.ellipse(fx + sx * 30, H * 0.44, 15, 7, 0, Math.PI * 1.1, Math.PI * 1.9); g.stroke(); } // Wangen, Augenhöhlen, Lidfalte
+            if (o.sommersprossen) for (let i = 0; i < 140; i++) dot(fx + (q() - 0.5) * 110, H * (0.47 + q() * 0.14), 0.7 + q() * 1.0, `rgba(130,70,30,${0.12 + q() * 0.18})`);
+            if (o.falten) { g.strokeStyle = "rgba(70,35,25,.22)"; g.lineWidth = 1.1; for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(fx - 40, H * (0.28 + k * 0.03)); g.quadraticCurveTo(fx, H * (0.27 + k * 0.03), fx + 40, H * (0.28 + k * 0.03)); g.stroke(); }
+              for (const sx of [-1, 1]) for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(fx + sx * 34, H * 0.47); g.lineTo(fx + sx * 44, H * (0.44 + k * 0.03)); g.stroke(); g.beginPath(); g.moveTo(fx + sx * 12, H * 0.56); g.quadraticCurveTo(fx + sx * 20, H * 0.63, fx + sx * 18, H * 0.68); g.stroke(); } }
+          }
+          if (o.unrein) for (let i = 0; i < 10 + q() * 14; i++) { const x = fx + (q() - 0.5) * 120, y = H * (teil === "kiefer" ? 0.45 + q() * 0.3 : 0.3 + q() * 0.4); dot(x, y, 1.2 + q() * 1.6, `rgba(190,60,50,${0.35 + q() * 0.25})`); if (q() < 0.3) dot(x + 2, y + 1, 1, "rgba(110,50,35,.35)"); }
+          if (o.bartschatten > 0) { const y0 = teil === "kiefer" ? H * 0.3 : H * 0.62; for (let i = 0; i < 9000 * o.bartschatten; i++) { const x = fx + (q() - 0.5) * (teil === "kiefer" ? 230 : 150), y = y0 + q() * (H * 0.95 - y0); if (teil !== "kiefer" && Math.abs(x - fx) < 14 && y < H * 0.66) continue; g.fillStyle = `rgba(30,24,22,${0.12 + q() * 0.18})`; g.fillRect(x, y, 1.2, 1.2); } }
+        });
       }
       function person(seed, o = {}) {
         const r = rng(seed * 7919 + 13), g = new THREE.Group();
-        const pick = (a) => a[Math.floor(r() * a.length)];
+        const pick = (a) => a[Math.floor(r() * a.length)], vr = (k = 0.15) => 1 + (r() - 0.5) * 2 * k;
         const S = (c, rough = 0.75, extra = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: rough, metalness: 0 }, extra));
-        const kind = o.kind ?? (r() < 0.5 ? "f" : "m");
-        const skinC = o.skin ?? pick(SKIN3), hairC = o.hairColor ?? pick(HAIR3);
-        const skin = S(skinC, 0.55), hair = S(hairC, 0.85);
-        const topType = o.top ?? pick(kind === "f" ? ["tshirt", "langarm", "pulli", "hemd", "hoodie", "tshirt"] : ["tshirt", "hemd", "pulli", "hoodie", "langarm", "tshirt"]);
-        const unten = o.unten ?? (kind === "f" ? pick(["hose", "hose", "rock", "kleid", "shorts"]) : pick(["hose", "hose", "hose", "shorts"]));
-        const topC = o.farbeOben ?? pick(OBEN3), untenC = unten === "kleid" ? topC : (o.farbeUnten ?? pick(UNTEN3));
-        const top = S(topC, 0.8, { map: texStoff("strick") }), bottom = S(untenC, 0.85, { map: texStoff(unten === "hose" && r() < 0.6 ? "jeans" : "stoff") });
-        const schuhe = o.schuhe ?? pick(["sneaker", "sneaker", "stiefel", "halbschuh"]);
-        const shoeM = S(schuhe === "sneaker" ? pick([0xf2f2f2, 0x2a2a2a, 0x3a5a9a, 0xc43a2b]) : pick([0x1a1a1a, 0x3a2a1e, 0x5a3a28]), 0.5);
-        const wide = (kind === "m" ? 1.0 + r() * 0.14 : 0.86 + r() * 0.1) * (1 + (o.bauch ?? 0) * 0.1);
-        const bauch = o.bauch ?? (kind === "m" && r() < 0.2 ? 0.3 + r() * 0.5 : 0), oberweite = kind === "f" ? (o.oberweite ?? r()) : 0;
-        const mk = (geo, mat, x, y, z, parent) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; (parent || g).add(m); return m; };
+        const kind = o.kind ?? (r() < 0.5 ? "f" : "m"), m = kind === "m";
+        const herkunft = o.herkunft ?? pick(HERKUNFT_MIX), H = HERKUNFT[herkunft];
+        const alter = o.alter ?? pick(["jung", "jung", "mittel", "mittel", "alt"]), alt = alter === "alt", kindlich = alter === "kind";
+        const skinC = o.skin ?? pick(H.haut);
+        let hairC = o.hairColor ?? (alt && r() < 0.8 ? pick([0xd8d4cc, 0xb8b4ae, 0x8a8682, 0xeae6e0]) : r() < 0.06 ? pick([0xb04a24, 0x8a5aa0, 0xd8b070]) : pick(H.haar));
+        const behaart = o.behaart ?? (m && !kindlich ? (herkunft === "asiatisch" ? r() * 0.3 : r()) : 0);
+        const skin = S(0xffffff, 0.55, { map: texHaut(skinC) }), armSkin = behaart > 0.35 ? S(0xffffff, 0.6, { map: texHaut(skinC, behaart) }) : skin;
+        const hair = S(hairC, 0.7);
+        const stil = o.stil ?? "alltag", trad = stil === "traditionell", business = stil === "business";
+        const topType = o.top ?? (business ? "hemd" : stil === "sport" ? pick(["tshirt", "hoodie"]) : pick(m ? ["tshirt", "hemd", "pulli", "hoodie", "langarm", "tshirt"] : ["tshirt", "langarm", "pulli", "hemd", "hoodie", "tshirt"]));
+        const unten = o.unten ?? (business ? (m ? "hose" : pick(["hose", "rock"])) : stil === "sport" ? pick(["hose", "shorts"]) : m ? pick(["hose", "hose", "hose", "shorts"]) : pick(["hose", "hose", "rock", "kleid", "shorts"]));
+        const topC = o.farbeOben ?? (business ? pick([0xf2f2f0, 0xdce6f2, 0xf2ece4]) : pick(OBEN3));
+        const untenC = unten === "kleid" ? topC : (o.farbeUnten ?? (business ? pick([0x22252c, 0x2a3040, 0x3a3a3e]) : pick(UNTEN3)));
+        const muster = o.muster ?? (herkunft === "afrikanisch" && trad ? "dashiki" : r() < 0.22 && topType !== "hoodie" && !business ? pick(["streifen", "karo", "punkte"]) : "uni");
+        const top = muster === "uni" ? S(topC, 0.8, { map: texStoff(topType === "pulli" ? "strick" : "stoff") }) : S(muster === "dashiki" ? 0xffffff : topC, 0.8, { map: texStoff(muster, muster === "dashiki" ? null : new THREE.Color(topC).offsetHSL(0.5, 0, r() < 0.5 ? 0.3 : -0.3).getHex()) });
+        const bottom = S(untenC, 0.85, { map: texStoff(unten === "hose" && !business && r() < 0.6 ? "jeans" : "stoff") });
+        const schuhe = o.schuhe ?? (business ? "halbschuh" : stil === "sport" ? "sneaker" : pick(["sneaker", "sneaker", "stiefel", "halbschuh"]));
+        const shoeM = S(schuhe === "sneaker" ? pick([0xf2f2f2, 0x2a2a2a, 0x3a5a9a, 0xc43a2b]) : pick([0x1a1a1a, 0x3a2a1e, 0x5a3a28]), schuhe === "halbschuh" ? 0.35 : 0.5);
+        // Geschlechtsdimorphismus: Männer breitere Schultern, Frauen breiteres Becken und schmalere Taille
+        const wide = (m ? 1.0 + r() * 0.14 : 0.86 + r() * 0.1) * (1 + (o.bauch ?? 0) * 0.1), becken = m ? wide : wide * (1.12 + r() * 0.08);
+        const bauch = o.bauch ?? (m && r() < 0.2 ? 0.3 + r() * 0.5 : !m && r() < 0.08 ? 0.3 : 0), oberweite = !m ? (o.oberweite ?? r()) : 0;
+        const mk = (geo, mat, x, y, z, parent) => { const ms = new THREE.Mesh(geo, mat); ms.position.set(x, y, z); ms.castShadow = true; ms.receiveShadow = true; (parent || g).add(ms); return ms; };
         const shortLeg = unten === "shorts" || unten === "rock" || unten === "kleid";
         // ---- Beine: Oberschenkel / Knie / Unterschenkel, Schuhe ----
         const hipL = new THREE.Group(), hipR = new THREE.Group(), kneeL = new THREE.Group(), kneeR = new THREE.Group();
-        hipL.position.set(-0.095 * wide, 0.9, 0); hipR.position.set(0.095 * wide, 0.9, 0); g.add(hipL, hipR);
+        hipL.position.set(-0.095 * becken, 0.9, 0); hipR.position.set(0.095 * becken, 0.9, 0); g.add(hipL, hipR);
         const dunkler = (c, k = -0.07) => new THREE.Color(c).offsetHSL(0, 0, k).getHex();
         const naht = S(unten === "hose" && new THREE.Color(untenC).b > new THREE.Color(untenC).r * 1.3 ? 0xc89048 : dunkler(untenC, -0.12), 0.9); // Jeans: orange Steppnaht
         for (const [hp, kn, aussen] of [[hipL, kneeL, -1], [hipR, kneeR, 1]]) {
@@ -168,117 +225,209 @@
           if (schuhe === "stiefel") { mk(new THREE.CylinderGeometry(0.062, 0.06, 0.2, 20), shoeM, 0, -0.32, 0, kn); for (let k = 0; k < 5; k++) box(0.04, 0.005, 0.006, lace, 0, -0.23 - k * 0.03, 0.06, kn); }
         }
         // ---- Becken, Rumpf, Brust, Bauch ----
-        mk(new THREE.CylinderGeometry(0.142 * wide, 0.165 * wide, 0.17, 18), unten === "kleid" ? top : bottom, 0, 0.94, 0).scale.z = 0.64;
-        mk(new THREE.SphereGeometry(0.12 * wide, 24, 12), unten === "kleid" || unten === "rock" ? top : bottom, 0, 0.86, 0).scale.set(1, 0.55, 0.62); // Schritt: weicher Übergang zu den Beinen
+        mk(new THREE.CylinderGeometry(0.142 * becken, 0.165 * becken, 0.17, 24), unten === "kleid" ? top : bottom, 0, 0.94, 0).scale.z = 0.64;
+        mk(new THREE.SphereGeometry(0.12 * becken, 24, 12), unten === "kleid" || unten === "rock" ? top : bottom, 0, 0.86, 0).scale.set(1, 0.55, 0.62); // Schritt: weicher Übergang zu den Beinen
+        if (!m) for (const sx of [-1, 1]) mk(new THREE.SphereGeometry(0.09, 20, 14), unten === "kleid" ? top : bottom, sx * 0.085 * becken, 0.91, -0.01).scale.set(0.9, 1.1, 0.95); // Hüften
         if (unten === "hose" || unten === "shorts") { // Gesäßtaschen, Hosenschlitz, Gürtel (bei Hemd)
-          for (const sx of [-1, 1]) { const ta = box(0.075, 0.07, 0.006, S(dunkler(untenC, -0.05), 0.9), sx * 0.07 * wide, 0.9, -0.1 * wide, g); ta.rotation.y = Math.PI + sx * 0.3; }
-          box(0.006, 0.09, 0.006, naht, 0.012, 0.9, 0.103 * wide, g);
-          if (topType === "hemd") { const gu = mk(new THREE.CylinderGeometry(0.147 * wide, 0.149 * wide, 0.035, 24), S(0x2a1e16, 0.45), 0, 1.005, 0); gu.scale.z = 0.66; box(0.04, 0.03, 0.01, M(0xc8c8c0, { metalness: 0.9, roughness: 0.3 }), 0, 1.005, 0.1 * wide, g); }
+          for (const sx of [-1, 1]) { const ta = box(0.075, 0.07, 0.006, S(dunkler(untenC, -0.05), 0.9), sx * 0.07 * becken, 0.9, -0.1 * becken - (m ? 0 : 0.012), g); ta.rotation.y = Math.PI + sx * 0.3; }
+          box(0.006, 0.09, 0.006, naht, 0.012, 0.9, 0.103 * becken, g);
+          if (topType === "hemd") { const gu = mk(new THREE.CylinderGeometry(0.147 * becken, 0.149 * becken, 0.035, 24), S(0x2a1e16, 0.45), 0, 1.005, 0); gu.scale.z = 0.66; box(0.04, 0.03, 0.01, M(0xc8c8c0, { metalness: 0.9, roughness: 0.3 }), 0, 1.005, 0.1 * becken, g); }
         }
-        const torso = mk(new THREE.CylinderGeometry(0.188 * wide, 0.152 * wide, 0.5, 20), top, 0, 1.24, 0); torso.scale.z = 0.6;
-        const shoulders = mk(new THREE.SphereGeometry(0.207 * wide, 22, 12, 0, Math.PI * 2, 0, Math.PI / 2), top, 0, 1.455, 0); shoulders.scale.set(1, 0.44, 0.62);
-        if (oberweite > 0.05) { const br = 0.052 + oberweite * 0.026; for (const sx of [-1, 1]) { const b = mk(new THREE.SphereGeometry(br, 24, 18), top, sx * 0.046 * wide, 1.325, 0.058 + oberweite * 0.018); b.scale.set(1.0, 0.9, 0.66 + oberweite * 0.12); } } // ueberlappend, weich eingebettet
+        const taille = m ? 0.152 * wide : 0.13 * wide;
+        const torso = mk(new THREE.CylinderGeometry(0.188 * wide * (m ? 1.04 : 0.95), taille, 0.5, 24), top, 0, 1.24, 0); torso.scale.z = 0.6;
+        const shoulders = mk(new THREE.SphereGeometry(0.207 * wide * (m ? 1.04 : 0.95), 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), top, 0, 1.455, 0); shoulders.scale.set(1, 0.44, 0.62);
+        if (oberweite > 0.05) { for (const sx of [-1, 1]) { const b = mk(new THREE.SphereGeometry(0.075, 32, 20), top, sx * 0.045 * wide, 1.33, 0.025 + oberweite * 0.022); b.scale.set(0.82, 0.8, 0.95); } }
         if (bauch > 0.15) { const bb = mk(new THREE.SphereGeometry(0.13, 24, 16), top, 0, 1.1, 0.01 + bauch * 0.05); bb.scale.set(1.25 * wide, 1.1, 0.55 + bauch * 0.3); }
-        if (unten === "rock" || unten === "kleid") { const sk = mk(new THREE.CylinderGeometry(0.17 * wide, 0.27 * wide, unten === "kleid" ? 0.42 : 0.38, 24, 1, true), bottom, 0, 0.72, 0); sk.scale.z = 0.8; sk.material.side = THREE.DoubleSide; }
+        if (unten === "rock" || unten === "kleid") { const sk = mk(new THREE.CylinderGeometry(0.17 * becken, 0.27 * becken, unten === "kleid" ? 0.42 : 0.38, 28, 1, true), bottom, 0, 0.72, 0); sk.scale.z = 0.8; sk.material.side = THREE.DoubleSide; }
         // Oberteil-Details
         const lighter = S(new THREE.Color(topC).offsetHSL(0, 0, 0.1).getHex(), 0.8);
         if (topType === "hemd") {
           for (const sx of [-1, 1]) { const flap = mk(new THREE.BoxGeometry(0.07, 0.05, 0.01), lighter, sx * 0.04, 1.515, 0.075); flap.rotation.z = sx * 0.5; }
           for (let i = 0; i < 5; i++) mk(new THREE.CylinderGeometry(0.006, 0.006, 0.004, 8), S(0xf2f2ee, 0.4), 0, 1.44 - i * 0.085, 0.118 - i * 0.003).rotation.x = Math.PI / 2;
+          if (business && m) { const kr = S(pick([0x7a1a22, 0x1e2a4a, 0x2a2a2e, 0x3a5a3a]), 0.5); mk(new THREE.BoxGeometry(0.03, 0.03, 0.02), kr, 0, 1.5, 0.11); const kb = mk(new THREE.CylinderGeometry(0.032, 0.014, 0.3, 4), kr, 0, 1.34, 0.118); kb.scale.z = 0.25; kb.rotation.y = Math.PI / 4; } // Krawatte
         } else mk(new THREE.TorusGeometry(0.062, 0.015, 8, 20), lighter, 0, 1.53, 0).rotation.x = Math.PI / 2;
         if (topType === "hoodie") {
           const hood = mk(new THREE.SphereGeometry(0.11, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.6), top, 0, 1.54, -0.09); hood.scale.set(1.1, 0.7, 0.8); hood.rotation.x = -1.2;
           mk(new THREE.BoxGeometry(0.2 * wide, 0.11, 0.02), lighter, 0, 1.07, 0.098 + bauch * 0.05);
           for (const sx of [-1, 1]) mk(new THREE.CylinderGeometry(0.004, 0.004, 0.12, 6), S(0xeeeeee), sx * 0.03, 1.45, 0.112);
         }
-        if (topType === "pulli") for (let i = 0; i < 3; i++) mk(new THREE.TorusGeometry(0.152 * wide - i * 0.001, 0.008, 6, 24), lighter, 0, 1.0 + i * 0.015, 0).scale.z = 0.62;
-        const jacke = o.jacke ?? (r() < 0.25);
+        if (topType === "pulli") for (let i = 0; i < 3; i++) mk(new THREE.TorusGeometry(taille - i * 0.001, 0.008, 6, 24), lighter, 0, 1.0 + i * 0.015, 0).scale.z = 0.62;
+        const jacke = o.jacke ?? (business ? true : r() < 0.25);
         let armMat = top;
         if (jacke) {
-          const jc = S(pick(JACKE3), 0.7);
-          const shell = mk(new THREE.CylinderGeometry(0.216 * wide, 0.175 * wide, 0.56, 22, 1, true, Math.PI * 0.6, Math.PI * 1.8), jc, 0, 1.22, 0); shell.scale.z = 0.68; shell.material.side = THREE.DoubleSide;
+          const jc = S(business ? untenC : pick(JACKE3), business ? 0.6 : 0.7, { map: texStoff("stoff") });
+          const shell = mk(new THREE.CylinderGeometry(0.216 * wide, (taille + 0.025), 0.56, 26, 1, true, Math.PI * 0.6, Math.PI * 1.8), jc, 0, 1.22, 0); shell.scale.z = 0.68; shell.material.side = THREE.DoubleSide;
           for (const sx of [-1, 1]) { const rev = mk(new THREE.BoxGeometry(0.045, 0.2, 0.012), jc, sx * 0.075, 1.42, 0.125); rev.rotation.z = sx * 0.3; }
+          if (business) for (let i = 0; i < 2; i++) mk(new THREE.CylinderGeometry(0.007, 0.007, 0.005, 10), S(0x1a1a1a, 0.4), 0.075, 1.12 + i * 0.08, 0.125).rotation.x = Math.PI / 2;
           armMat = jc;
         }
+        // Trachten / Kleidung je Herkunft (nur mit stil: "traditionell" oder kopftuch: true)
+        const robe = trad && (herkunft === "arabisch" || (herkunft === "suedasiatisch" && m));
+        if (robe) { const farbe = herkunft === "arabisch" ? (m ? pick([0xf6f4ee, 0xece6da, 0xd8d2c4]) : 0x18181c) : pick([0xf2ece0, 0xd8c8a0, 0x9ab4c8]);
+          const rb = S(farbe, 0.85, { map: texStoff("stoff"), side: THREE.DoubleSide }); const len = herkunft === "arabisch" ? 1.38 : 0.95;
+          const kl = mk(new THREE.CylinderGeometry(0.2 * wide, 0.27 * wide, len, 32, 1, true), rb, 0, 1.5 - len / 2, 0); kl.scale.z = 0.72;
+          if (m && herkunft === "arabisch") for (let i = 0; i < 4; i++) mk(new THREE.CylinderGeometry(0.005, 0.005, 0.004, 8), S(0xe8e2d4), 0, 1.47 - i * 0.05, 0.118).rotation.x = Math.PI / 2; }
         // ---- Arme, Ellbogen, Hände mit Fingern ----
-        const shL = new THREE.Group(), shR = new THREE.Group(); shL.position.set(-0.235 * wide, 1.44, 0); shR.position.set(0.235 * wide, 1.44, 0); g.add(shL, shR);
-        const elL = new THREE.Group(), elR = new THREE.Group(); const kurzarm = topType === "tshirt" && !jacke; const hands = [];
+        const shX = 0.235 * wide * (m ? 1.04 : 0.95);
+        const shL = new THREE.Group(), shR = new THREE.Group(); shL.position.set(-shX, 1.44, 0); shR.position.set(shX, 1.44, 0); g.add(shL, shR);
+        const elL = new THREE.Group(), elR = new THREE.Group(); const kurzarm = topType === "tshirt" && !jacke && !robe; const hands = [];
+        const armRobe = robe ? S(herkunft === "arabisch" && !m ? 0x18181c : 0xf2ece0, 0.85) : null;
+        const uhr = o.uhr ?? r() < 0.22, ringe = o.ringe ?? r() < 0.12, schmuck = o.schmuck ?? (!m ? r() < 0.25 : r() < 0.06);
+        const gold = S(pick([0xd8b04a, 0xc8c8cc, 0xe0c070]), 0.25, { metalness: 1 });
         for (const [sh, el, sx] of [[shL, elL, -1], [shR, elR, 1]]) {
-          mk(new THREE.SphereGeometry(0.062, 16, 12), armMat, 0, 0, 0, sh);
-          if (kurzarm) { mk(new THREE.CylinderGeometry(0.064, 0.058, 0.15, 24), armMat, 0, -0.075, 0, sh); mk(new THREE.CylinderGeometry(0.05, 0.0465, 0.16, 24), skin, 0, -0.22, 0, sh); }
-          else mk(new THREE.CylinderGeometry(0.056, 0.047, 0.3, 16), armMat, 0, -0.15, 0, sh);
+          const aM = armRobe || armMat;
+          mk(new THREE.SphereGeometry(0.062, 20, 14), aM, 0, 0, 0, sh);
+          if (kurzarm) { mk(new THREE.CylinderGeometry(0.064, 0.058, 0.15, 24), aM, 0, -0.075, 0, sh); mk(new THREE.CylinderGeometry(0.05, 0.0465, 0.16, 24), armSkin, 0, -0.22, 0, sh); }
+          else mk(new THREE.CylinderGeometry(0.056, 0.047, 0.3, 20), aM, 0, -0.15, 0, sh);
           el.position.y = -0.3; sh.add(el);
-          mk(new THREE.SphereGeometry(0.0465, 24, 16), kurzarm ? skin : armMat, 0, 0, 0, el);
-          mk(new THREE.CylinderGeometry(0.046, 0.036, 0.25, 24), kurzarm ? skin : armMat, 0, -0.125, 0, el);
-          if (!kurzarm) mk(new THREE.CylinderGeometry(0.04, 0.04, 0.03, 16), lighter, 0, -0.245, 0, el); // Bündchen
+          mk(new THREE.SphereGeometry(0.0465, 24, 16), kurzarm ? armSkin : aM, 0, 0, 0, el);
+          mk(new THREE.CylinderGeometry(0.046, 0.036, 0.25, 24), kurzarm ? armSkin : aM, 0, -0.125, 0, el);
+          if (!kurzarm) mk(new THREE.CylinderGeometry(0.04, 0.04, 0.03, 16), robe ? aM : lighter, 0, -0.245, 0, el); // Bündchen
+          if (uhr && sx < 0) { // Armbanduhr links
+            const band = mk(new THREE.TorusGeometry(0.037, 0.007, 6, 24), S(pick([0x2a1e16, 0x1a1a1a, 0x8a8a8e]), 0.5, { metalness: 0.3 }), 0, -0.225, 0, el); band.rotation.x = Math.PI / 2; band.scale.z = 1.4;
+            const gh = mk(new THREE.CylinderGeometry(0.016, 0.016, 0.008, 20), gold, sx * 0.04, -0.225, 0, el); gh.rotation.z = Math.PI / 2;
+            const zb = mk(new THREE.CircleGeometry(0.013, 20), S(pick([0xf2f0ea, 0x1a1a2a]), 0.2), sx * 0.0445, -0.225, 0, el); zb.rotation.y = sx * Math.PI / 2; }
+          if (schmuck && !m && sx > 0 && r() < 0.6) { const ar = mk(new THREE.TorusGeometry(0.036, 0.004, 6, 24), gold, 0, -0.232, 0, el); ar.rotation.x = Math.PI / 2 + 0.2; } // Armreif
           const hand = new THREE.Group(); hand.position.set(0, -0.27, 0.0); el.add(hand);
-          const palm = mk(new THREE.BoxGeometry(0.06, 0.07, 0.025), skin, 0, -0.03, 0, hand); palm.geometry.translate(0, 0, 0);
-          for (let f = 0; f < 4; f++) { const fl = 0.034 + (f === 1 || f === 2 ? 0.008 : 0); const fi = mk(new THREE.CapsuleGeometry(0.0075, fl, 3, 6), skin, -0.021 + f * 0.014, -0.07 - fl / 2, 0.002, hand); fi.rotation.x = 0.25 + (f % 2) * 0.08; }
-          const th = mk(new THREE.CapsuleGeometry(0.0085, 0.03, 3, 6), skin, -sx * 0.034, -0.035, 0.012, hand); th.rotation.z = -sx * 0.7; th.rotation.x = 0.3;
+          mk(new THREE.BoxGeometry(0.06, 0.07, 0.025), skin, 0, -0.03, 0, hand);
+          for (let f = 0; f < 4; f++) { const fl = 0.034 + (f === 1 || f === 2 ? 0.008 : 0); const fi = mk(new THREE.CapsuleGeometry(0.0075, fl, 3, 8), skin, -0.021 + f * 0.014, -0.07 - fl / 2, 0.002, hand); fi.rotation.x = 0.25 + (f % 2) * 0.08;
+            const ringFinger = sx < 0 ? f === 1 : f === 2;
+            if (ringe && ringFinger) { const rg = mk(new THREE.TorusGeometry(0.009, 0.0022, 6, 16), gold, -0.021 + f * 0.014, -0.072, 0.004, hand); rg.rotation.x = Math.PI / 2 + 0.25; } }
+          const th = mk(new THREE.CapsuleGeometry(0.0085, 0.03, 3, 8), skin, -sx * 0.034, -0.035, 0.012, hand); th.rotation.z = -sx * 0.7; th.rotation.x = 0.3;
           hand.rotation.y = sx * 0.15; hands.push(hand);
         }
-        // ---- Hals, Kopf, Gesicht ----
-        mk(new THREE.CylinderGeometry(0.05, 0.055, 0.1, 12), skin, 0, 1.57, 0);
+        // ---- Hals, Adamsapfel, Kopf ----
+        mk(new THREE.CylinderGeometry(m ? 0.054 : 0.046, m ? 0.06 : 0.052, 0.1, 18), skin, 0, 1.57, 0);
+        if (m && !kindlich) mk(new THREE.SphereGeometry(0.013, 10, 8), skin, 0, 1.585, 0.05).scale.set(0.9, 1.3, 0.8);
+        if (schmuck && r() < 0.6) { const kette = mk(new THREE.TorusGeometry(0.064, 0.0028, 6, 32), gold, 0, 1.53, 0.012); kette.rotation.x = Math.PI / 2 - 0.35; mk(new THREE.SphereGeometry(0.008, 10, 8), gold, 0, 1.505, 0.072); }
         const head = new THREE.Group(); head.position.set(0, 1.69, 0); g.add(head);
-        const skull = mk(new THREE.SphereGeometry(0.12, 28, 22), skin, 0, 0, 0, head); skull.scale.set(kind === "m" ? 0.94 : 0.9, 1.1, 1.0);
-        const jawM = mk(new THREE.SphereGeometry(0.085, 24, 16), skin, 0, -0.05, 0.012, head); jawM.scale.set(kind === "m" ? 1.02 : 0.92, 0.82, 0.92);
-        for (const sx of [-1, 1]) { const ear = mk(new THREE.SphereGeometry(0.026, 10, 8), skin, sx * 0.108, -0.005, -0.005, head); ear.scale.set(0.45, 1, 0.8); }
+        // Kopfformen + individuelle Proportionen
+        const form = o.kopfform ?? pick(["oval", "oval", "rund", "eckig", "herz", "lang"]);
+        const KF = { oval: [0.92, 1.1, 1.0, 0.95, 0.82], rund: [0.99, 1.03, 1.0, 1.02, 0.78], eckig: [0.96, 1.06, 0.98, 1.1, 0.86], herz: [0.95, 1.08, 1.0, 0.84, 0.8], lang: [0.87, 1.17, 1.0, 0.9, 0.9] }[form];
+        const fac = { wange: H.wange * vr(0.12), nB: H.nase[0] * vr(0.12), nP: H.nase[1] * vr(0.15), nL: H.nase[2] * vr(0.1), lippe: H.lippe * vr(0.15), lid: H.lid * vr(0.06),
+          augAbst: 0.043 * vr(0.07), augGr: vr(0.1), mundB: vr(0.12), ohr: vr(0.15), ohrAb: (r() - 0.3) * 0.5, kinn: vr(0.15) };
+        const gOpt = { wangenrot: !m ? 0.12 + r() * 0.1 : 0.05 + r() * 0.08, sommersprossen: o.sommersprossen ?? (herkunft === "europaeisch" && r() < 0.15), unrein: o.unrein ?? (!alt && r() < 0.18),
+          bartschatten: m && !kindlich ? (behaart > 0.2 ? 0.4 + behaart * 0.6 : 0.2) : 0, falten: alt };
+        const faceSkin = S(0xffffff, 0.5, { map: texGesicht(seed, skinC, gOpt, "kopf") }), jawSkin = S(0xffffff, 0.52, { map: texGesicht(seed, skinC, gOpt, "kiefer") });
+        const skull = mk(new THREE.SphereGeometry(0.12, 40, 30), faceSkin, 0, 0, 0, head); skull.scale.set(KF[0] * (m ? 1.02 : 0.98) * (0.97 + fac.wange * 0.03), KF[1], KF[2]);
+        const jawM = mk(new THREE.SphereGeometry(0.085, 32, 24), jawSkin, 0, -0.05 - (KF[4] - 0.82) * 0.1, 0.012 + (m ? 0.004 : 0) * fac.kinn); jawM.scale.set(KF[3] * (m ? 1.05 : 0.9), KF[4] * (m ? 1.04 : 0.98), 0.92 * fac.kinn); head.add(jawM);
+        if (form === "eckig" || m) for (const sx of [-1, 1]) mk(new THREE.SphereGeometry(0.03, 14, 10), jawSkin, sx * 0.06 * KF[3], -0.075, 0.03, head).scale.set(0.8, 1, 1.2); // Kieferwinkel
+        // Ohren: Muschel, Krempe, Läppchen; Größe und Abstand variieren
+        const ohren = [];
+        for (const sx of [-1, 1]) { const og = new THREE.Group(); og.position.set(sx * 0.11 * KF[0], -0.005, -0.005); og.rotation.y = sx * (0.15 + fac.ohrAb * 0.4); og.scale.setScalar(fac.ohr); head.add(og);
+          mk(new THREE.SphereGeometry(0.026, 14, 10), skin, sx * 0.004, 0, 0, og).scale.set(0.35, 1, 0.75);
+          const krempe = mk(new THREE.TorusGeometry(0.022, 0.0055, 8, 20, Math.PI * 1.3), skin, sx * 0.009, 0.004, -0.002, og); krempe.rotation.set(0, sx * Math.PI / 2, Math.PI * 0.35); krempe.scale.set(1, 1.25, 1);
+          mk(new THREE.SphereGeometry(0.009, 10, 8), skin, sx * 0.008, -0.026, 0.004, og);
+          mk(new THREE.SphereGeometry(0.008, 8, 6), S(new THREE.Color(skinC).offsetHSL(0, 0, -0.18).getHex(), 0.7), sx * 0.006, 0.0, 0.004, og).scale.set(0.5, 1, 0.8); // Ohröffnung
+          ohren.push(og); }
+        if (schmuck && !m) for (const og of ohren) { const ring = r() < 0.5; if (ring) { const h2 = mk(new THREE.TorusGeometry(0.009, 0.0016, 6, 16), gold, 0, -0.04, 0.004, og); } else mk(new THREE.SphereGeometry(0.004, 8, 6), gold, 0, -0.03, 0.006, og); }
+        // Gesicht: Augen mit Lid, Iris in Herkunfts-Augenfarbe, Nase mit Flügeln und Löchern, Ober-/Unterlippe
         const face = new THREE.Group(); head.add(face);
-        const white = S(0xf6f4ef, 0.3), iris = S(pick([0x3a5a8a, 0x5a3a20, 0x3a6a4a, 0x2a1a10, 0x6a6a7a, 0x8a6a3a]), 0.3), pupil = S(0x080808, 0.2);
-        const eyes = [];
+        const white = S(0xf6f2ec, 0.25), irisC = o.augenfarbe ?? pick(H.augen), iris = S(irisC, 0.25), irisRand = S(new THREE.Color(irisC).multiplyScalar(0.45).getHex(), 0.3), pupil = S(0x050505, 0.15);
+        const lidM = faceSkin, eyes = [];
         for (const sx of [-1, 1]) {
-          const e = new THREE.Group(); e.position.set(sx * 0.043, 0.02, 0.1); face.add(e);
-          mk(new THREE.SphereGeometry(0.022, 16, 12), white, 0, 0, 0, e).scale.set(1.2, 0.95, 0.55);
-          mk(new THREE.SphereGeometry(0.0125, 14, 10), iris, 0, -0.001, 0.0095, e).scale.z = 0.45;
-          mk(new THREE.SphereGeometry(0.006, 10, 8), pupil, 0, -0.001, 0.0138, e).scale.z = 0.4;
-          mk(new THREE.SphereGeometry(0.0028, 6, 4), S(0xffffff, 0.1), 0.004, 0.004, 0.0152, e);
-          if (kind === "f") for (let l = 0; l < 3; l++) { const lash = mk(new THREE.BoxGeometry(0.003, 0.009, 0.002), S(0x111111), sx * (0.012 + l * 0.009), 0.019, 0.006, e); lash.rotation.z = sx * (0.3 + l * 0.25); }
-          const brow = mk(new THREE.BoxGeometry(0.046, kind === "m" ? 0.013 : 0.009, 0.014), hair, sx * 0.045, 0.055, 0.106, face); brow.rotation.z = sx * -(0.06 + r() * 0.14);
+          const e = new THREE.Group(); e.position.set(sx * fac.augAbst, 0.02, 0.1); e.scale.setScalar(fac.augGr); face.add(e);
+          const ball = new THREE.Group(); ball.scale.y = fac.lid; e.add(ball);
+          mk(new THREE.SphereGeometry(0.022, 20, 14), white, 0, 0, 0, ball).scale.set(1.2, 0.95, 0.55);
+          mk(new THREE.SphereGeometry(0.0128, 18, 12), irisRand, 0, -0.001, 0.0092, ball).scale.z = 0.42;
+          mk(new THREE.SphereGeometry(0.0115, 18, 12), iris, 0, -0.001, 0.0099, ball).scale.z = 0.42;
+          mk(new THREE.SphereGeometry(0.0055, 12, 8), pupil, 0, -0.001, 0.0138, ball).scale.z = 0.4;
+          mk(new THREE.SphereGeometry(0.0026, 6, 4), S(0xffffff, 0.05), sx * 0.003 + 0.002, 0.004, 0.0152, ball);
+          // Oberlid als Hautkappe (bei asiatischer Lidfalte tiefer), unten feine Lidkante
+          const wimpern = mk(new THREE.TorusGeometry(0.0192, m ? 0.0014 : 0.002, 6, 22, Math.PI * 0.8), S(m ? 0x3a2a22 : 0x120c0a, 0.6), 0, 0.0, 0.0085, e); wimpern.rotation.set(-0.35, 0, Math.PI * 0.1); wimpern.scale.set(1.22, 0.95 * fac.lid, 1); // Lidkante mit Wimpern
+          if (!m) for (let l = 0; l < 4; l++) { const lash = mk(new THREE.BoxGeometry(0.0025, 0.008, 0.0018), S(0x111111), sx * (0.008 + l * 0.0075), 0.018, 0.009, e); lash.rotation.z = sx * (0.25 + l * 0.22); }
+          const brow = mk(new THREE.CapsuleGeometry(m ? 0.0062 : 0.0042, 0.038, 4, 10), alt ? S(new THREE.Color(hairC).lerp(new THREE.Color(0xd8d4cc), 0.5).getHex(), 0.9) : hair, sx * (fac.augAbst + 0.002), 0.054 + (m ? -0.002 : 0.004), 0.103, face);
+          brow.rotation.z = Math.PI / 2 + sx * -(0.06 + r() * 0.16); brow.scale.z = 0.6;
           eyes.push(e);
         }
-        const nose = mk(new THREE.SphereGeometry(kind === "m" ? 0.022 : 0.018, 14, 10), skin, 0, -0.016, 0.116, face); nose.scale.set(0.75, 1.05, 0.95);
-        const lip = kind === "f" ? S(pick([0xa83a40, 0x8a3a34, 0xc85a5a]), 0.4) : S(new THREE.Color(skinC).offsetHSL(0, 0.1, -0.18).getHex(), 0.5);
-        const mouth = mk(new THREE.CapsuleGeometry(kind === "f" ? 0.007 : 0.0055, 0.034, 4, 8), lip, 0, -0.062, 0.104, face); mouth.rotation.z = Math.PI / 2;
+        // Nase
+        const nb = 0.016 * fac.nB, np = fac.nP, nl = fac.nL;
+        const ruecken = mk(new THREE.CapsuleGeometry(0.0085 * (0.85 + nb * 8), 0.04 * nl, 4, 12), faceSkin, 0, 0.012, 0.106 + 0.006 * np, face); ruecken.rotation.x = -0.32 - (np - 1) * 0.15; ruecken.scale.z = 0.8;
+        const spitze = mk(new THREE.SphereGeometry(0.011 * (0.9 + (fac.nB - 1) * 0.6), 18, 14), faceSkin, 0, -0.02 * nl, 0.114 + 0.008 * np, face); spitze.scale.set(1.1, 0.9, 0.8);
+        for (const sx of [-1, 1]) { mk(new THREE.SphereGeometry(0.0072, 14, 10), faceSkin, sx * nb * 0.78, -0.024 * nl, 0.104 + 0.005 * np, face).scale.set(1, 0.85, 0.9); // Nasenflügel
+          mk(new THREE.SphereGeometry(0.0042, 8, 6), S(new THREE.Color(skinC).multiplyScalar(0.35).getHex(), 0.8), sx * nb * 0.45, -0.03 * nl, 0.11 + 0.006 * np, face).scale.set(1.1, 0.5, 0.8); } // Nasenlöcher
+        // Mund: Ober- und Unterlippe, Philtrum, Mundwinkel
+        const lipC = !m && r() < 0.4 ? pick([0xa8424a, 0x9a4a4a, 0xb85a62, 0x8a4a5a]) : new THREE.Color(skinC).lerp(new THREE.Color(0xa85a5a), 0.35).offsetHSL(0, 0, -0.04).getHex(), lip = S(new THREE.Color(lipC).convertSRGBToLinear(), 0.45); // Hex-Farben wie die Hautkarte (sRGB) behandeln
+        const mb = 0.034 * fac.mundB, ld = fac.lippe;
+        const ober = mk(new THREE.CapsuleGeometry(0.0038 * ld, mb, 4, 12), lip, 0, -0.0565, 0.105, face); ober.rotation.z = Math.PI / 2; ober.scale.set(1, 1, 0.8);
+        const unterL = mk(new THREE.CapsuleGeometry(0.0046 * ld, mb * 0.82, 4, 12), lip, 0, -0.0565 - 0.0082 * ld, 0.103, face); unterL.rotation.z = Math.PI / 2; unterL.scale.set(1, 1, 0.85);
+        box(mb * 0.9, 0.0016, 0.004, S(new THREE.Color(lipC).multiplyScalar(0.4).convertSRGBToLinear(), 0.6), 0, -0.0565 - 0.0041 * ld, 0.108, face); // Mundspalte
         // ---- Frisuren ----
-        const style = o.hair ?? (kind === "f" ? pick(["lang", "lang", "pferdeschwanz", "bob", "dutt", "locken", "afro", "pony", "kurz"]) : pick(["kurz", "kurz", "seitenscheitel", "undercut", "glatze", "locken", "afro", "pony"]));
-        const cap = (thetaLen = 0.47, rot = -0.38) => { const c = mk(new THREE.SphereGeometry(0.127, 26, 16, 0, Math.PI * 2, 0, Math.PI * thetaLen), hair, 0, 0.012, -0.004, head); c.scale.set(0.95, 1.12, 1.04); c.rotation.x = rot; return c; };
-        if (style === "kurz") cap(0.47);
-        if (style === "seitenscheitel") { cap(0.48); const f = mk(new THREE.BoxGeometry(0.17, 0.035, 0.07), hair, 0.012, 0.1, 0.07, head); f.rotation.set(0.35, 0, -0.18); }
-        if (style === "pony") { cap(0.47); const f = mk(new THREE.BoxGeometry(0.19, 0.04, 0.05), hair, 0, 0.1, 0.085, head); f.rotation.x = 0.55; }
-        if (style === "lang") { cap(0.47); const back = mk(new THREE.CapsuleGeometry(0.1, 0.2, 6, 14), hair, 0, -0.11, -0.06, head); back.scale.set(1.18, 1, 0.55); for (const sx of [-1, 1]) { const side = mk(new THREE.CapsuleGeometry(0.035, 0.16, 4, 8), hair, sx * 0.105, -0.07, 0.0, head); side.rotation.z = sx * 0.08; } }
-        if (style === "bob") { cap(0.47); const b = mk(new THREE.SphereGeometry(0.135, 22, 14, 0, Math.PI * 2, Math.PI * 0.25, Math.PI * 0.4), hair, 0, 0.0, -0.01, head); b.scale.set(1.02, 1.0, 1.05); b.material = hair; const cut = mk(new THREE.BoxGeometry(0.2, 0.06, 0.02), skin, 0, -0.2, 0.2, head); cut.visible = false; }
-        if (style === "pferdeschwanz") { cap(0.47); mk(new THREE.SphereGeometry(0.03, 10, 8), hair, 0, 0.06, -0.12, head); const pt = mk(new THREE.CapsuleGeometry(0.035, 0.18, 4, 10), hair, 0, -0.06, -0.16, head); pt.rotation.x = 0.25; }
-        if (style === "dutt") { cap(0.47); mk(new THREE.SphereGeometry(0.055, 14, 10), hair, 0, 0.1, -0.1, head); }
-        if (style === "locken" || style === "afro") { const n = style === "afro" ? 48 : 26, R = style === "afro" ? 0.15 : 0.12; for (let i = 0; i < n; i++) { const a = r() * Math.PI * 2, b = r() * (style === "afro" ? 1.25 : 1.0); mk(new THREE.SphereGeometry((style === "afro" ? 0.045 : 0.035) + r() * 0.015, 8, 6), hair, Math.sin(b) * Math.cos(a) * R, 0.03 + Math.cos(b) * R * 0.95, Math.sin(b) * Math.sin(a) * R - 0.03, head); } }
-        if (style === "undercut") { const c = cap(0.3, -0.25); c.scale.set(0.9, 1.25, 1.0); const top2 = mk(new THREE.BoxGeometry(0.12, 0.05, 0.2), hair, 0, 0.13, 0.0, head); top2.rotation.x = -0.15; const side = cap(0.5); side.material = S(new THREE.Color(hairC).lerp(new THREE.Color(skinC), 0.55).getHex(), 0.9); side.scale.multiplyScalar(0.985); }
-        if (style === "glatze") { const c = cap(0.3); c.material = S(new THREE.Color(skinC).offsetHSL(0, 0, -0.04).getHex(), 0.45); }
+        let style = o.hair ?? (kindlich ? pick(m ? ["kurz", "locken", "pony"] : ["pferdeschwanz", "zoepfe", "lang", "bob"]) : pick(m ? H.wM : H.wF));
+        if (alt && m && !o.hair && r() < 0.5) style = pick(["halbglatze", "glatze", "kurz"]);
+        const kopftuch = o.kopftuch ?? (trad && !m && (herkunft === "arabisch" || herkunft === "afrikanisch"));
+        const cap = (thetaLen = 0.47, rot = -0.38, mat = hair) => { const c = mk(new THREE.SphereGeometry(0.127, 32, 18, 0, Math.PI * 2, 0, Math.PI * thetaLen), mat, 0, 0.012, -0.004, head); c.scale.set(0.95 * KF[0] / 0.92, 1.12 * KF[1] / 1.1, 1.04); c.rotation.x = rot; return c; };
+        const straehnen = (n, rad, yy, len, dick, mat = hair) => { for (let i = 0; i < n; i++) { const a = Math.PI * 0.15 + (i / (n - 1)) * Math.PI * 1.7; const s2 = mk(new THREE.CapsuleGeometry(dick, len * vr(0.2), 4, 8), mat, Math.cos(a + Math.PI / 2) * rad, yy - len / 2, -Math.sin(a + Math.PI / 2) * rad * 0.9 - 0.01, head); s2.rotation.z = Math.cos(a + Math.PI / 2) * 0.12; } };
+        if (!kopftuch) {
+          if (style === "kurz") cap(0.47);
+          if (style === "buzz") cap(0.5, -0.38, S(new THREE.Color(hairC).lerp(new THREE.Color(skinC), 0.35).getHex(), 0.9));
+          if (style === "seitenscheitel") { cap(0.48); const f = mk(new THREE.BoxGeometry(0.17, 0.035, 0.07), hair, 0.012, 0.1, 0.07, head); f.rotation.set(0.35, 0, -0.18); box(0.004, 0.005, 0.1, S(new THREE.Color(hairC).lerp(new THREE.Color(skinC), 0.6).getHex()), -0.04, 0.128, 0.0, head); }
+          if (style === "pony") { cap(0.47); const f = mk(new THREE.BoxGeometry(0.19, 0.04, 0.05), hair, 0, 0.1, 0.085, head); f.rotation.x = 0.55; }
+          if (style === "mittel") { cap(0.5); straehnen(9, 0.112, 0.02, 0.1, 0.03); }
+          if (style === "manbun") { cap(0.48, -0.42); mk(new THREE.SphereGeometry(0.04, 14, 10), hair, 0, 0.11, -0.095, head); }
+          if (style === "lang") { cap(0.47); const back = mk(new THREE.CapsuleGeometry(0.1, 0.2, 6, 16), hair, 0, -0.11, -0.06, head); back.scale.set(1.18, 1, 0.55); for (const sx of [-1, 1]) { const side = mk(new THREE.CapsuleGeometry(0.035, 0.16, 4, 10), hair, sx * 0.105, -0.07, 0.0, head); side.rotation.z = sx * 0.08; } }
+          if (style === "wellig") { cap(0.47); for (let i = 0; i < 5; i++) for (const sx of [-1, 0, 1]) mk(new THREE.SphereGeometry(0.05, 14, 10), hair, sx * 0.075 + Math.sin(i * 1.7) * 0.012, -0.03 - i * 0.05, -0.07 + (sx ? 0.03 : -0.01), head).scale.set(1, 0.9, 0.7); }
+          if (style === "bob") { cap(0.47); const b = mk(new THREE.SphereGeometry(0.135, 26, 14, Math.PI * 0.8, Math.PI * 1.4, Math.PI * 0.25, Math.PI * 0.4), hair, 0, 0.0, -0.01, head); b.scale.set(1.02, 1.0, 1.05); }
+          if (style === "pixie") { cap(0.47); const f = mk(new THREE.SphereGeometry(0.05, 12, 8), hair, 0.04, 0.09, 0.08, head); f.scale.set(1.4, 0.5, 0.8); }
+          if (style === "pferdeschwanz") { cap(0.47); mk(new THREE.SphereGeometry(0.03, 10, 8), hair, 0, 0.06, -0.12, head); const pt = mk(new THREE.CapsuleGeometry(0.035, 0.18, 4, 12), hair, 0, -0.06, -0.16, head); pt.rotation.x = 0.25; }
+          if (style === "dutt") { cap(0.47); mk(new THREE.SphereGeometry(0.055, 16, 12), hair, 0, 0.1, -0.1, head); }
+          if (style === "zoepfe") { cap(0.47); for (const sx of [-1, 1]) for (let i = 0; i < 7; i++) mk(new THREE.SphereGeometry(0.019 - i * 0.0008, 10, 8), hair, sx * 0.085, -0.06 - i * 0.032, -0.05 + i * 0.006, head).scale.set(1, 1.2, 1); }
+          if (style === "dreads") { cap(0.5); straehnen(16, 0.115, 0.06, 0.2, 0.013); }
+          if (style === "locken" || style === "afro") { const n = style === "afro" ? 56 : 30, R = style === "afro" ? 0.15 : 0.12; for (let i = 0; i < n; i++) { const a = r() * Math.PI * 2, b = r() * (style === "afro" ? 1.25 : 1.0); mk(new THREE.SphereGeometry((style === "afro" ? 0.045 : 0.035) + r() * 0.015, 10, 8), hair, Math.sin(b) * Math.cos(a) * R, 0.03 + Math.cos(b) * R * 0.95, Math.sin(b) * Math.sin(a) * R - 0.03, head); } }
+          if (style === "undercut") { const c = cap(0.3, -0.25); c.scale.set(0.9, 1.25, 1.0); const top2 = mk(new THREE.BoxGeometry(0.12, 0.05, 0.2), hair, 0, 0.13, 0.0, head); top2.rotation.x = -0.15; const side = cap(0.5, -0.38, S(new THREE.Color(hairC).lerp(new THREE.Color(skinC), 0.55).getHex(), 0.9)); side.scale.multiplyScalar(0.985); }
+          if (style === "halbglatze") { const ring = mk(new THREE.SphereGeometry(0.128, 32, 14, 0, Math.PI * 2, Math.PI * 0.28, Math.PI * 0.24), hair, 0, 0.0, -0.01, head); ring.scale.set(0.97 * KF[0] / 0.92, 1.1, 1.04); ring.rotation.x = -0.5; }
+          if (style === "glatze") { const c = cap(0.3, -0.38, S(new THREE.Color(skinC).offsetHSL(0, 0, -0.03).getHex(), 0.35)); }
+        } else { // Kopftuch (Hidschab bzw. Gele) – Gesicht bleibt frei
+          const tuchC = herkunft === "afrikanisch" ? 0xffffff : pick([0x1a1a22, 0x2a3a5a, 0x6a2a3a, 0xd8ccb8, 0x3a5a4a, 0x8a6a8a]);
+          const tuch = S(tuchC, 0.8, { map: texStoff(herkunft === "afrikanisch" ? "dashiki" : "stoff"), side: THREE.DoubleSide });
+          if (herkunft === "afrikanisch") { const gl = mk(new THREE.SphereGeometry(0.15, 22, 14), tuch, 0, 0.1, -0.03, head); gl.scale.set(1.05, 0.8, 1); const k2 = mk(new THREE.TorusGeometry(0.11, 0.035, 10, 24), tuch, 0, 0.06, -0.01, head); k2.rotation.x = Math.PI / 2 + 0.3; }
+          else { const h1 = mk(new THREE.SphereGeometry(0.138, 30, 20, Math.PI * 0.71, Math.PI * 1.58), tuch, 0, 0.0, -0.004, head); h1.scale.set(KF[0] / 0.92, 1.12, 1.06);
+            const drape = mk(new THREE.CylinderGeometry(0.1, 0.25 * wide, 0.28, 28, 1, true), tuch, 0, -0.17, -0.01, head); drape.scale.z = 0.75;
+            const rahmen = mk(new THREE.TorusGeometry(0.1, 0.012, 8, 28, Math.PI * 1.25), tuch, 0, -0.005, 0.07, head); rahmen.rotation.z = -Math.PI * 0.125 + Math.PI / 2 - Math.PI * 0.5; rahmen.scale.set(0.95, 1.25, 1); }
+        }
+        // Kopfbedeckung arabischer Männer (Ghutra mit Agal)
+        if (trad && m && herkunft === "arabisch") { const gt = S(r() < 0.5 ? 0xf6f4ee : 0xffffff, 0.8, { map: r() < 0.5 ? texStoff("karo", 0xc82a2a) : texStoff("stoff"), side: THREE.DoubleSide });
+          const gh = mk(new THREE.SphereGeometry(0.14, 28, 18, Math.PI * 0.72, Math.PI * 1.56, 0, Math.PI * 0.62), gt, 0, 0.01, -0.005, head); gh.scale.set(1.0, 1.15, 1.05);
+          const ru = mk(new THREE.CylinderGeometry(0.13, 0.2, 0.32, 26, 1, true, Math.PI * 0.75, Math.PI * 1.5), gt, 0, -0.17, -0.02, head); ru.scale.z = 0.8;
+          const agal = mk(new THREE.TorusGeometry(0.115, 0.011, 8, 28), S(0x111111, 0.6), 0, 0.085, -0.01, head); agal.rotation.x = Math.PI / 2 + 0.2; }
+        if (trad && herkunft === "afrikanisch" && m && r() < 0.5) mk(new THREE.CylinderGeometry(0.115, 0.12, 0.07, 24), S(0xffffff, 0.8, { map: texStoff("dashiki") }), 0, 0.11, -0.01, head); // Kufi
         // ---- Bärte ----
-        const bart = o.bart ?? (kind === "m" ? pick(["keiner", "keiner", "vollbart", "dreitage", "schnurrbart", "kinnbart"]) : "keiner");
-        if (bart === "vollbart") { const b = mk(new THREE.SphereGeometry(0.093, 20, 14, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), hair, 0, -0.035, 0.02, head); b.scale.set(1.0, 0.95, 1.02); }
-        if (bart === "dreitage") { const b = mk(new THREE.SphereGeometry(0.0875, 20, 14, 0, Math.PI * 2, Math.PI * 0.52, Math.PI * 0.42), S(new THREE.Color(skinC).lerp(new THREE.Color(hairC), 0.45).getHex(), 0.9), 0, -0.05, 0.014, head); b.scale.set(0.99, 0.84, 0.93); }
-        if (bart === "schnurrbart") { const b = mk(new THREE.CapsuleGeometry(0.008, 0.045, 4, 8), hair, 0, -0.046, 0.109, face); b.rotation.z = Math.PI / 2; }
-        if (bart === "kinnbart") { mk(new THREE.SphereGeometry(0.03, 12, 10), hair, 0, -0.105, 0.075, head).scale.set(1, 1.2, 0.8); const m2 = mk(new THREE.CapsuleGeometry(0.007, 0.04, 4, 8), hair, 0, -0.047, 0.108, face); m2.rotation.z = Math.PI / 2; }
-        if (o.brille ?? r() < 0.18) { const gm = S(pick([0x1a1a1a, 0x6a4a2a, 0xb8b8c0]), 0.3); for (const sx of [-1, 1]) mk(new THREE.TorusGeometry(0.024, 0.0035, 6, 18), gm, sx * 0.042, 0.018, 0.112, face); mk(new THREE.BoxGeometry(0.03, 0.004, 0.004), gm, 0, 0.022, 0.114, face); }
-        const kindlich = o.alter === "kind"; if (kindlich) head.scale.setScalar(1.28);
-        const sc = o.scale ?? (kindlich ? 0.5 + r() * 0.14 : kind === "m" ? 0.96 + r() * 0.12 : 0.9 + r() * 0.1);
+        const bart = o.bart ?? (m && !kindlich ? pick(herkunft === "asiatisch" ? ["keiner", "keiner", "keiner", "schnurrbart"] : herkunft === "arabisch" ? ["vollbart", "dreitage", "vollbart", "kinnbart", "keiner"] : ["keiner", "keiner", "vollbart", "dreitage", "schnurrbart", "kinnbart"]) : "keiner");
+        const bartM = alt ? S(new THREE.Color(hairC).lerp(new THREE.Color(0xd8d4cc), 0.5).getHex(), 0.85) : hair;
+        if (bart === "vollbart") { const b = mk(new THREE.SphereGeometry(0.094, 24, 16, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), bartM, 0, -0.035, 0.022, head); b.scale.set(KF[3] * 1.05, 0.98, 1.02); const sb = mk(new THREE.CapsuleGeometry(0.008, 0.04, 4, 8), bartM, 0, -0.047, 0.11, face); sb.rotation.z = Math.PI / 2; }
+        if (bart === "dreitage") { const b = mk(new THREE.SphereGeometry(0.0885, 24, 16, 0, Math.PI * 2, Math.PI * 0.52, Math.PI * 0.42), S(new THREE.Color(skinC).lerp(new THREE.Color(hairC), 0.4).getHex(), 0.9, { transparent: true, opacity: 0.55 }), 0, -0.05, 0.016, head); b.scale.set(KF[3] * 1.06, 0.86, 0.94); }
+        if (bart === "schnurrbart") for (const sx of [-1, 1]) { const b = mk(new THREE.CapsuleGeometry(0.0055, 0.022, 4, 8), bartM, sx * 0.012, -0.046, 0.108, face); b.rotation.z = Math.PI / 2 + sx * 0.25; b.scale.z = 0.7; }
+        if (bart === "kinnbart") { mk(new THREE.SphereGeometry(0.03, 14, 10), bartM, 0, -0.112, 0.075, head).scale.set(1, 1.2, 0.8); const m2 = mk(new THREE.CapsuleGeometry(0.007, 0.04, 4, 8), bartM, 0, -0.047, 0.108, face); m2.rotation.z = Math.PI / 2; }
+        if (o.brille ?? (r() < (alt ? 0.45 : 0.16))) { const gm = S(pick([0x1a1a1a, 0x6a4a2a, 0xb8b8c0]), 0.3, { metalness: 0.4 }); for (const sx of [-1, 1]) { mk(new THREE.TorusGeometry(0.024, 0.0032, 6, 20), gm, sx * fac.augAbst, 0.018, 0.115, face); mk(new THREE.CircleGeometry(0.023, 20), new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.02, transparent: true, opacity: 0.12, envMapIntensity: 2 }), sx * fac.augAbst, 0.018, 0.115, face); const b2 = box(0.003, 0.003, 0.1, gm, sx * 0.068, 0.02, 0.07, face); } mk(new THREE.BoxGeometry(0.026, 0.004, 0.004), gm, 0, 0.022, 0.117, face); }
+        if (kindlich) head.scale.setScalar(1.28);
+        const sc = o.scale ?? (kindlich ? 0.5 + r() * 0.14 : m ? 0.96 + r() * 0.12 : 0.9 + r() * 0.1) * (herkunft === "asiatisch" ? 0.97 : 1);
         g.scale.setScalar(sc);
-        g.userData = { hipL, hipR, kneeL, kneeR, shL, shR, elL, elR, head, face, eyes, handL: hands[0], handR: hands[1], phase: r() * 6.28, r };
+        // Gangart: jeder Mensch geht anders (Schrittweite, Tempo, Wippen, Armschwung, Hüftschwung, Vorneigung, leichtes Hinken)
+        const gang = { schritt: (m ? 0.42 : 0.38) * vr(0.2) * (alt ? 0.75 : 1), tempo: vr(0.15) * (alt ? 0.75 : 1), wippen: 0.028 * vr(0.45), arm: (m ? 0.8 : 0.7) * vr(0.3) * (alt ? 0.6 : 1),
+          huefte: m ? 0.01 + r() * 0.015 : 0.03 + r() * 0.04, vor: alt ? 0.12 + r() * 0.12 : r() * 0.05, hinken: r() < 0.06 ? 0.3 : 0, kopfnick: 0.03 * vr(0.5) };
+        g.userData = { hipL, hipR, kneeL, kneeR, shL, shR, elL, elR, head, face, eyes, handL: hands[0], handR: hands[1], phase: r() * 6.28, r, gang, herkunft, kind, alter, style };
         return g;
       }
       function idle(p, t) { // Atmen, Gewicht verlagern, Blinzeln, Blick - nie synchron
         const u = p.userData, k = t * 1.3 + u.phase;
         u.shL.rotation.x = Math.sin(k) * 0.05; u.shR.rotation.x = -Math.sin(k * 0.9) * 0.05;
         u.elL.rotation.x = -0.12 - Math.sin(k * 0.7) * 0.04; u.elR.rotation.x = -0.12 - Math.cos(k * 0.6) * 0.04;
-        u.head.rotation.y = Math.sin(k * 0.4) * 0.25; p.rotation.z = Math.sin(k * 0.5) * 0.012;
+        u.head.rotation.y = Math.sin(k * 0.4) * 0.25; u.head.rotation.x = (u.gang ? u.gang.vor * 0.5 : 0) + Math.sin(k * 0.33) * 0.04; p.rotation.z = Math.sin(k * 0.5) * 0.012;
         const blink = ((t + u.phase) % 3.7) < 0.12; u.eyes.forEach((e) => (e.scale.y = blink ? 0.1 : 1));
       }
       function walk(p, t, speed = 1) {
-        const u = p.userData, k = t * 6 * speed + u.phase, a = Math.sin(k) * 0.45;
-        u.hipL.rotation.x = a; u.hipR.rotation.x = -a; u.kneeL.rotation.x = Math.max(0, -Math.cos(k)) * 0.6; u.kneeR.rotation.x = Math.max(0, Math.cos(k)) * 0.6;
-        u.shL.rotation.x = -a * 0.8; u.shR.rotation.x = a * 0.8;
-        u.elL.rotation.x = -0.3 - Math.max(0, -a) * 0.5; u.elR.rotation.x = -0.3 - Math.max(0, a) * 0.5;
-        p.position.y = Math.abs(Math.cos(k)) * 0.03;
+        const u = p.userData, G = u.gang || { schritt: 0.45, tempo: 1, wippen: 0.03, arm: 0.8, huefte: 0.015, vor: 0, hinken: 0, kopfnick: 0.03 };
+        const k = t * 6 * speed * G.tempo + u.phase, s = Math.sin(k), a = s * G.schritt * (1 + (s > 0 ? G.hinken * 0.5 : -G.hinken * 0.3));
+        u.hipL.rotation.x = a; u.hipR.rotation.x = -a; u.kneeL.rotation.x = Math.max(0, -Math.cos(k)) * 0.65 * (G.schritt / 0.42); u.kneeR.rotation.x = Math.max(0, Math.cos(k)) * 0.65 * (G.schritt / 0.42);
+        u.shL.rotation.x = -s * G.arm * 0.5; u.shR.rotation.x = s * G.arm * 0.5; u.shL.rotation.z = -0.04; u.shR.rotation.z = 0.04;
+        u.elL.rotation.x = -0.25 - Math.max(0, -s) * 0.45 * G.arm; u.elR.rotation.x = -0.25 - Math.max(0, s) * 0.45 * G.arm;
+        u.head.rotation.x = G.vor * 0.6 + Math.sin(k * 2) * G.kopfnick; u.head.rotation.y = Math.sin(k) * 0.04;
+        hoehe(p, Math.abs(Math.cos(k)) * G.wippen); p.rotation.z = Math.sin(k) * G.huefte;
+        const blink = ((t + u.phase) % 3.9) < 0.12; u.eyes.forEach((e) => (e.scale.y = blink ? 0.1 : 1));
       }
+      // Wippen beim Gehen auf die Grundhöhe addieren (auch wenn die Szene y jedes Frame neu setzt, z. B. auf Gelände/Gehweg)
+      function hoehe(p, dy) { const u = p.userData; const base = u.lastY !== undefined && Math.abs(p.position.y - u.lastY) < 1e-9 ? u.lastBase : p.position.y; p.position.y = base + dy; u.lastBase = base; u.lastY = p.position.y; }
+
 
       // ---------- Requisiten & Posen ----------
       function regenschirm(p, farbe = 0x1e2a44) { // Schirm über dem Kopf, rechte Hand am Griff
@@ -302,7 +451,7 @@
         if (u.pose === "handy") { u.shR.rotation.x = -0.5; u.elR.rotation.x = -1.3; u.head.rotation.x = 0.45; }
       }
       function handy(p) { const u = p.userData; const h = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.14, 0.008), new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0x4a7aaa, emissiveIntensity: 0.6 })); u.handR.add(h); h.position.set(0, -0.09, 0.03); h.rotation.x = -0.6; u.pose = "handy"; return h; }
-      function rennen(p, t, speed = 1.6) { walk(p, t, speed); const u = p.userData; u.shL.rotation.x *= 1.4; u.shR.rotation.x *= 1.4; p.position.y = Math.abs(Math.cos(t * 6 * speed + u.phase)) * 0.07; }
+      function rennen(p, t, speed = 1.6) { walk(p, t, speed); const u = p.userData; u.shL.rotation.x *= 1.4; u.shR.rotation.x *= 1.4; hoehe(p, Math.abs(Math.cos(t * 6 * speed * (u.gang ? u.gang.tempo : 1) + u.phase)) * 0.07); }
 
       // ===== Bausteine v1: Fahrzeuge, Häuser, Straßen, Natur (braucht: rng, canvasTex, box, cyl, M) =====
       const TEX = {};
@@ -967,9 +1116,9 @@
       function autoPlus(car, o = {}) {
         const r = rng((o.seed ?? 3) * 17 + 1), L = car.userData.L, body = car.children[0];
         // Mehrschicht-Lack mit Klarlack -> spiegelt Himmel/Umgebung
-        const alt = body.material, lack = new THREE.MeshPhysicalMaterial({ color: alt.color.clone(), metalness: 0.55, roughness: 0.32, clearcoat: 1.0, clearcoatRoughness: 0.06, envMapIntensity: 1.2 });
+        const alt = body.material || null, lack = alt ? new THREE.MeshPhysicalMaterial({ color: alt.color.clone(), metalness: 0.55, roughness: 0.32, clearcoat: 1.0, clearcoatRoughness: 0.06, envMapIntensity: 1.2 }) : null; // fahrzeug() hat schon Klarlack
         const heads = [], tails = [];
-        car.traverse((m) => { if (!m.isMesh) return; if (m.material === alt) m.material = lack;
+        car.traverse((m) => { if (!m.isMesh) return; if (alt && m.material === alt) m.material = lack;
           if (m.material.isMeshBasicMaterial && m.material.color.getHex() === 0xfff6e0) heads.push(m);
           if (m.material.isMeshBasicMaterial && m.material.color.getHex() === 0xc81a1a) tails.push(m);
           if (m.material.transparent && m.material.isMeshStandardMaterial && m.material.opacity < 0.6) { m.material.envMapIntensity = 1.6; m.material.roughness = 0.02; } });
@@ -977,7 +1126,7 @@
         const an = !!o.licht, headM = new THREE.MeshBasicMaterial({ color: an ? new THREE.Color(0xfff3dc).multiplyScalar(5) : new THREE.Color(0xd8dce0), toneMapped: !an });
         const tailM = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xff1a10).multiplyScalar(an || o.bremse ? (o.bremse ? 5 : 2.2) : 0.6), toneMapped: false });
         const fx = new THREE.Group(); car.add(fx); const kegel = [];
-        heads.forEach((h) => { h.material = headM; const ring = box(0.38, 0.15, 0.02, M(0x9aa0a6, { metalness: 0.9, roughness: 0.2 }), h.position.x, h.position.y, h.position.z - 0.012, car);
+        heads.forEach((h) => { h.material = headM; if (h.geometry.parameters.width) box(0.38, 0.15, 0.02, M(0x9aa0a6, { metalness: 0.9, roughness: 0.2 }), h.position.x, h.position.y, h.position.z - 0.012, car);
           if (an) { const gp = glanzPunkt(0xfff0d0, 0.5); gp.position.copy(h.position).add(new THREE.Vector3(0, 0, 0.08)); fx.add(gp);
             const k = lichtKegel(o.fern ?? 14, 2.6, 0xfff0d8, o.kegel ?? 0.22); k.position.copy(h.position).add(new THREE.Vector3(0, 0, 0.05)); k.rotation.x = -Math.PI / 2 + 0.06; fx.add(k); kegel.push(k); } });
         tails.forEach((t) => { t.material = tailM; if (an || o.bremse) { const gp = glanzPunkt(0xff2010, o.bremse ? 0.9 : 0.55); gp.position.copy(t.position).add(new THREE.Vector3(0, 0, -0.08)); fx.add(gp); } });
@@ -986,10 +1135,10 @@
           if (o.bremse) { const rl = new THREE.PointLight(0xff2010, o.bremse ? 1.5 : 0.6, 5, 2); rl.position.set(0, 0.7, -L / 2 - 0.4); car.add(rl); } }
         // Kennzeichen vorne/hinten
         const kz = new THREE.MeshStandardMaterial({ map: kennzeichenTex(KENNZ[Math.floor(r() * KENNZ.length)]), roughness: 0.4, ...PO });
-        for (const sz of [1, -1]) { const p = new THREE.Mesh(new THREE.PlaneGeometry(0.52, 0.115), kz); p.position.set(0, sz > 0 ? 0.42 : 0.55, sz * (L / 2 + 0.1)); if (sz < 0) p.rotation.y = Math.PI; car.add(p); }
+        if (!car.userData.details) for (const sz of [1, -1]) { const p = new THREE.Mesh(new THREE.PlaneGeometry(0.52, 0.115), kz); p.position.set(0, sz > 0 ? 0.42 : 0.55, sz * (L / 2 + 0.1)); if (sz < 0) p.rotation.y = Math.PI; car.add(p); }
         // Felgen mit Speichen + Bremsscheibe, Reifenflanke
         const felge = M(r() < 0.5 ? 0xc8ccd0 : 0x2a2c30, { metalness: 0.85, roughness: 0.25 });
-        (car.userData.wheels || []).forEach((wh) => { const aus = Math.sign(wh.position.x) || 1, rr = wh.children[0].geometry.parameters.radiusTop, ww = wh.children[0].geometry.parameters.height;
+        (car.userData.felgenFertig ? [] : car.userData.wheels || []).forEach((wh) => { const aus = Math.sign(wh.position.x) || 1, rr = wh.children[0].geometry.parameters.radiusTop, ww = wh.children[0].geometry.parameters.height;
           if (wh.children[1]) wh.children[1].material = M(0x18191b, { metalness: 0.4, roughness: 0.6 }); // Felgenbett dunkel -> Speichen wirken offen
           for (let k = 0; k < 5; k++) { const sp = box(0.03, rr * 0.6, 0.06, felge, aus * (ww / 2 + 0.02), 0, 0, wh); sp.geometry.translate(0, rr * 0.3, 0); sp.rotation.x = k / 5 * Math.PI * 2; }
           const nabe = cyl(rr * 0.16, rr * 0.16, 0.03, felge, aus * (ww / 2 + 0.03), 0, 0, wh, 16); nabe.rotation.z = Math.PI / 2;
@@ -997,7 +1146,7 @@
           const scheibe = cyl(rr * 0.5, rr * 0.5, 0.01, M(0x5a5c60, { metalness: 0.8, roughness: 0.45 }), aus * (ww / 2 - 0.02), 0, 0, wh, 24); scheibe.rotation.z = Math.PI / 2;
           const flanke = new THREE.Mesh(new THREE.TorusGeometry(rr * 0.82, rr * 0.13, 8, 32), M(0x232323, { roughness: 0.8 })); flanke.rotation.y = Math.PI / 2; flanke.position.x = aus * ww / 2; wh.add(flanke); });
         // Scheibenwischer, Antenne, Türgriffe bleiben aus auto()
-        if (L < 5) { const wM = M(0x111111, { roughness: 0.6 }); for (const sx of [-0.35, 0.35]) { const w = box(0.55, 0.015, 0.02, wM, sx, 0.94, L / 2 - (L > 4 ? 1.36 : 1.13), car); w.rotation.z = sx > 0 ? 0.1 : -0.1; } cyl(0.006, 0.006, 0.35, wM, 0.5, 1.6, -L / 2 + 1.3, car, 4); }
+        if (L < 5 && !car.userData.details) { const wM = M(0x111111, { roughness: 0.6 }); for (const sx of [-0.35, 0.35]) { const w = box(0.55, 0.015, 0.02, wM, sx, 0.94, L / 2 - (L > 4 ? 1.36 : 1.13), car); w.rotation.z = sx > 0 ? 0.1 : -0.1; } cyl(0.006, 0.006, 0.35, wM, 0.5, 1.6, -L / 2 + 1.3, car, 4); }
         car.userData.kegel = kegel; car.userData.lack = lack;
         return car;
       }
@@ -1173,74 +1322,757 @@
       function taubePicken(t, T) { const u = t.userData, k = T * 3 + u.phase, pick = Math.max(0, Math.sin(k * 2)) ** 4; u.kopf.position.set(0, 0.27 - pick * 0.17, 0.1 + pick * 0.08 + Math.sin(k * 4) * 0.008); u.kopf.rotation.x = pick * 1.1; }
       function taubeFliegen(t, T) { const u = t.userData, k = T * 22 + u.phase; u.fluegel.forEach((f, i) => { const s = i ? 1 : -1; f.rotation.z = s * (0.3 + Math.sin(k) * 1.1); f.scale.set(1, 1, 1); f.children[0].scale.set(1.6, 0.25, 1.4); }); }
 
-      const POST = nachbearbeitung(renderer, { bloom: 0.6 });
-      const TYPEN = ["glas", "modern", "ziegel", "beton", "platte", "glas"];
-      function stadt(s, nacht) {
-        const r = rng(nacht ? 77 : 33);
-        box(600, 0.1, 600, M(0x3a3c3e, { roughness: 0.95 }), 0, -0.12, -100, s);
-        strasse(s, 150, { zebraZ: -20 });
-        const haeuser = [];
-        for (const seite of [-1, 1]) { let z = 4, i = 0;
-          while (z > -140) { const w = 16 + Math.floor(r() * 10), d = 14, typ = TYPEN[(i + (seite > 0 ? 3 : 0)) % TYPEN.length];
-            const h = hochhaus(seite * 100 + i + (nacht ? 0 : 0), { typ, w, d, etagen: typ === "ziegel" ? 6 + Math.floor(r() * 3) : 10 + Math.floor(r() * 14), nacht, licht: nacht ? 0.45 : 0.3 });
-            h.rotation.y = -seite * Math.PI / 2; h.position.set(seite * (7.6 + d / 2), 0, z - w / 2); s.add(h); haeuser.push(h); z -= w + 1.5; i++; } }
-        const sky = skyline(s, 9, nacht ? 5 : 6, { nacht, licht: 0.4, aufl: 0.35, a0: -0.35, a1: 0.35, r0: 170, r1: 40, z: -20 });
-        for (let k = 0; k < 4; k++) { laterne(s, -4.0, -4 - k * 22, -1, nacht); laterne(s, 4.0, -15 - k * 22, 1, nacht); }
-        const cars = []; [["limo", -1.75, -9, 0, 0xc8302a], ["kleinwagen", 1.75, -20, Math.PI, 0x2a4a7a], ["transporter", 1.75, -34, Math.PI, 0xf2f2f0], ["limo", -1.75, -40, 0, 0x2a2a2c], ["bus", 1.75, -60, Math.PI, 0xd8a838]]
-          .forEach(([t, x, z, ry, f], k) => { const c = autoPlus(auto(40 + k, t, f), { licht: nacht, seed: k, spot: nacht && k < 3 }); c.position.set(x, 0, z); c.rotation.y = ry; s.add(c); cars.push(c); });
-        return { haeuser, sky, cars, update(T) { haeuser.forEach((h) => h.userData.update(T)); sky.update(T); } };
+      // ===== Fahrzeuge v2: Bauformen, Reifen mit Profil, Felgentypen, Federung, Abgase (braucht: rng, box, cyl, M, extrudeSide, LACK, kennzeichenTex, KENNZ, particles) =====
+      // fahrzeug(seed, typ, { farbe, felge, felgenFarbe, kennzeichen })
+      //   typ: "stufenheck"|"fliessheck"|"steilheck"|"coupe"|"kombi"|"shooting"|"suv"|"gelaende"|"targa"|"minivan"|"stretch"
+      //   felge: "speichen5"|"vielspeichen"|"doppelspeichen"|"stahl"|"turbine"|"offroad"
+      // Danach optional autoPlus(car, { licht, bremse }) für Scheinwerfer/Lichtkegel. Bewegung: fahren(car, T, strecke), abgas(car, seed).
+      const KAROSSEN = {
+        stufenheck: { body: [[-2.4, 0.32], [2.4, 0.32], [2.42, 0.62], [2.1, 0.8], [1.0, 0.9], [-1.6, 0.94], [-2.35, 0.9], [-2.42, 0.62]], glas: [[-1.5, 0.9], [0.95, 0.9], [0.3, 1.4], [-0.95, 1.42], [-1.6, 0.95]], tueren: 4, r: 0.33 },
+        fliessheck: { body: [[-2.35, 0.32], [2.4, 0.32], [2.42, 0.62], [2.1, 0.8], [1.0, 0.9], [-2.0, 0.94], [-2.35, 0.86], [-2.4, 0.62]], glas: [[-2.0, 0.92], [0.95, 0.9], [0.3, 1.4], [-0.75, 1.42], [-2.1, 0.95]], tueren: 4, r: 0.34 },
+        steilheck:  { body: [[-1.95, 0.32], [1.95, 0.32], [1.96, 0.62], [1.6, 0.84], [0.85, 0.94], [-1.88, 0.98], [-1.96, 0.7]], glas: [[-1.82, 0.95], [0.8, 0.93], [0.18, 1.44], [-1.7, 1.47], [-1.86, 1.02]], tueren: 4, r: 0.31 },
+        coupe:      { body: [[-2.25, 0.3], [2.25, 0.3], [2.28, 0.56], [1.95, 0.72], [0.9, 0.82], [-1.5, 0.86], [-2.2, 0.82], [-2.28, 0.56]], glas: [[-1.75, 0.84], [0.85, 0.82], [0.12, 1.24], [-0.75, 1.26], [-1.85, 0.88]], tueren: 2, r: 0.34, tief: true },
+        kombi:      { body: [[-2.42, 0.32], [2.42, 0.32], [2.44, 0.62], [2.1, 0.8], [1.0, 0.9], [-2.3, 0.96], [-2.44, 0.7]], glas: [[-2.3, 0.94], [0.95, 0.9], [0.3, 1.42], [-2.2, 1.44], [-2.36, 1.0]], tueren: 4, r: 0.33, reling: true },
+        shooting:   { body: [[-2.35, 0.3], [2.4, 0.3], [2.42, 0.58], [2.05, 0.75], [0.95, 0.85], [-2.25, 0.9], [-2.38, 0.66]], glas: [[-2.22, 0.88], [0.9, 0.85], [0.22, 1.3], [-1.85, 1.3], [-2.3, 0.95]], tueren: 2, r: 0.34, tief: true },
+        suv:        { body: [[-2.35, 0.45], [2.35, 0.45], [2.38, 0.85], [2.05, 1.05], [1.0, 1.12], [-2.3, 1.15], [-2.38, 0.85]], glas: [[-2.2, 1.12], [0.95, 1.1], [0.4, 1.66], [-2.1, 1.7], [-2.28, 1.2]], tueren: 4, r: 0.38, reling: true, beplankung: true },
+        gelaende:   { body: [[-2.3, 0.52], [2.3, 0.52], [2.32, 1.1], [2.2, 1.16], [-2.3, 1.16]], glas: [[-2.25, 1.16], [1.1, 1.16], [0.98, 1.86], [-2.25, 1.86]], tueren: 4, r: 0.4, reling: true, beplankung: true, kastig: true },
+        targa:      { body: [[-2.2, 0.3], [2.2, 0.3], [2.24, 0.54], [1.9, 0.7], [0.85, 0.8], [-1.4, 0.84], [-2.15, 0.8], [-2.24, 0.54]], glas: [[-0.9, 0.82], [0.8, 0.8], [0.1, 1.18], [-0.75, 1.2], [-0.95, 0.86]], tueren: 2, r: 0.33, tief: true, offen: true },
+        minivan:    { body: [[-2.45, 0.38], [2.45, 0.38], [2.47, 0.8], [2.15, 1.0], [-2.4, 1.05], [-2.47, 0.8]], glas: [[-2.38, 1.02], [2.1, 1.0], [1.1, 1.75], [-2.3, 1.8], [-2.42, 1.1]], tueren: 3, r: 0.34 },
+        stretch:    { body: [[-2.4, 0.32], [2.4, 0.32], [2.42, 0.62], [2.1, 0.8], [1.0, 0.9], [-1.6, 0.94], [-2.35, 0.9], [-2.42, 0.62]], glas: [[-1.5, 0.9], [0.95, 0.9], [0.3, 1.4], [-0.95, 1.42], [-1.6, 0.95]], tueren: 6, r: 0.34, dehnen: 3.2 },
+      };
+      const REIFEN_TEX = {};
+      function texProfil() { if (REIFEN_TEX.p) return REIFEN_TEX.p; const t = canvasTex(64, 256, (g) => { g.fillStyle = "#2a2a2a"; g.fillRect(0, 0, 64, 256); g.fillStyle = "#111";
+          for (let y = 0; y < 256; y += 10) { g.fillRect(4, y, 18, 4); g.fillRect(42, y + 5, 18, 4); g.beginPath(); g.moveTo(24, y); g.lineTo(40, y + 6); g.lineTo(40, y + 9); g.lineTo(24, y + 3); g.fill(); } g.fillRect(22, 0, 3, 256); g.fillRect(39, 0, 3, 256); });
+        t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 3); REIFEN_TEX.p = t; return t; }
+      // Rad mit Reifen (Lauffläche mit Profil, gewölbte Flanke), Felge, Bremsscheibe, Bremssattel, Radmuttern
+      function reifenRad(g, x, z, r, w, typ, farbe, sattel) {
+        const wheel = new THREE.Group(); wheel.position.set(x, r, z); g.add(wheel); const aus = Math.sign(x) || 1;
+        const gummi = new THREE.MeshStandardMaterial({ color: 0x9a9a9a, map: texProfil(), roughness: 0.92 }), flankeM = M(0x1c1c1c, { roughness: 0.75 });
+        const lauf = cyl(r, r, w * 0.92, gummi, 0, 0, 0, wheel, 40); lauf.rotation.z = Math.PI / 2;
+        for (const sx of [-1, 1]) { const fl = new THREE.Mesh(new THREE.TorusGeometry(r * 0.83, r * 0.17, 12, 40), flankeM); fl.rotation.y = Math.PI / 2; fl.position.x = sx * w * 0.36; fl.scale.z = 0.55; fl.castShadow = true; wheel.add(fl); }
+        const fR = r * (typ === "offroad" ? 0.6 : 0.68), fM = M(farbe, { metalness: 0.85, roughness: 0.28 }), dunkel = M(0x141416, { metalness: 0.3, roughness: 0.6 });
+        const bett = cyl(fR, fR, w * 0.8, dunkel, 0, 0, 0, wheel, 32); bett.rotation.z = Math.PI / 2;
+        const scheibe = cyl(fR * 0.78, fR * 0.78, 0.02, M(0x6a6c70, { metalness: 0.8, roughness: 0.4 }), aus * w * 0.12, 0, 0, wheel, 28); scheibe.rotation.z = Math.PI / 2;
+        if (sattel) { const sa = box(0.05, fR * 0.55, fR * 0.4, M(sattel, { roughness: 0.4 }), aus * w * 0.18, fR * 0.42, -fR * 0.3, wheel); }
+        const fx = aus * (w * 0.4 + 0.012); const kranz = new THREE.Mesh(new THREE.TorusGeometry(fR * 0.98, 0.016, 8, 36), fM); kranz.rotation.y = Math.PI / 2; kranz.position.x = fx; wheel.add(kranz);
+        const speiche = (n, breit, dick = 0.022, versatz = 0) => { for (let k = 0; k < n; k++) { const sp = box(dick, fR * 0.82, breit, fM, fx, 0, 0, wheel); sp.geometry.translate(0, fR * 0.45, 0); sp.rotation.x = k / n * Math.PI * 2 + versatz; } };
+        if (typ === "speichen5") speiche(5, 0.07);
+        else if (typ === "vielspeichen") speiche(10, 0.025, 0.018);
+        else if (typ === "doppelspeichen") { speiche(5, 0.03, 0.02, 0.12); speiche(5, 0.03, 0.02, -0.12); }
+        else if (typ === "turbine") { const d = cyl(fR * 0.94, fR * 0.94, 0.02, fM, fx, 0, 0, wheel, 32); d.rotation.z = Math.PI / 2; for (let k = 0; k < 14; k++) { const sl = box(0.026, fR * 0.38, 0.03, dunkel, fx + aus * 0.006, 0, 0, wheel); sl.geometry.translate(0, fR * 0.6, 0); sl.rotation.x = k / 14 * Math.PI * 2; sl.rotation.y = 0.4; } }
+        else if (typ === "stahl") { const d = cyl(fR * 0.95, fR * 0.95, 0.018, M(0x3a3c40, { metalness: 0.6, roughness: 0.5 }), fx, 0, 0, wheel, 32); d.rotation.z = Math.PI / 2; for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; const lo = cyl(fR * 0.1, fR * 0.1, 0.022, dunkel, fx + aus * 0.002, Math.sin(a) * fR * 0.62, Math.cos(a) * fR * 0.62, wheel, 12); lo.rotation.z = Math.PI / 2; } }
+        else if (typ === "offroad") { speiche(6, 0.06, 0.03); const bl = new THREE.Mesh(new THREE.TorusGeometry(fR, 0.03, 8, 36), dunkel); bl.rotation.y = Math.PI / 2; bl.position.x = fx + aus * 0.01; wheel.add(bl); for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2; const bo = cyl(0.008, 0.008, 0.03, fM, fx + aus * 0.02, Math.sin(a) * fR, Math.cos(a) * fR, wheel, 6); bo.rotation.z = Math.PI / 2; } }
+        const nabe = cyl(fR * 0.2, fR * 0.2, 0.03, fM, fx + aus * 0.006, 0, 0, wheel, 20); nabe.rotation.z = Math.PI / 2;
+        const logo = cyl(fR * 0.1, fR * 0.1, 0.034, M(0x1a1a1e, { metalness: 0.5 }), fx + aus * 0.008, 0, 0, wheel, 16); logo.rotation.z = Math.PI / 2;
+        for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2; const mu = cyl(0.009, 0.009, 0.03, M(0xc8ccd0, { metalness: 0.9, roughness: 0.2 }), fx + aus * 0.01, Math.sin(a) * fR * 0.13 + 0, Math.cos(a) * fR * 0.13, wheel, 6); mu.rotation.z = Math.PI / 2; mu.position.multiplyScalar(1); mu.position.y *= 2.1; mu.position.z *= 2.1; }
+        return wheel;
       }
-      // ===== Tag =====
+      function fahrzeug(seed, typ = "stufenheck", o = {}) {
+        const K = KAROSSEN[typ], r = rng(seed * 37 + 11), pick = (a) => a[Math.floor(r() * a.length)], g = new THREE.Group(), kar = new THREE.Group(); g.add(kar);
+        const d = K.dehnen || 0, dehn = (p) => [p[0] > 0.2 ? p[0] + d / 2 : p[0] < -0.2 ? p[0] - d / 2 : p[0] * (1 + d), p[1]];
+        const body = K.body.map(dehn), glas = K.glas.map(dehn); const L = body[1][0] - body[0][0], W = K.kastig ? 1.92 : K.tief ? 1.84 : typ === "suv" || typ === "minivan" ? 1.9 : 1.8, zf = body[1][0], zh = body[0][0];
+        const farbe = o.farbe ?? (typ === "stretch" ? pick([0x111114, 0xf2f2f0]) : pick(LACK));
+        const lack = new THREE.MeshPhysicalMaterial({ color: farbe, metalness: 0.55, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.06 });
+        const glasM = new THREE.MeshStandardMaterial({ color: 0x1e2a34, roughness: 0.03, metalness: 0.5, transparent: true, opacity: typ === "stretch" ? 0.85 : 0.58, depthWrite: false, envMapIntensity: 1.6 });
+        const dunkel = M(0x18181a, { roughness: 0.7 }), chrom = M(0xd8dce0, { metalness: 0.95, roughness: 0.18 }), gummiM = M(0x0e0e0e, { roughness: 0.8 });
+        const b = extrudeSide(body, W, lack, 0.07); kar.add(b);
+        // Glasaufbau, Dach, Säulen
+        if (!K.offen) { kar.add(extrudeSide(glas, W - 0.14, glasM, 0.03)); const roof = [glas[3], glas[2], [glas[2][0] - 0.06, glas[2][1] + 0.07], [glas[3][0], glas[3][1] + 0.08]]; kar.add(extrudeSide(roof, W - 0.1, lack, 0.025)); }
+        else { const ws = [[glas[1][0], glas[1][1]], [glas[2][0], glas[2][1]], [glas[2][0] - 0.06, glas[2][1]], [glas[1][0] - 0.12, glas[1][1]]]; kar.add(extrudeSide(ws, W - 0.2, glasM, 0.02));
+          const bugel = extrudeSide([[glas[0][0] - 0.05, glas[0][1]], [glas[0][0] + 0.25, glas[0][1]], [glas[3][0] + 0.2, glas[3][1] + 0.06], [glas[3][0] - 0.05, glas[3][1] + 0.06]], W - 0.1, lack, 0.03); kar.add(bugel); } // Targa-Bügel
+        const strebe = (z1, y1, z2, y2, x, dicke = 0.07) => { const a = new THREE.Vector3(x, y1, z1), c = new THREE.Vector3(x, y2, z2); const m = box(dicke, a.distanceTo(c), dicke, lack, 0, 0, 0, kar); m.position.copy(a).add(c).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), c.clone().sub(a).normalize()); };
+        const tz = []; const nT = K.tueren; for (let i = 1; i < (nT >= 4 ? (nT === 6 ? 3 : 2) : 1) + 1; i++) tz.push(glas[1][0] - (glas[1][0] - glas[0][0]) * i / ((nT >= 4 ? (nT === 6 ? 3 : 2) : 1) + (K.reling || typ === "minivan" ? 0.6 : 0.3)));
+        for (const sx of [-1, 1]) { const x = sx * (W / 2 - 0.08);
+          strebe(glas[1][0], glas[1][1], glas[2][0], glas[2][1], x, 0.08); if (!K.offen) { strebe(glas[0][0], glas[0][1], glas[3][0], glas[3][1], x, 0.1); tz.forEach((zz) => strebe(zz, glas[0][1], zz, glas[3][1], x, 0.07)); }
+          box(0.012, 0.02, glas[1][0] - glas[0][0], chrom, sx * (W / 2 - 0.05), glas[0][1] + 0.01, (glas[1][0] + glas[0][0]) / 2, kar); // Zierleiste an der Fensterlinie
+          // Türfugen, Griffe, Spiegel, Seitenschweller
+          const fugen = [glas[1][0] + 0.05, ...tz.map((zz) => zz + 0.02)]; if (nT < 4) fugen.push(glas[0][0] + 0.1);
+          fugen.forEach((zz) => box(0.012, glas[0][1] - body[0][1] - 0.12, 0.008, dunkel, sx * (W / 2 + 0.002), (glas[0][1] + body[0][1]) / 2 + 0.02, zz, kar));
+          fugen.slice(0, nT >= 4 ? -0 : 1).forEach((zz, i) => { if (i < fugen.length) box(0.025, 0.028, 0.15, chrom, sx * (W / 2 + 0.012), glas[0][1] - 0.13, zz - 0.25, kar); });
+          box(0.12, 0.09, 0.2, lack, sx * (W / 2 + 0.07), glas[1][1] + 0.08, glas[1][0] - 0.15, kar); box(0.01, 0.07, 0.17, M(0x8a96a0, { metalness: 1, roughness: 0.05 }), sx * (W / 2 + 0.065), glas[1][1] + 0.08, glas[1][0] - 0.26, kar);
+          box(0.04, 0.08, L * 0.62, K.beplankung ? dunkel : lack, sx * (W / 2 + 0.01), body[0][1] + 0.06, (zf + zh) / 2, kar);
+          if (K.beplankung) box(0.03, 0.22, L * 0.98, dunkel, sx * (W / 2 + 0.012), body[0][1] + 0.1, (zf + zh) / 2, kar);
+          if (K.reling) box(0.04, 0.04, (glas[2][0] - glas[3][0]) * 0.9, chrom, sx * (W / 2 - 0.2), glas[3][1] + 0.12, (glas[2][0] + glas[3][0]) / 2 - 0.1, kar);
+        }
+        if (typ === "minivan") box(0.01, 0.02, 0.9, dunkel, W / 2 + 0.004, glas[0][1] - 0.05, tz[0] - 0.55, kar); // Schiebetür-Schiene
+        // Innenraum
+        const sitzM = M(pick([0x2a2a2c, 0x5a4a3a, 0x3a3a4a, 0xc8b89a]), { roughness: 0.75 }), sy = glas[0][1] - 0.36;
+        const reihen = [glas[1][0] - 0.75]; for (let zz = reihen[0] - 0.95; zz > glas[0][0] + 0.2 && reihen.length < (typ === "stretch" ? 4 : typ === "minivan" ? 3 : nT >= 4 ? 2 : 1); zz -= 0.95) reihen.push(zz);
+        reihen.forEach((zz, ri) => { for (const sx of ri ? [-0.42, 0, 0.42] : [-0.4, 0.4]) { box(ri ? 0.4 : 0.48, 0.16, 0.5, sitzM, sx, sy, zz, kar); box(ri ? 0.4 : 0.48, 0.55, 0.12, sitzM, sx, sy + 0.32, zz - 0.27, kar); box(0.24, 0.14, 0.1, sitzM, sx, sy + 0.66, zz - 0.29, kar); } });
+        box(W - 0.3, 0.2, 0.45, M(0x1e1e20, { roughness: 0.6 }), 0, sy + 0.32, glas[1][0] - 0.12, kar); const disp = box(0.3, 0.12, 0.02, new THREE.MeshBasicMaterial({ color: 0x3a6aaa }), 0.1, sy + 0.48, glas[1][0] - 0.3, kar); disp.rotation.x = -0.4;
+        const lenk = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.022, 10, 28), M(0x111111, { roughness: 0.5 })); lenk.position.set(-0.4, sy + 0.45, glas[1][0] - 0.45); lenk.rotation.x = -0.4; kar.add(lenk);
+        // Front: Scheinwerfer (Basis-Material für autoPlus), Kühlergrill je Typ, Stoßfänger, Nebelleuchten
+        const licht = new THREE.MeshBasicMaterial({ color: 0xfff6e0 }), rueck = new THREE.MeshBasicMaterial({ color: 0xc81a1a });
+        const fy = body[2][1] + 0.02, fH = K.kastig ? 0.2 : 0.11;
+        for (const sx of [-1, 1]) {
+          if (K.kastig) { const sl = cyl(0.11, 0.11, 0.05, licht, sx * 0.66, fy - 0.02, zf + 0.01, kar, 24); sl.rotation.x = Math.PI / 2; } else box(0.4, fH, 0.05, licht, sx * 0.6, fy, zf + 0.0, kar);
+          box(0.42, 0.012, 0.06, M(0xf2f6ff, { emissive: 0xffffff, emissiveIntensity: 0.4 }), sx * 0.6, fy + fH / 2 + 0.008, zf - 0.01, kar); // LED-Tagfahrlicht
+          box(K.kastig ? 0.25 : 0.38, 0.1, 0.05, rueck, sx * 0.62, body[body.length - 1][1] + 0.08, zh - 0.0, kar);
+          cyl(0.04, 0.04, 0.03, M(0xf8f8f0, { emissive: 0xffffff, emissiveIntensity: 0.1 }), sx * 0.68, body[0][1] + 0.12, zf + 0.04, kar, 16).rotation.x = Math.PI / 2;
+        }
+        const grill = pick(["waben", "quer", "niere"]), gM = M(0x1a1a1c, { roughness: 0.5, metalness: 0.4 });
+        if (grill === "niere" && !K.kastig) for (const sx of [-1, 1]) { box(0.2, 0.16, 0.04, gM, sx * 0.12, fy - 0.06, zf + 0.02, kar); for (let k = 0; k < 6; k++) box(0.012, 0.15, 0.05, chrom, sx * 0.12 - 0.08 + k * 0.032, fy - 0.06, zf + 0.025, kar); }
+        else { box(K.kastig ? 0.9 : 0.75, 0.18, 0.04, gM, 0, fy - 0.07, zf + 0.02, kar); for (let k = 0; k < (grill === "quer" ? 4 : 3); k++) box(K.kastig ? 0.88 : 0.73, 0.012, 0.05, grill === "quer" ? chrom : gM, 0, fy - 0.14 + k * 0.045, zf + 0.025, kar);
+          if (grill === "waben") for (let k = 0; k < 10; k++) box(0.01, 0.17, 0.05, M(0x2a2a2c), -0.34 + k * 0.075, fy - 0.07, zf + 0.025, kar); }
+        box(W + 0.02, 0.18, 0.14, K.beplankung ? dunkel : lack, 0, body[0][1] + 0.05, zf + 0.02, kar); box(W + 0.02, 0.18, 0.14, K.beplankung ? dunkel : lack, 0, body[0][1] + 0.05, zh - 0.02, kar);
+        box(W * 0.6, 0.06, 0.1, dunkel, 0, body[0][1] - 0.02, zh + 0.02, kar); // Diffusor
+        // Kennzeichen, Auspuff, Antenne, Scheibenwischer, Ersatzrad
+        const kz = new THREE.MeshStandardMaterial({ map: kennzeichenTex(o.kennzeichen ?? KENNZ[Math.floor(r() * KENNZ.length)]), roughness: 0.4, ...PO });
+        for (const sz of [1, -1]) { const p = new THREE.Mesh(new THREE.PlaneGeometry(0.52, 0.115), kz); p.position.set(0, body[0][1] + 0.12 + (sz < 0 ? 0.12 : 0), sz > 0 ? zf + 0.1 : zh - 0.1); if (sz < 0) p.rotation.y = Math.PI; kar.add(p); }
+        const doppelRohr = r() < 0.4 || typ === "coupe" || typ === "targa"; const rohre = doppelRohr ? [-0.55, 0.55] : [-0.55];
+        rohre.forEach((xx) => { const rr = cyl(0.04, 0.04, 0.16, chrom, xx, body[0][1] - 0.02, zh - 0.02, kar, 16); rr.rotation.x = Math.PI / 2; const in2 = cyl(0.03, 0.03, 0.17, M(0x050505), xx, body[0][1] - 0.02, zh - 0.025, kar, 12); in2.rotation.x = Math.PI / 2; });
+        if (!K.offen) { const fin = box(0.05, 0.06, 0.18, lack, 0, glas[3][1] + 0.1, glas[3][0] + 0.15, kar); }
+        for (const sx of [-0.35, 0.35]) { const wi = box(0.6, 0.014, 0.02, gummiM, sx, glas[1][1] + 0.03, glas[1][0] - 0.02, kar); wi.rotation.z = sx > 0 ? 0.08 : -0.08; }
+        if (typ === "gelaende") { const ers = reifenRad(kar, 0, zh - 0.28, 0.36, 0.26, "offroad", 0x2a2a2c); ers.rotation.y = Math.PI / 2; ers.position.y = 1.0; }
+        // Räder
+        const rR = K.r, rW = typ === "coupe" || typ === "targa" ? 0.26 : 0.23, fe = o.felge ?? (typ === "gelaende" ? "offroad" : pick(["speichen5", "vielspeichen", "doppelspeichen", "turbine", r() < 0.3 ? "stahl" : "speichen5"]));
+        const feC = o.felgenFarbe ?? (fe === "stahl" ? 0x3a3c40 : pick([0xc8ccd0, 0xc8ccd0, 0x2a2c30, 0x5a5e64, 0xc8a050])), sattel = r() < 0.3 ? pick([0xc82a1a, 0xd8b020, 0x2a5aa8]) : 0x4a4c50;
+        const achse = L / 2 - (K.kastig ? 0.75 : 0.78) - (d ? 0 : 0);
+        const wheels = [[-1, 1], [1, 1], [-1, -1], [1, -1]].map(([sx, sz]) => reifenRad(g, sx * (W / 2 - 0.12), sz * achse + (zf + zh) / 2, rR, rW, fe, feC, sattel));
+        // Radläufe (dunkle Bögen)
+        wheels.forEach((wh) => { const bo = new THREE.Mesh(new THREE.TorusGeometry(rR + 0.06, 0.04, 6, 20, Math.PI), dunkel); bo.rotation.y = Math.PI / 2; bo.position.set(wh.position.x + Math.sign(wh.position.x) * 0.08, rR, wh.position.z); kar.add(bo); });
+        kar.position.y = K.tief ? -0.02 : 0;
+        g.userData = { wheels, L, karosse: kar, rR, typ, felgenFertig: true, details: true, auspuff: rohre.map((xx) => new THREE.Vector3(xx, body[0][1] - 0.02, zh - 0.12)), phase: r() * 6.28 };
+        return g;
+      }
+      // Fahren: Räder drehen sich passend zur Strecke, Karosserie federt leicht (Nicken, Wanken, Fahrbahnunebenheiten)
+      function fahren(car, T, strecke, o = {}) {
+        const u = car.userData; (u.wheels || []).forEach((w) => (w.rotation.x = strecke / (u.rR || 0.33)));
+        if (!u.karosse) return; const k = T + u.phase, uneben = o.uneben ?? 1;
+        u.karosse.position.y = (Math.sin(k * 7.3) * 0.004 + Math.sin(k * 13.1) * 0.002) * uneben + (u.karosse.userData.y0 ?? (u.karosse.userData.y0 = u.karosse.position.y));
+        u.karosse.rotation.x = Math.sin(k * 2.1) * 0.004 * uneben + (o.bremsen ? 0.015 : 0) - (o.gas ? 0.01 : 0); u.karosse.rotation.z = Math.sin(k * 1.7) * 0.004 * uneben + (o.kurve ?? 0) * 0.03;
+      }
+      // Abgase: weiche graue Wölkchen am Auspuff (kalt am Morgen/Winter stärker: o.staerke)
+      function abgas(car, seed = 1, o = {}) {
+        const u = car.userData, list = (u.auspuff || [new THREE.Vector3(-0.55, 0.3, -u.L / 2)]).map((p, i) =>
+          particles(car, o.n ?? 26, seed * 7 + i, { x: [p.x - 0.02, p.x + 0.02], y: [p.y, p.y + 0.02], z: [p.z, p.z - 0.02], v: [0.12, 0.25, 0.1], drift: [0.05, 0, -(o.wind ?? 0.6)], life: o.life ?? 1.8, color: o.farbe ?? 0xb8bcc4, size: 0.28, opacity: (o.staerke ?? 0.35) }));
+        return { update(T) { list.forEach((p) => p.update(T)); } };
+      }
+
+      // ===== Stadt v2: Ampeln, Verkehrsschilder, Mülleimer, Müll & Schmutz, unebene Straßen, Möbel (braucht: rng, box, cyl, M, canvasTex, PO, glanzPunkt) =====
+      // ampel(s, x, z, ry, { phase }) -> update(T) schaltet Rot/Gelb/Grün (Fußgängerampel optional)
+      function ampel(s, x, z, ry = 0, o = {}) {
+        const g = new THREE.Group(); g.position.set(x, 0.14, z); g.rotation.set((o.schief ?? 0) * 0.02, ry, (o.schief ?? 0) * 0.015); s.add(g);
+        const mast = M(0x3a3e42, { metalness: 0.5, roughness: 0.5 }), gehaeuse = M(0x1a1c1e, { roughness: 0.6 });
+        cyl(0.07, 0.09, 0.3, mast, 0, 0.15, 0, g, 16); cyl(0.055, 0.06, 3.4, mast, 0, 1.85, 0, g, 16);
+        const kopf = new THREE.Group(); kopf.position.set(0, 2.9, 0.12); g.add(kopf);
+        box(0.3, 0.9, 0.22, gehaeuse, 0, 0, 0, kopf); box(0.42, 1.02, 0.02, M(0xf2f2f0), 0, 0, -0.12, kopf); // Gehäuse + weiße Kontrasttafel
+        const farben = [0xff2a1a, 0xffb020, 0x30ff6a], lampen = [];
+        farben.forEach((f, i) => { const y = 0.28 - i * 0.28; const l = cyl(0.095, 0.095, 0.02, new THREE.MeshBasicMaterial({ color: 0x222222, toneMapped: false }), 0, y, 0.115, kopf, 24); l.rotation.x = Math.PI / 2;
+          const schirm = cyl(0.11, 0.11, 0.14, gehaeuse, 0, y + 0.06, 0.17, kopf, 20, ); schirm.rotation.x = Math.PI / 2; schirm.scale.set(1, 1, 0.3); schirm.geometry = new THREE.CylinderGeometry(0.11, 0.11, 0.14, 20, 1, true, -Math.PI / 2, Math.PI);
+          const glow = glanzPunkt(f, 0.55); glow.position.set(0, y, 0.15); glow.visible = false; kopf.add(glow); lampen.push({ l, glow, f }); });
+        let fuss = null; if (o.fussgaenger !== false) { const fk = new THREE.Group(); fk.position.set(0, 2.0, 0.1); g.add(fk); box(0.22, 0.48, 0.16, gehaeuse, 0, 0, 0, fk);
+          const rot = box(0.14, 0.17, 0.01, new THREE.MeshBasicMaterial({ color: 0x331010, toneMapped: false }), 0, 0.11, 0.085, fk), gruen = box(0.14, 0.17, 0.01, new THREE.MeshBasicMaterial({ color: 0x103318, toneMapped: false }), 0, -0.11, 0.085, fk); fuss = { rot, gruen };
+          box(0.12, 0.16, 0.06, M(0xe8c020), 0, -0.6, 0.06, g); } // Anforderungstaster
+        const zyklus = o.zyklus ?? 14, ph = o.phase ?? 0;
+        function update(T) { const k = ((T + ph) % zyklus) / zyklus; const zustand = k < 0.45 ? 0 : k < 0.52 ? 1 : k < 0.95 ? 2 : 3; // 0 rot, 1 rot-gelb, 2 grün, 3 gelb
+          const an = [zustand === 0 || zustand === 1, zustand === 1 || zustand === 3, zustand === 2];
+          lampen.forEach((L, i) => { L.l.material.color.set(an[i] ? new THREE.Color(L.f).multiplyScalar(3) : new THREE.Color(L.f).multiplyScalar(0.08)); L.glow.visible = an[i]; });
+          if (fuss) { const fg = zustand === 0; fuss.rot.material.color.set(fg ? 0x331010 : new THREE.Color(0xff2a1a).multiplyScalar(2.5)); fuss.gruen.material.color.set(fg ? new THREE.Color(0x30ff6a).multiplyScalar(2.5) : 0x103318); } }
+        update(0); return { g, update };
+      }
+      // Verkehrsschilder: "stop"|"vorfahrt"|"vorfahrtAchten"|"einbahn"|"parkverbot"|"halteverbot"|"tempo30"|"tempo50"|"fussgaenger"|"baustelle"
+      const SCHILD_TEX = {};
+      function schildTex(typ) {
+        if (SCHILD_TEX[typ]) return SCHILD_TEX[typ];
+        const t = canvasTex(256, 256, (c) => { c.clearRect(0, 0, 256, 256); const ctr = () => { c.textAlign = "center"; c.textBaseline = "middle"; };
+          const kreis = (fill, rand, rw) => { c.fillStyle = fill; c.beginPath(); c.arc(128, 128, 120, 0, 7); c.fill(); if (rand) { c.strokeStyle = rand; c.lineWidth = rw; c.beginPath(); c.arc(128, 128, 120 - rw / 2, 0, 7); c.stroke(); } };
+          if (typ === "stop") { c.fillStyle = "#fff"; c.beginPath(); for (let i = 0; i < 8; i++) { const a = Math.PI / 8 + i * Math.PI / 4; c.lineTo(128 + Math.cos(a) * 124, 128 + Math.sin(a) * 124); } c.fill(); c.fillStyle = "#c8141e"; c.beginPath(); for (let i = 0; i < 8; i++) { const a = Math.PI / 8 + i * Math.PI / 4; c.lineTo(128 + Math.cos(a) * 112, 128 + Math.sin(a) * 112); } c.fill(); c.fillStyle = "#fff"; c.font = "bold 78px sans-serif"; ctr(); c.fillText("STOP", 128, 132); }
+          else if (typ === "vorfahrt") { c.save(); c.translate(128, 128); c.rotate(Math.PI / 4); c.fillStyle = "#fff"; c.fillRect(-86, -86, 172, 172); c.fillStyle = "#f2c500"; c.fillRect(-62, -62, 124, 124); c.strokeStyle = "#222"; c.lineWidth = 3; c.strokeRect(-86, -86, 172, 172); c.restore(); }
+          else if (typ === "vorfahrtAchten") { c.fillStyle = "#c8141e"; c.beginPath(); c.moveTo(128, 236); c.lineTo(12, 30); c.lineTo(244, 30); c.closePath(); c.fill(); c.fillStyle = "#fff"; c.beginPath(); c.moveTo(128, 196); c.lineTo(52, 54); c.lineTo(204, 54); c.closePath(); c.fill(); }
+          else if (typ === "einbahn") { c.fillStyle = "#1e4fa0"; c.fillRect(8, 78, 240, 100); c.fillStyle = "#fff"; c.beginPath(); c.moveTo(30, 112); c.lineTo(170, 112); c.lineTo(170, 92); c.lineTo(226, 128); c.lineTo(170, 164); c.lineTo(170, 144); c.lineTo(30, 144); c.fill(); }
+          else if (typ === "parkverbot" || typ === "halteverbot") { kreis("#1e4fa0", "#c8141e", 26); c.strokeStyle = "#c8141e"; c.lineWidth = 24; c.beginPath(); c.moveTo(48, 48); c.lineTo(208, 208); c.stroke(); if (typ === "halteverbot") { c.beginPath(); c.moveTo(208, 48); c.lineTo(48, 208); c.stroke(); } }
+          else if (typ === "tempo30" || typ === "tempo50") { kreis("#fff", "#c8141e", 30); c.fillStyle = "#111"; c.font = "bold 104px sans-serif"; ctr(); c.fillText(typ.slice(5), 128, 136); }
+          else if (typ === "fussgaenger") { c.fillStyle = "#1e4fa0"; c.fillRect(8, 8, 240, 240); c.fillStyle = "#fff"; c.beginPath(); c.moveTo(128, 30); c.lineTo(226, 214); c.lineTo(30, 214); c.closePath(); c.fill(); c.fillStyle = "#111"; c.beginPath(); c.arc(128, 96, 12, 0, 7); c.fill(); c.fillRect(120, 110, 16, 50); c.fillRect(100, 160, 16, 40); c.fillRect(140, 160, 16, 40); for (let i = 0; i < 4; i++) c.fillRect(60 + i * 36, 200, 22, 8); }
+          else if (typ === "baustelle") { c.fillStyle = "#c8141e"; c.beginPath(); c.moveTo(128, 14); c.lineTo(244, 224); c.lineTo(12, 224); c.closePath(); c.fill(); c.fillStyle = "#fff"; c.beginPath(); c.moveTo(128, 54); c.lineTo(208, 200); c.lineTo(48, 200); c.closePath(); c.fill(); c.fillStyle = "#111"; c.beginPath(); c.arc(118, 120, 9, 0, 7); c.fill(); c.fillRect(104, 132, 24, 34); c.fillRect(132, 150, 30, 10); c.fillRect(96, 178, 70, 8); }
+          // leichte Verwitterung
+          const q = rng(typ.length * 13); for (let i = 0; i < 220; i++) { c.fillStyle = `rgba(80,70,60,${q() * 0.08})`; c.fillRect(q() * 256, q() * 256, 3, 3); } });
+        SCHILD_TEX[typ] = t; return t;
+      }
+      function verkehrsschild(s, x, z, typ = "stop", ry = 0, o = {}) {
+        const g = new THREE.Group(); g.position.set(x, 0.14, z); g.rotation.set((o.schief ?? 0) * 0.04, ry, (o.schief ?? 0) * 0.03); s.add(g);
+        const pfahl = M(0x9aa0a6, { metalness: 0.7, roughness: 0.35 }); cyl(0.032, 0.032, 2.5, pfahl, 0, 1.25, 0, g, 12); cyl(0.04, 0.04, 0.02, M(0x6a6e72), 0, 2.5, 0, g, 12);
+        const h = o.hoehe ?? 2.2, gr = typ === "einbahn" ? [0.8, 0.8] : [0.62, 0.62];
+        const p = new THREE.Mesh(new THREE.PlaneGeometry(gr[0], gr[1]), new THREE.MeshStandardMaterial({ map: schildTex(typ), transparent: true, alphaTest: 0.5, roughness: 0.45, metalness: 0.1, side: THREE.FrontSide })); p.position.set(0, h, 0.045); p.castShadow = true; g.add(p);
+        const rueck = new THREE.Mesh(new THREE.PlaneGeometry(gr[0], gr[1]), new THREE.MeshStandardMaterial({ map: schildTex(typ), color: 0x8a9096, transparent: true, alphaTest: 0.5, roughness: 0.6, metalness: 0.4 })); rueck.position.set(0, h, 0.04); rueck.rotation.y = Math.PI; g.add(rueck);
+        for (const dy of [-0.18, 0.18]) box(0.08, 0.03, 0.04, pfahl, 0, h + dy, 0.02, g); // Schellen
+        if (o.aufkleber) { const a = box(0.1, 0.07, 0.003, M(pick2([0xf2f2f0, 0x2a8a4a, 0xe8c020])), 0.02, 1.5, 0.034, g); }
+        return g;
+      }
+      function pick2(a) { return a[(a.length * 7 + 3) % a.length]; }
+      // Mülleimer: fuell 0..1 (voll = Müll quillt über), mit Tüte, Deckel, Aufkleber; daneben optional Müll
+      function muelltonne(s, x, z, o = {}) {
+        const r = rng(o.seed ?? Math.floor(x * 13 + z * 7)), g = new THREE.Group(); g.position.set(x, 0.14, z); g.rotation.y = r() * 6.28; s.add(g);
+        const typ = o.typ ?? (r() < 0.5 ? "korb" : "tonne"), fuell = o.fuell ?? r();
+        const farbe = o.farbe ?? [0xe86a1a, 0x2a5a3a, 0x3a3e44, 0x1e2a44][Math.floor(r() * 4)];
+        if (typ === "korb") { // städtischer Abfallkorb am Pfahl
+          cyl(0.04, 0.04, 1.1, M(0x5a5e62, { metalness: 0.5 }), 0.3, 0.55, 0, g, 10);
+          const k = cyl(0.25, 0.22, 0.65, M(farbe, { roughness: 0.55, side: THREE.DoubleSide }), 0, 0.62, 0, g, 24); k.geometry = new THREE.CylinderGeometry(0.25, 0.22, 0.65, 24, 1, true);
+          cyl(0.22, 0.22, 0.02, M(farbe), 0, 0.3, 0, g, 24); const rand = new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.015, 6, 24), M(0x2a2a2a)); rand.rotation.x = Math.PI / 2; rand.position.y = 0.95; g.add(rand);
+          box(0.12, 0.06, 0.003, M(0xf2f2f0), 0, 0.7, 0.245, g); // Hinweisschild
+          const tuete = cyl(0.235, 0.21, 0.6 * Math.min(1, fuell + 0.1), M(0x1a1a1a, { roughness: 0.35 }), 0, 0.31 + 0.3 * Math.min(1, fuell + 0.1), 0, g, 18); }
+        else { // Mülltonne mit Deckel (Hinterhof)
+          box(0.58, 0.95, 0.62, M(farbe, { roughness: 0.5 }), 0, 0.5, 0, g); for (let i = 0; i < 4; i++) box(0.6, 0.02, 0.64, M(new THREE.Color(farbe).offsetHSL(0, 0, -0.06).getHex()), 0, 0.2 + i * 0.22, 0, g);
+          const deckel = box(0.62, 0.05, 0.66, M(farbe, { roughness: 0.5 }), 0, 1.0, 0, g); if (fuell > 0.8) { deckel.rotation.x = -0.5; deckel.position.set(0, 1.08, -0.12); }
+          for (const sx of [-1, 1]) { const rd2 = cyl(0.09, 0.09, 0.05, M(0x111111), sx * 0.25, 0.09, -0.3, g, 16); rd2.rotation.z = Math.PI / 2; } }
+        if (fuell > 0.75) { const top = typ === "korb" ? 0.95 : 1.0; for (let i = 0; i < 6 + r() * 6; i++) { const art = r(); const m = art < 0.4 ? box(0.08 + r() * 0.1, 0.06, 0.1, M([0xf2f2ea, 0xc8b89a, 0xd83a2a, 0x3a6aa8][Math.floor(r() * 4)], { roughness: 0.8 }), (r() - 0.5) * 0.35, top + r() * 0.15, (r() - 0.5) * 0.35, g) :
+          art < 0.7 ? cyl(0.03, 0.03, 0.11, M([0xc8c8cc, 0xd83a2a, 0x2a8a4a][Math.floor(r() * 3)], { metalness: 0.8, roughness: 0.3 }), (r() - 0.5) * 0.35, top + r() * 0.12, (r() - 0.5) * 0.35, g, 10) :
+          new THREE.Mesh(new THREE.IcosahedronGeometry(0.08 + r() * 0.06, 1), M(r() < 0.5 ? 0x1a1a1a : 0xe8e4dc, { roughness: 0.35 })); if (!m.parent) { m.position.set((r() - 0.5) * 0.3, top + 0.05, (r() - 0.5) * 0.3); m.scale.y = 0.7; g.add(m); } m.rotation.set(r() * 3, r() * 3, r() * 3); } }
+        if (fuell > 0.9 || o.muell) muell(s, x, z, 1.2, 10, Math.floor(r() * 1000));
+        return g;
+      }
+      // Verstreuter Müll & Schmutz: Papier, Dosen, Flaschen, Kippen, Laub, Kaugummiflecken, Ölflecken
+      function muell(s, x, z, radius = 3, n = 30, seed = 1, y = 0.142) {
+        const r = rng(seed), grp = new THREE.Group(); s.add(grp);
+        const mats = { papier: M(0xf2f0e6, { roughness: 0.9, side: THREE.DoubleSide }), karton: M(0xb89a6a, { roughness: 0.9 }), dose: M(0xc8c8cc, { metalness: 0.85, roughness: 0.3 }), doseRot: M(0xc82a1a, { metalness: 0.6, roughness: 0.35 }),
+          flasche: new THREE.MeshPhysicalMaterial({ color: 0x3a6a3a, roughness: 0.05, transparent: true, opacity: 0.7 }), kippe: M(0xe8d8b0), laub: [M(0xb8742a, { side: THREE.DoubleSide }), M(0x8a5a1e, { side: THREE.DoubleSide }), M(0xc8a03a, { side: THREE.DoubleSide })], fleck: M(0x2a2a2a, Object.assign({ transparent: true, opacity: 0.35, roughness: 0.3 }, PO)) };
+        for (let i = 0; i < n; i++) {
+          const a = r() * Math.PI * 2, d = Math.sqrt(r()) * radius, px = x + Math.cos(a) * d, pz = z + Math.sin(a) * d, art = r(); let m;
+          if (art < 0.2) { m = new THREE.Mesh(new THREE.PlaneGeometry(0.15 + r() * 0.1, 0.1 + r() * 0.1, 3, 3), mats.papier); const p = m.geometry.attributes.position; for (let k = 0; k < p.count; k++) p.setZ(k, (r() - 0.5) * 0.03); m.geometry.computeVertexNormals(); m.rotation.x = -Math.PI / 2 + (r() - 0.5) * 0.3; m.position.y = 0.01; }
+          else if (art < 0.32) { m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.035 + r() * 0.03, 1), mats.papier); m.scale.y = 0.7; } // zerknülltes Papier
+          else if (art < 0.45) { m = cyl(0.032, 0.032, 0.115, r() < 0.5 ? mats.dose : mats.doseRot, 0, 0, 0, null, 14); m.rotation.z = Math.PI / 2; m.position.y = 0.03; if (r() < 0.4) m.scale.set(1, 0.7, 1); }
+          else if (art < 0.52) { m = new THREE.Group(); cyl(0.035, 0.035, 0.2, mats.flasche, 0, 0, 0, m, 14); cyl(0.013, 0.02, 0.07, mats.flasche, 0, 0.13, 0, m, 10); m.rotation.z = Math.PI / 2; m.position.y = 0.035; }
+          else if (art < 0.68) { m = cyl(0.0045, 0.0045, 0.025, mats.kippe, 0, 0, 0, null, 6); m.rotation.z = Math.PI / 2; m.position.y = 0.005; }
+          else if (art < 0.86) { const blatt = new THREE.Shape(); blatt.moveTo(0, 0); blatt.quadraticCurveTo(0.04, 0.04, 0, 0.09); blatt.quadraticCurveTo(-0.04, 0.04, 0, 0); m = new THREE.Mesh(new THREE.ShapeGeometry(blatt), mats.laub[Math.floor(r() * 3)]); m.rotation.x = -Math.PI / 2 + (r() - 0.5) * 0.5; m.position.y = 0.006; m.scale.setScalar(0.8 + r()); }
+          else if (art < 0.95) { m = new THREE.Mesh(new THREE.CircleGeometry(0.012 + r() * 0.01, 10), M(0x3a3a3c, Object.assign({ roughness: 0.6 }, PO))); m.rotation.x = -Math.PI / 2; m.position.y = 0.002; } // Kaugummi
+          else { m = new THREE.Mesh(new THREE.CircleGeometry(0.2 + r() * 0.35, 20), mats.fleck); m.rotation.x = -Math.PI / 2; m.position.y = 0.003; m.scale.set(1, 0.6 + r() * 0.4, 1); } // Ölfleck
+          m.position.x = px; m.position.z = pz; m.position.y += y; m.rotation.y = r() * 6.28; if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } grp.add(m);
+        }
+        return grp;
+      }
+      // Unebene Fahrbahn: Flickstellen, Schlaglöcher, Risse, abgesenkte Gullys, verblasste Markierung – auf einer vorhandenen strasse() legen
+      function strassenSchaeden(s, len, seed = 1, o = {}) {
+        const r = rng(seed), grp = new THREE.Group(); s.add(grp); const breite = o.breite ?? 7;
+        for (let i = 0; i < (o.flicken ?? Math.round(len / 8)); i++) { const w = 0.8 + r() * 2.4, d = 0.6 + r() * 2, v = 40 + r() * 25;
+          const f = new THREE.Mesh(new THREE.PlaneGeometry(w, d), M(new THREE.Color(`rgb(${v | 0},${v | 0},${(v + 3) | 0})`).getHex(), Object.assign({ roughness: 0.9 }, PO))); f.rotation.x = -Math.PI / 2; f.rotation.z = (r() - 0.5) * 0.2; f.position.set((r() - 0.5) * (breite - w), 0.004, -r() * len + 8); f.receiveShadow = true; grp.add(f); }
+        for (let i = 0; i < (o.loecher ?? Math.round(len / 25)); i++) { const rr = 0.18 + r() * 0.3, x = (r() - 0.5) * (breite - 1), z = -r() * len + 8;
+          const loch = new THREE.Mesh(new THREE.CircleGeometry(rr, 14), M(0x1e1e20, Object.assign({ roughness: 0.95 }, PO))); loch.rotation.x = -Math.PI / 2; loch.position.set(x, 0.005, z); loch.scale.set(1, 0.7 + r() * 0.4, 1); grp.add(loch);
+          for (let k = 0; k < 6; k++) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(0.02 + r() * 0.025, 0), M(0x3a3a3c)); st.position.set(x + (r() - 0.5) * rr * 2.4, 0.012, z + (r() - 0.5) * rr * 2.4); st.castShadow = true; grp.add(st); } }
+        const riss = new THREE.LineBasicMaterial({ color: 0x141416 });
+        for (let i = 0; i < (o.risse ?? Math.round(len / 5)); i++) { const pts = []; let x = (r() - 0.5) * breite, z = -r() * len + 8; for (let k = 0; k < 8; k++) { pts.push(new THREE.Vector3(x, 0.006, z)); x += (r() - 0.5) * 0.5; z += (r() - 0.5) * 0.5; } grp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), riss)); }
+        return grp;
+      }
+      // Zufällige leichte Schieflage für Laternen, Schilder, Pfosten ("in der Stadt ist nicht alles gerade")
+      function schief(obj, seed, staerke = 1) { const r = rng(seed); obj.rotation.x += (r() - 0.5) * 0.05 * staerke; obj.rotation.z += (r() - 0.5) * 0.05 * staerke; return obj; }
+
+      // ---------- Möbel (Innenräume) ----------
+      const HOLZ = [0x8a5a34, 0xb08050, 0x5a3a24, 0xd8b888, 0x3a2a1e, 0xe8dcc4];
+      function texHolz(farbe) { const key = "holz" + farbe; if (SCHILD_TEX[key]) return SCHILD_TEX[key]; const c = new THREE.Color(farbe);
+        const t = canvasTex(256, 256, (g) => { const q = rng(farbe % 991); g.fillStyle = "#" + c.getHexString(); g.fillRect(0, 0, 256, 256); for (let i = 0; i < 70; i++) { g.strokeStyle = `rgba(${q() < 0.5 ? "0,0,0" : "255,240,220"},${0.05 + q() * 0.08})`; g.lineWidth = 1 + q() * 2; g.beginPath(); let y = q() * 256; g.moveTo(0, y); for (let x = 0; x <= 256; x += 16) g.lineTo(x, y + Math.sin(x * 0.03 + i) * 3); g.stroke(); }
+          for (let i = 0; i < 3; i++) { const x = q() * 256, y = q() * 256; g.strokeStyle = "rgba(40,20,10,.25)"; for (let k = 1; k < 5; k++) { g.beginPath(); g.ellipse(x, y, k * 5, k * 2, 0, 0, 7); g.stroke(); } } });
+        t.wrapS = t.wrapT = THREE.RepeatWrapping; SCHILD_TEX[key] = t; return t; }
+      const holzM = (f) => new THREE.MeshStandardMaterial({ color: 0xffffff, map: texHolz(f), roughness: 0.55 });
+      function sofa(seed, o = {}) { const r = rng(seed), g = new THREE.Group(), w = o.breite ?? 2.0, st = M(o.farbe ?? [0x5a6a7a, 0x8a3a2a, 0x3a4a3a, 0xb8a888, 0x2a2a30][Math.floor(r() * 5)], { roughness: 0.9, map: texStoff("stoff") });
+        box(w, 0.22, 0.85, st, 0, 0.3, 0, g); box(w, 0.5, 0.2, st, 0, 0.6, -0.33, g); for (const sx of [-1, 1]) box(0.18, 0.32, 0.85, st, sx * (w / 2 - 0.09), 0.5, 0, g);
+        const n = Math.round(w / 0.7); for (let i = 0; i < n; i++) { const k = box((w - 0.36) / n - 0.02, 0.14, 0.62, st, -w / 2 + 0.18 + (i + 0.5) * (w - 0.36) / n, 0.48, 0.06, g); k.geometry = new THREE.BoxGeometry((w - 0.36) / n - 0.02, 0.14, 0.62, 2, 1, 2); const rk = box((w - 0.36) / n - 0.04, 0.42, 0.14, st, k.position.x, 0.72, -0.2, g); rk.rotation.x = -0.12; }
+        for (let i = 0; i < 2; i++) { const z = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.36, 0.12), M([0xd8b030, 0xe8e4dc, 0x2a6a8a][Math.floor(r() * 3)], { roughness: 0.9 })); z.position.set((i ? 1 : -1) * (w / 2 - 0.4), 0.72, -0.12); z.rotation.set(-0.2, (i ? -1 : 1) * 0.3, (i ? 1 : -1) * 0.15); z.castShadow = true; g.add(z); }
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) cyl(0.025, 0.018, 0.18, M(0x2a2a2a, { metalness: 0.5 }), sx * (w / 2 - 0.08), 0.09, sz * 0.36, g, 10); return g; }
+      function tisch(seed, o = {}) { const r = rng(seed), g = new THREE.Group(), h = o.hoehe ?? 0.75, w = o.breite ?? 1.4, d = o.tiefe ?? 0.8, hm = holzM(o.holz ?? HOLZ[Math.floor(r() * 6)]);
+        box(w, 0.04, d, hm, 0, h, 0, g); box(w - 0.08, 0.08, d - 0.08, hm, 0, h - 0.06, 0, g); for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(0.05, h - 0.02, 0.05, hm, sx * (w / 2 - 0.06), (h - 0.02) / 2, sz * (d / 2 - 0.06), g);
+        if (o.deko !== false && h > 0.6) { const v = cyl(0.05, 0.035, 0.16, new THREE.MeshPhysicalMaterial({ color: 0xc8e0e8, roughness: 0.05, transparent: true, opacity: 0.5 }), 0.2, h + 0.1, 0, g, 16); for (let i = 0; i < 5; i++) mk2(new THREE.SphereGeometry(0.03, 8, 6), M([0xd83a4a, 0xf2c83a, 0xffffff][i % 3]), 0.2 + (r() - 0.5) * 0.08, h + 0.24 + r() * 0.06, (r() - 0.5) * 0.08, g);
+          const tasse = cyl(0.035, 0.03, 0.08, M(0xf2f2ee, { roughness: 0.3 }), -0.3, h + 0.06, 0.15, g, 16); const buch = box(0.18, 0.03, 0.24, M(0x2a4a8a), -0.1, h + 0.035, -0.15, g); buch.rotation.y = 0.3; }
+        return g; }
+      function mk2(geo, mat, x, y, z, p) { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; p.add(m); return m; }
+      function stuhl(seed, o = {}) { const r = rng(seed), g = new THREE.Group(), hm = holzM(o.holz ?? HOLZ[Math.floor(r() * 6)]);
+        box(0.44, 0.04, 0.42, hm, 0, 0.45, 0, g); for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(0.035, sz < 0 ? 0.95 : 0.45, 0.035, hm, sx * 0.19, sz < 0 ? 0.475 : 0.225, sz * 0.18, g);
+        for (let i = 0; i < 3; i++) box(0.38, 0.05, 0.02, hm, 0, 0.65 + i * 0.1, -0.18, g); if (r() < 0.5) box(0.4, 0.03, 0.38, M(0x8a3a2a, { roughness: 0.9 }), 0, 0.485, 0, g); return g; }
+      function bett(seed, o = {}) { const r = rng(seed), g = new THREE.Group(), w = o.breite ?? 1.6, hm = holzM(o.holz ?? HOLZ[Math.floor(r() * 6)]);
+        box(w + 0.08, 0.3, 2.1, hm, 0, 0.2, 0, g); box(w + 0.08, 0.9, 0.06, hm, 0, 0.55, -1.05, g); box(w, 0.22, 2.0, M(0xf2f0ea, { roughness: 0.9 }), 0, 0.46, 0, g);
+        const decke = new THREE.Mesh(new THREE.BoxGeometry(w + 0.04, 0.1, 1.4, 8, 1, 8), M([0x6a8ab8, 0xd8c8a8, 0x8a4a5a, 0x4a6a4a, 0xe8e4dc][Math.floor(r() * 5)], { roughness: 0.95, map: texStoff("stoff") })); const p = decke.geometry.attributes.position; for (let k = 0; k < p.count; k++) if (p.getY(k) > 0) p.setY(k, p.getY(k) + Math.sin(p.getX(k) * 7 + p.getZ(k) * 5) * 0.02); decke.geometry.computeVertexNormals(); decke.position.set(0, 0.6, 0.28); decke.castShadow = true; g.add(decke);
+        for (const sx of w > 1.2 ? [-1, 1] : [0]) { const k = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 10), M(0xf6f4ee, { roughness: 0.9 })); k.scale.set(1, 0.3, 0.6); k.position.set(sx * w / 4, 0.64, -0.75); k.castShadow = true; g.add(k); } return g; }
+      function regal(seed, o = {}) { const r = rng(seed), g = new THREE.Group(), w = o.breite ?? 1.0, h = o.hoehe ?? 1.9, hm = holzM(o.holz ?? HOLZ[Math.floor(r() * 6)]);
+        box(0.03, h, 0.32, hm, -w / 2, h / 2, 0, g); box(0.03, h, 0.32, hm, w / 2, h / 2, 0, g); box(w, h, 0.01, hm, 0, h / 2, -0.16, g);
+        for (let i = 0; i <= 5; i++) { const y = 0.05 + i * (h - 0.1) / 5; box(w, 0.025, 0.32, hm, 0, y, 0, g); if (i === 5) break; let x = -w / 2 + 0.04;
+          while (x < w / 2 - 0.08) { if (r() < 0.12) { const pf = cyl(0.05, 0.04, 0.1, M(0xb8643a), x + 0.06, y + 0.06, 0, g, 12); mk2(new THREE.SphereGeometry(0.07, 10, 8), M(0x3a7a3a, { roughness: 0.9 }), x + 0.06, y + 0.16, 0, g); x += 0.14; continue; }
+            const bh = 0.2 + r() * 0.12, bd = 0.02 + r() * 0.03; const bu = box(bd, bh, 0.22, M([0x8a2a2a, 0x2a4a8a, 0x2a6a3a, 0xd8c8a0, 0x1a1a1a, 0xc8a030, 0x6a3a6a][Math.floor(r() * 7)], { roughness: 0.7 }), x + bd / 2, y + 0.012 + bh / 2, 0.02, g); if (r() < 0.08) bu.rotation.z = 0.25; x += bd + 0.003; } }
+        return g; }
+      function schrank(seed, o = {}) { const r = rng(seed), g = new THREE.Group(), w = o.breite ?? 1.2, h = o.hoehe ?? 2.0, hm = holzM(o.holz ?? HOLZ[Math.floor(r() * 6)]);
+        box(w, h, 0.6, hm, 0, h / 2, 0, g); box(0.006, h - 0.1, 0.01, M(0x2a1e14), 0, h / 2, 0.302, g); for (const sx of [-1, 1]) box(0.02, 0.18, 0.03, M(0xc8ccd0, { metalness: 0.9, roughness: 0.2 }), sx * 0.05, h / 2, 0.31, g); box(w + 0.04, 0.04, 0.64, hm, 0, h + 0.02, 0, g); return g; }
+      function stehlampe(seed, an = false) { const g = new THREE.Group(); cyl(0.15, 0.15, 0.02, M(0x2a2a2a, { metalness: 0.6 }), 0, 0.01, 0, g, 20); cyl(0.012, 0.012, 1.5, M(0x2a2a2a, { metalness: 0.6 }), 0, 0.75, 0, g, 8);
+        const schirm = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.22, 0.28, 24, 1, true), M(0xf2e8d0, { roughness: 0.9, side: THREE.DoubleSide, emissive: an ? 0xffc880 : 0, emissiveIntensity: an ? 0.8 : 0 })); schirm.position.y = 1.5; g.add(schirm);
+        if (an) { const l = new THREE.PointLight(0xffc880, 1.6, 6, 2); l.position.y = 1.42; g.add(l); const gl = glanzPunkt(0xffc880, 0.5); gl.position.y = 1.4; g.add(gl); } return g; }
+      function fernseher(an = true) { const g = new THREE.Group(); box(1.2, 0.7, 0.04, M(0x0a0a0c, { roughness: 0.2, metalness: 0.4 }), 0, 0.95, 0, g); const bild = box(1.14, 0.64, 0.005, new THREE.MeshBasicMaterial({ color: an ? new THREE.Color(0x4a7ac8).multiplyScalar(1.4) : 0x050506, toneMapped: !an }), 0, 0.95, 0.022, g);
+        box(0.3, 0.02, 0.2, M(0x1a1a1a), 0, 0.58, 0, g); box(0.04, 0.05, 0.04, M(0x1a1a1a), 0, 0.6, 0, g); if (an) { const l = new THREE.PointLight(0x6a9ae8, 0.8, 4, 2); l.position.set(0, 0.95, 0.4); g.add(l); } return g; }
+      function teppich(seed, w = 2.4, d = 1.7) { const r = rng(seed), c = [0x8a3a2a, 0x2a4a6a, 0xd8c8a8, 0x4a4a4a][Math.floor(r() * 4)];
+        const t = canvasTex(256, 180, (g) => { g.fillStyle = "#" + new THREE.Color(c).getHexString(); g.fillRect(0, 0, 256, 180); g.strokeStyle = "rgba(255,240,210,.5)"; g.lineWidth = 6; g.strokeRect(14, 14, 228, 152); g.lineWidth = 2; g.strokeRect(26, 26, 204, 128); for (let i = 0; i < 6; i++) { g.beginPath(); g.ellipse(128, 90, 20 + i * 12, 12 + i * 8, 0, 0, 7); g.stroke(); } });
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshStandardMaterial({ map: t, roughness: 0.95, ...PO })); m.rotation.x = -Math.PI / 2; m.position.y = 0.005; m.receiveShadow = true; return m; }
+      function zimmerpflanze(seed) { const r = rng(seed), g = new THREE.Group(); cyl(0.16, 0.12, 0.3, M([0xb8643a, 0xe8e4dc, 0x2a2a2a][Math.floor(r() * 3)], { roughness: 0.6 }), 0, 0.15, 0, g, 20);
+        for (let i = 0; i < 14; i++) { const blatt = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), M(new THREE.Color(0x3a7a3a).offsetHSL(0, 0, (r() - 0.5) * 0.1).getHex(), { roughness: 0.7, side: THREE.DoubleSide })); const a = r() * 6.28, h = 0.4 + r() * 0.6; blatt.position.set(Math.cos(a) * 0.15 * h, 0.3 + h * 0.6, Math.sin(a) * 0.15 * h); blatt.scale.set(0.5, 0.12, 1.4); blatt.rotation.set(0.6, a, 0); blatt.castShadow = true; g.add(blatt);
+          const stiel = cyl(0.006, 0.006, h * 0.6, M(0x2a5a2a), blatt.position.x * 0.5, 0.3 + h * 0.3, blatt.position.z * 0.5, g, 4); } return g; }
+      function bild(seed, w = 0.6, h = 0.45) { const r = rng(seed), g = new THREE.Group(); box(w + 0.06, h + 0.06, 0.03, holzM(HOLZ[Math.floor(r() * 6)]), 0, 0, 0, g);
+        const t = canvasTex(128, 96, (c) => { const gr = c.createLinearGradient(0, 0, 0, 96); gr.addColorStop(0, ["#8ab0d8", "#e8a060", "#3a5a8a"][Math.floor(r() * 3)]); gr.addColorStop(1, ["#4a6a3a", "#c8b080", "#1a2a3a"][Math.floor(r() * 3)]); c.fillStyle = gr; c.fillRect(0, 0, 128, 96); c.fillStyle = "rgba(40,50,40,.7)"; c.beginPath(); c.moveTo(0, 70); for (let x = 0; x <= 128; x += 16) c.lineTo(x, 50 + r() * 25); c.lineTo(128, 96); c.lineTo(0, 96); c.fill(); });
+        const p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: t, roughness: 0.6 })); p.position.z = 0.017; g.add(p); return g; }
+      // Komplettes Zimmer: Boden (Parkett), Wände mit Fenster, Möbel je nach Art
+      function zimmer(s, seed, o = {}) { const r = rng(seed), g = new THREE.Group(); s.add(g); const w = o.breite ?? 5, d = o.tiefe ?? 4.5, h = 2.6, art = o.art ?? "wohnzimmer";
+        const parkett = texHolz(HOLZ[Math.floor(r() * 4)]).clone(); parkett.needsUpdate = true; parkett.repeat.set(w / 1.2, d / 1.2);
+        box(w, 0.05, d, new THREE.MeshStandardMaterial({ map: parkett, roughness: 0.45 }), 0, -0.025, 0, g);
+        const wandC = o.wand ?? [0xf2ece0, 0xe0e8ec, 0xece0d0, 0xd8e0d0, 0xf6f4f0][Math.floor(r() * 5)], wand = M(wandC, { roughness: 0.95, map: texStoff("stoff") });
+        box(w, h, 0.1, wand, 0, h / 2, -d / 2, g); box(0.1, h, d, wand, -w / 2, h / 2, 0, g);
+        const rw = new THREE.Group(); rw.position.set(w / 2, 0, 0); g.add(rw); box(0.1, 0.9, d, wand, 0, 0.45, 0, rw); box(0.1, 0.5, d, wand, 0, h - 0.25, 0, rw); box(0.1, 1.2, d * 0.2, wand, 0, 1.5, -d * 0.4, rw); box(0.1, 1.2, d * 0.2, wand, 0, 1.5, d * 0.4, rw);
+        box(0.04, 1.2, d * 0.6, new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.02, transparent: true, opacity: 0.12 }), 0, 1.5, 0, rw); box(0.06, 0.05, d * 0.6, M(0xf2f2f0), 0, 1.5, 0, rw); box(0.06, 1.2, 0.05, M(0xf2f2f0), 0, 1.5, 0, rw); // Fenster
+        for (const sz of [-1, 1]) { const v = new THREE.Mesh(new THREE.PlaneGeometry(d * 0.14, 1.9, 6, 1), M([0xe8dcc8, 0x8a3a3a, 0x3a4a6a][Math.floor(r() * 3)], { roughness: 0.95, side: THREE.DoubleSide })); const p = v.geometry.attributes.position; for (let k = 0; k < p.count; k++) p.setZ(k, Math.sin(p.getX(k) * 40) * 0.03); v.geometry.computeVertexNormals(); v.rotation.y = -Math.PI / 2; v.position.set(-0.1, 1.55, sz * d * 0.33); rw.add(v); }
+        box(w, 0.08, 0.02, M(0xf6f6f2), 0, 0.04, -d / 2 + 0.06, g); // Fußleiste
+        const setze = (obj, x, z, ry = 0) => { obj.position.set(x, 0, z); obj.rotation.y = ry; g.add(obj); return obj; };
+        if (art === "wohnzimmer") { setze(sofa(seed), -0.3, -d / 2 + 0.55); setze(tisch(seed + 1, { hoehe: 0.42, breite: 1.0, tiefe: 0.6 }), -0.3, -d / 2 + 1.7); setze(teppich(seed), -0.3, -d / 2 + 1.6); setze(regal(seed + 2), -w / 2 + 0.25, 0.3, Math.PI / 2); setze(stehlampe(seed, !!o.licht), -w / 2 + 0.5, -d / 2 + 0.5);
+          const tv = setze(fernseher(!!o.tv), -0.3, d / 2 - 0.4, Math.PI); box(1.6, 0.5, 0.4, holzM(HOLZ[0]), -0.3, 0.25, d / 2 - 0.35, g); setze(zimmerpflanze(seed), w / 2 - 0.5, -d / 2 + 0.5); const b2 = bild(seed); b2.position.set(-0.3, 1.7, -d / 2 + 0.07); g.add(b2); }
+        if (art === "schlafzimmer") { setze(bett(seed), 0, -d / 2 + 1.1); setze(schrank(seed), -w / 2 + 0.35, 0.8, Math.PI / 2); setze(stehlampe(seed, !!o.licht), 1.2, -d / 2 + 0.4); setze(teppich(seed, 1.8, 1.2), 0, 0.6); const b2 = bild(seed); b2.position.set(0, 1.6, -d / 2 + 0.07); g.add(b2); }
+        if (art === "kueche") { const front = M([0xf2f2f0, 0x3a4a5a, 0x8a9a7a][Math.floor(r() * 3)], { roughness: 0.4 }); box(w * 0.8, 0.88, 0.62, front, -w * 0.05, 0.44, -d / 2 + 0.36, g); box(w * 0.8, 0.04, 0.64, M(0x2a2a2c, { roughness: 0.25 }), -w * 0.05, 0.9, -d / 2 + 0.36, g);
+          for (let i = 0; i < 6; i++) box(0.012, 0.8, 0.005, M(0x8a8a8a), -w * 0.45 + i * w * 0.14, 0.44, -d / 2 + 0.672, g); box(w * 0.8, 0.7, 0.35, front, -w * 0.05, 1.85, -d / 2 + 0.2, g);
+          for (let i = 0; i < 4; i++) cyl(0.09, 0.09, 0.01, M(0x111111, { roughness: 0.3 }), 0.6 + (i % 2) * 0.25, 0.925, -d / 2 + 0.25 + Math.floor(i / 2) * 0.25, g, 20);
+          box(0.7, 1.9, 0.65, M(0xd8dadc, { metalness: 0.6, roughness: 0.3 }), w / 2 - 0.45, 0.95, -d / 2 + 0.36, g); setze(tisch(seed + 3), 0, 0.6); setze(stuhl(seed), -0.45, 0.6, Math.PI / 2); setze(stuhl(seed + 1), 0.45, 0.6, -Math.PI / 2); }
+        return g; }
+
+      // ===== Natur v2: Berge, Bergketten, Nebel (braucht: rng, canvasTex, SOFT, nadelbaum aus bausteine.js optional) =====
+      function rauschen2(seed) { // deterministisches Value-Noise + fbm + ridged
+        const P = new Uint8Array(512), r = rng(seed); for (let i = 0; i < 256; i++) P[i] = i; for (let i = 255; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [P[i], P[j]] = [P[j], P[i]]; } for (let i = 0; i < 256; i++) P[i + 256] = P[i];
+        const h = (x, y) => P[(P[x & 255] + y) & 511] / 255, f = (t) => t * t * (3 - 2 * t);
+        const vn = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), xf = f(x - xi), yf = f(y - yi); return (h(xi, yi) * (1 - xf) + h(xi + 1, yi) * xf) * (1 - yf) + (h(xi, yi + 1) * (1 - xf) + h(xi + 1, yi + 1) * xf) * yf; };
+        return { vn, fbm(x, y, o = 5) { let a = 0.5, s = 0; for (let i = 0; i < o; i++) { s += a * vn(x, y); x *= 2.03; y *= 2.03; a *= 0.5; } return s; },
+          ridge(x, y, o = 6) { let a = 0.5, s = 0, w = 1; for (let i = 0; i < o; i++) { let v = 1 - Math.abs(vn(x, y) * 2 - 1); v *= v * w; w = Math.min(1, v * 2); s += v * a; x *= 2.1; y *= 2.1; a *= 0.5; } return s; } };
+      }
+      // Gebirge: zerklüftete Grate (ridged noise), Farben nach Höhe und Steilheit: Wiese, Wald, Fels, Geröll, Schnee
+      // o: { x, z, breite, tiefe, hoehe, seed, schneegrenze (0..1), baumgrenze (0..1), segs, baeume: n, farben: { wiese, wald, fels, schnee } }
+      function berge(s, o = {}) {
+        const W = o.breite ?? 600, D = o.tiefe ?? 300, Hm = o.hoehe ?? 140, segs = o.segs ?? 180, N = rauschen2(o.seed ?? 3), r = rng((o.seed ?? 3) * 5);
+        const geo = new THREE.PlaneGeometry(W, D, segs, Math.round(segs * D / W)); geo.rotateX(-Math.PI / 2);
+        const p = geo.attributes.position, col = new Float32Array(p.count * 3), cW = new THREE.Color(o.farben?.wiese ?? 0x5a7a3a), cWald = new THREE.Color(o.farben?.wald ?? 0x2a4a2a), cF = new THREE.Color(o.farben?.fels ?? 0x7a7672), cG = new THREE.Color(0x9a948c), cS = new THREE.Color(o.farben?.schnee ?? 0xf4f6fa), tmp = new THREE.Color();
+        const hoehe = (x, z) => { const nx = x / W * 7, nz = z / D * 3.5; const rand = Math.min(1, (D / 2 - Math.abs(z)) / (D * 0.25)) * Math.min(1, (W / 2 - Math.abs(x)) / (W * 0.15));
+          return Math.max(0, (Math.pow(N.ridge(nx + 10, nz + 3, 7), 1.6) * 1.9 - 0.08 + N.fbm(nx * 4, nz * 4, 3) * 0.1) * rand) * Hm; };
+        for (let i = 0; i < p.count; i++) p.setY(i, hoehe(p.getX(i), p.getZ(i)));
+        geo.computeVertexNormals(); const nrm = geo.attributes.normal;
+        const sg = o.schneegrenze ?? 0.62, bg = o.baumgrenze ?? 0.35;
+        for (let i = 0; i < p.count; i++) { const y = p.getY(i) / Hm, steil = 1 - nrm.getY(i), n = N.fbm(p.getX(i) * 0.05, p.getZ(i) * 0.05, 3);
+          if (y < bg * 0.4) tmp.copy(cW).lerp(cWald, Math.min(1, y / (bg * 0.4) + n * 0.3)); else if (y < bg) tmp.copy(cWald).lerp(cF, Math.max(0, (y - bg * 0.7) / (bg * 0.3)));
+          else tmp.copy(cF).lerp(cG, n * 0.6);
+          if (steil > 0.45) tmp.lerp(cF, Math.min(1, (steil - 0.45) * 3));
+          if (y > sg + (n - 0.5) * 0.12 && steil < 0.55) tmp.lerp(cS, Math.min(1, (y - sg) * 6 + 0.4));
+          tmp.offsetHSL(0, 0, (n - 0.5) * 0.08); col[i * 3] = tmp.r; col[i * 3 + 1] = tmp.g; col[i * 3 + 2] = tmp.b; }
+        geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+        const felsTex = canvasTex(256, 256, (g) => { const q = rng(77); g.fillStyle = "#d8d8d8"; g.fillRect(0, 0, 256, 256); for (let i = 0; i < 5000; i++) { const v = 150 + q() * 105; g.fillStyle = `rgb(${v},${v},${v})`; g.fillRect(q() * 256, q() * 256, 2 + q() * 3, 1 + q() * 2); } g.strokeStyle = "rgba(60,60,60,.35)"; for (let i = 0; i < 40; i++) { g.beginPath(); let x = q() * 256, y = q() * 256; g.moveTo(x, y); for (let k = 0; k < 5; k++) { x += (q() - 0.5) * 40; y += q() * 30; g.lineTo(x, y); } g.stroke(); } });
+        felsTex.wrapS = felsTex.wrapT = THREE.RepeatWrapping; felsTex.repeat.set(W / 12, D / 12);
+        const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, map: felsTex, roughness: 0.95 })); m.position.set(o.x ?? 0, o.y ?? 0, o.z ?? -300); m.receiveShadow = true; m.castShadow = o.schatten ?? false; s.add(m);
+        // Nadelbäume als Instanzen am Hang unterhalb der Baumgrenze
+        const nB = o.baeume ?? 1500; if (nB > 0) { const stamm = new THREE.ConeGeometry(1, 1, 7); stamm.translate(0, 0.5, 0); const im = new THREE.InstancedMesh(stamm, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }), nB); const mm = new THREE.Matrix4(); let k = 0;
+          for (let t = 0; t < nB * 6 && k < nB; t++) { const x = (r() - 0.5) * W * 0.9, z = (r() - 0.5) * D * 0.8, y = hoehe(x, z); if (y / Hm > bg * 0.9 || y / Hm < 0.03) continue; const hh = 4 + r() * 6; mm.makeScale(hh * 0.3, hh, hh * 0.3); mm.setPosition(x + m.position.x, y + m.position.y - 0.5, z + m.position.z); im.setMatrixAt(k, mm); im.setColorAt(k, new THREE.Color(0x2e5a34).offsetHSL((r() - 0.5) * 0.03, 0, (r() - 0.5) * 0.1)); k++; }
+          im.count = k; im.castShadow = false; s.add(im); }
+        return { mesh: m, hoehe: (x, z) => hoehe(x - m.position.x, z - m.position.z) + m.position.y };
+      }
+      // Ferne Bergketten als Silhouetten-Schichten (Luftperspektive: je weiter, desto heller/blauer). Mit camFar() verwenden.
+      function bergkette(s, o = {}) {
+        const N = rauschen2(o.seed ?? 9), lagen = o.lagen ?? 4, grp = new THREE.Group(); s.add(grp); const farbeNah = new THREE.Color(o.nah ?? 0x3a4a5a), farbeFern = new THREE.Color(o.fern ?? 0xa8b8c8);
+        for (let l = 0; l < lagen; l++) { const dist = (o.abstand ?? 400) + l * (o.schritt ?? 250), breite = dist * 3.2, hoch = (o.hoehe ?? 120) * (1 + l * 0.35);
+          const sh = new THREE.Shape(); sh.moveTo(-breite / 2, -20); for (let i = 0; i <= 200; i++) { const x = -breite / 2 + breite * i / 200; const y = N.ridge(i / 200 * 6 + l * 7, l * 3.1, 5) * hoch; sh.lineTo(x, y); } sh.lineTo(breite / 2, -20); sh.closePath();
+          const c = farbeNah.clone().lerp(farbeFern, l / Math.max(1, lagen - 1)); const mesh = new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshBasicMaterial({ color: c, fog: o.nebel ?? true }));
+          mesh.position.set(o.x ?? 0, o.y ?? 0, (o.z ?? 0) - dist); mesh.renderOrder = -5 - l; grp.add(mesh);
+          if (o.schnee !== false && l < lagen - 1) { const sh2 = new THREE.Shape(); let started = false; for (let i = 0; i <= 200; i++) { const x = -breite / 2 + breite * i / 200; const y = N.ridge(i / 200 * 6 + l * 7, l * 3.1, 5) * hoch; if (!started) { sh2.moveTo(x, Math.max(y, hoch * 0.62) - 0.5); started = true; } else sh2.lineTo(x, Math.max(y, hoch * 0.62)); } sh2.lineTo(breite / 2, hoch * 0.62); sh2.lineTo(-breite / 2, hoch * 0.62); sh2.closePath();
+            const sn = new THREE.Mesh(new THREE.ShapeGeometry(sh2), new THREE.MeshBasicMaterial({ color: c.clone().lerp(new THREE.Color(0xffffff), 0.75), fog: o.nebel ?? true })); sn.position.copy(mesh.position); sn.position.z += 0.5; sn.renderOrder = mesh.renderOrder + 0; grp.add(sn); } }
+        return grp;
+      }
+      // Nebel: Dunst (FogExp2), Bodennebel-Schichten mit ziehender Struktur, Nebelschwaden
+      function nebel(s, farbe = 0xc8d0d8, dichte = 0.012) { s.fog = new THREE.FogExp2(farbe, dichte); return s.fog; }
+      const NEBEL_TEX = {};
+      function texNebel(seed) { if (NEBEL_TEX[seed]) return NEBEL_TEX[seed]; const N = rauschen2(seed);
+        const t = canvasTex(256, 256, (g) => { const img = g.createImageData(256, 256); for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) { const v = N.fbm(x / 48, y / 48, 5), rx = Math.min(x, 255 - x) / 40, ry = Math.min(y, 255 - y) / 40, rand = Math.min(1, rx) * Math.min(1, ry);
+          const a = Math.max(0, Math.min(1, (v - 0.32) * 2.2)) * rand; const i = (y * 256 + x) * 4; img.data[i] = img.data[i + 1] = img.data[i + 2] = 255; img.data[i + 3] = a * 255; } g.putImageData(img, 0, 0); });
+        t.wrapS = t.wrapT = THREE.RepeatWrapping; NEBEL_TEX[seed] = t; return t; }
+      function bodenNebel(s, o = {}) { // flache, übereinander liegende Nebelbänke, ziehen langsam (update(T))
+        const grp = new THREE.Group(); s.add(grp); const n = o.schichten ?? 6, W = o.breite ?? 120, D = o.tiefe ?? 120, list = [];
+        for (let i = 0; i < n; i++) { const mat = new THREE.MeshBasicMaterial({ map: texNebel((o.seed ?? 1) + i), color: o.farbe ?? 0xdde4ea, transparent: true, opacity: (o.dichte ?? 0.35) * (1 - i / n * 0.5), depthWrite: false, fog: true });
+          const m = new THREE.Mesh(new THREE.PlaneGeometry(W, D), mat); m.rotation.x = -Math.PI / 2; m.position.set(o.x ?? 0, (o.y ?? 0) + 0.3 + i * (o.hoehe ?? 3) / n, o.z ?? 0); m.renderOrder = 8; grp.add(m); list.push(m); }
+        return { grp, update(T) { list.forEach((m, i) => { m.material.map.offset.set(T * 0.004 * (1 + i * 0.3), T * 0.002 * (i % 2 ? 1 : -1)); }); } };
+      }
+      function nebelSchwaden(s, o = {}) { // große weiche Sprites, die langsam treiben (zwischen Bäumen, über Wasser, in Straßen)
+        const r = rng(o.seed ?? 4), grp = new THREE.Group(), list = []; s.add(grp);
+        for (let i = 0; i < (o.n ?? 30); i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: SOFT, color: o.farbe ?? 0xe4e8ee, transparent: true, opacity: (o.dichte ?? 0.25) * (0.5 + r() * 0.5), depthWrite: false }));
+          const sc = (o.groesse ?? 12) * (0.6 + r() * 0.8); sp.scale.set(sc * 1.8, sc * 0.6, 1); const p0 = new THREE.Vector3((o.x ?? 0) + (r() - 0.5) * (o.breite ?? 80), (o.y ?? 0) + r() * (o.hoehe ?? 4), (o.z ?? 0) + (r() - 0.5) * (o.tiefe ?? 80)); sp.position.copy(p0); grp.add(sp); list.push({ sp, p0, v: 0.2 + r() * 0.4, ph: r() * 6 }); }
+        return { grp, update(T) { list.forEach((L) => { L.sp.position.x = L.p0.x + Math.sin(T * 0.05 * L.v + L.ph) * 6 + T * L.v * 0.3; L.sp.position.y = L.p0.y + Math.sin(T * 0.2 + L.ph) * 0.3; L.sp.material.opacity = (o.dichte ?? 0.25) * (0.6 + 0.4 * Math.sin(T * 0.15 + L.ph)); }); } };
+      }
+
+      // ===== Flugzeuge v1 (braucht: rng, box, cyl, M, canvasTex, glanzPunkt, lichtKegel) =====
+      // flugzeug(typ, { seed, farbe (Leitwerk/Streifen), fahrwerk, kondens, nachbrenner })
+      //   Zivil: "a320" (Kurz-/Mittelstrecke), "a350" (Langstrecke), "b747f" (Fracht), "bizjet", "atr72" (Turboprop), "cessna", "segler", "ul"
+      //   Militär: "eurofighter", "f35", "b2", "a400m", "awacs" (Aufklärer)   Forschung: "x15" (Raketenflugzeug)
+      // Nase zeigt nach +z, Rumpfmitte im Ursprung, echte Meter. flugzeugUpdate(f, T) für Propeller, Blinklichter, Flammen.
+      const FLUG = {
+        a320:       { L: 37, R: 2.0, span: 34, chord: [6.5, 1.6], sweep: 0.45, flH: -0.6, tw: "fan", twR: 0.95, tw2: [[5.8, -1.6, 2.5]], fin: [6, 4.2, 0.7], stab: [12.5, 3.2], fenster: true, lack: "zivil" },
+        a350:       { L: 65, R: 3.0, span: 64, chord: [11, 2.4], sweep: 0.55, flH: -1.0, tw: "fan", twR: 1.65, tw2: [[10, -2.6, 4]], fin: [9.5, 7, 0.75], stab: [19, 5], fenster: true, lack: "zivil", winglet: true },
+        b747f:      { L: 70, R: 3.2, span: 64, chord: [12, 2.6], sweep: 0.62, flH: -1.1, tw: "fan", twR: 1.35, tw2: [[9, -2.4, 5], [20, -1.8, 1.5]], fin: [10, 8, 0.75], stab: [21, 5.5], fenster: false, buckel: true, lack: "fracht" },
+        bizjet:     { L: 20, R: 1.05, span: 19, chord: [3.4, 1.0], sweep: 0.5, flH: -0.5, tw: "heck", twR: 0.55, fin: [3.6, 2.6, 0.8], stab: [6.5, 1.5], ttail: true, fenster: true, oval: true, lack: "privat", winglet: true },
+        atr72:      { L: 27, R: 1.45, span: 27, chord: [2.6, 1.4], sweep: 0.03, flH: 1.25, tw: "prop", twR: 0.6, tw2: [[4.1, 0.8, 3]], blaetter: 6, propR: 1.95, fin: [5, 3.8, 0.55], stab: [7.5, 1.6], ttail: true, fenster: true, lack: "zivil" },
+        cessna:     { L: 8.3, R: 0.62, span: 11, chord: [1.6, 1.1], sweep: 0, flH: 0.75, tw: "nase", blaetter: 2, propR: 0.95, fin: [1.6, 1.4, 0.5], stab: [3.4, 0.9], fenster: true, streben: true, lack: "klein", fahrwerkFest: true },
+        segler:     { L: 7.2, R: 0.38, span: 18, chord: [0.95, 0.35], sweep: 0, flH: 0.15, tw: null, fin: [1.2, 0.9, 0.3], stab: [2.6, 0.5], ttail: true, haube: true, lack: "segler", schlank: true },
+        ul:         { L: 6.2, R: 0.5, span: 9.5, chord: [1.4, 1.2], sweep: 0, flH: 0.65, tw: "nase", blaetter: 3, propR: 0.85, fin: [1.2, 1.0, 0.4], stab: [2.6, 0.7], haube: true, streben: true, lack: "klein", schlank: true, fahrwerkFest: true },
+        eurofighter:{ L: 16, R: 0.9, span: 11, chord: [8.5, 1.0], sweep: 0.95, flH: -0.2, delta: true, canard: true, tw: "duese2", fin: [3.2, 3.6, 1.1], haube: true, lack: "militaer", spitz: true },
+        f35:        { L: 15.7, R: 1.1, span: 10.7, chord: [5.5, 1.6], sweep: 0.6, flH: 0, tw: "duese1", fin2: true, stab: [6.8, 2.2], haube: true, lack: "stealth", spitz: true, flach: true },
+        b2:         { L: 21, R: 1.4, span: 52, lack: "stealth", nurfluegel: true },
+        a400m:      { L: 43, R: 2.8, span: 42, chord: [5.5, 2.4], sweep: 0.1, flH: 2.2, tw: "prop", twR: 0.9, tw2: [[6.5, 1.4, 2.2], [12.5, 1.6, 1.8]], blaetter: 8, propR: 2.6, fin: [10, 6.5, 0.6], stab: [19, 4], ttail: true, fenster: false, lack: "militaer", rampe: true },
+        awacs:      { L: 46, R: 2.0, span: 44, chord: [8, 2], sweep: 0.55, flH: -0.7, tw: "fan", twR: 0.9, tw2: [[7, -1.6, 3], [14, -1.2, 0]], fin: [7, 5, 0.7], stab: [14, 3.5], fenster: false, lack: "militaer", radar: true },
+        x15:        { L: 15.5, R: 0.7, span: 6.8, chord: [3.2, 1.2], sweep: 0.45, flH: 0, tw: "rakete", fin: [2.4, 3.2, 0.9], finUnten: true, stab: [5.4, 1.6], haube: true, lack: "x15", spitz: true },
+      };
+      function rumpfGeo(L, R, o = {}) { // Lathe-Rumpf entlang z (Nase +z)
+        const pts = [], n = 48; for (let i = 0; i <= n; i++) { const t = i / n; let rr;
+          const nase = o.spitz ? 0.28 : o.schlank ? 0.22 : 0.12, heck = o.spitz ? 0.12 : 0.3;
+          if (t > 1 - nase) { const k = (1 - t) / nase; rr = R * (o.spitz ? Math.pow(k, 0.7) : Math.sqrt(Math.max(0, 1 - (1 - k) ** 2))); }
+          else if (t < heck) { const k = t / heck; rr = R * (o.spitz ? 0.75 + 0.25 * k : o.schlank ? 0.25 + 0.75 * Math.pow(k, 0.6) : 0.18 + 0.82 * Math.sqrt(k)); }
+          else rr = R; pts.push(new THREE.Vector2(Math.max(0.001, rr), -L / 2 + t * L)); }
+        const g = new THREE.LatheGeometry(pts, 40); g.rotateX(Math.PI / 2); return g; }
+      function fluegelGeo(spanHalb, c0, c1, sweep, dicke, delta) { // Halbflügel in xz-Ebene, Vorderkante bei z=0 an der Wurzel
+        const sh = new THREE.Shape(); const pfeil = spanHalb * Math.tan(sweep * (delta ? 1 : 0.75));
+        sh.moveTo(0, 0); sh.lineTo(spanHalb, -pfeil); sh.lineTo(spanHalb, -pfeil - c1); sh.lineTo(0, -c0); sh.closePath();
+        const g = new THREE.ExtrudeGeometry(sh, { depth: dicke, bevelEnabled: true, bevelThickness: dicke * 0.45, bevelSize: Math.min(c1 * 0.25, dicke * 1.2), bevelSegments: 3 }); g.rotateX(Math.PI / 2); g.translate(0, dicke / 2, 0); return g; }
+      function livery(F, farbe, typ) {
+        return canvasTex(1024, 512, (g) => { const lk = F.lack; const W = 1024, H = 512;
+          const basis = lk === "militaer" ? "#7a8288" : lk === "stealth" ? "#4a4e54" : lk === "x15" ? "#1a1a1c" : "#f4f6f8"; g.fillStyle = basis; g.fillRect(0, 0, W, H);
+          const q = rng(7); for (let i = 0; i < 3000; i++) { g.fillStyle = `rgba(0,0,0,${q() * 0.04})`; g.fillRect(q() * W, q() * H, 3, 3); } // Patina
+          if (lk === "militaer") for (let i = 0; i < 40; i++) { g.fillStyle = q() < 0.5 ? "rgba(90,98,104,.6)" : "rgba(110,118,122,.5)"; g.beginPath(); g.ellipse(q() * W, q() * H, 40 + q() * 80, 20 + q() * 40, q() * 3, 0, 7); g.fill(); }
+          if (lk === "zivil" || lk === "fracht" || lk === "privat") { g.fillStyle = "#c8ccd0"; g.fillRect(0, 0, W * 0.08, H); g.fillRect(W * 0.92, 0, W * 0.08, H); // Bauch grau
+            const c = "#" + new THREE.Color(farbe).getHexString(); g.fillStyle = c; for (const u of [0.36, 0.64]) g.fillRect(u * W - 10, H * 0.05, 20, H * 0.8); }
+          if (lk === "klein" || lk === "segler") { const c = "#" + new THREE.Color(farbe).getHexString(); g.fillStyle = c; for (const u of [0.27, 0.73]) g.fillRect(u * W - 8, H * 0.1, 16, H * 0.75); }
+          // Seitenfenster in Reihen (u=0.29 / 0.71), Cockpitfenster vorne oben
+          if (F.fenster) for (const u of [0.3, 0.7]) { const n = Math.round(F.L * (F.oval ? 0.4 : 1.25)); for (let i = 0; i < n; i++) { const y = H * (0.2 + 0.58 * i / n); g.fillStyle = "#1a2430"; if (F.oval) { g.beginPath(); g.ellipse(u * W, y, 7, 10, 0, 0, 7); g.fill(); } else g.fillRect(u * W - 5, y, 10, H * 0.58 / n * 0.55); } }
+          if (lk !== "stealth" && !F.haube) for (const u of [0.4, 0.6]) { g.fillStyle = "#121a22"; g.fillRect(u * W - 26, H * 0.045, 52, 18); }
+          if (F.fenster) { g.fillStyle = "#3a3a3e"; for (const u of [0.25, 0.75]) g.fillRect(u * W - 12, H * 0.25, 24, 34); } // Tür
+          if (lk === "militaer" || lk === "stealth") { g.fillStyle = "rgba(30,30,32,.7)"; g.font = "bold 30px sans-serif"; g.fillText("54+12", W * 0.24, H * 0.7); }
+        });
+      }
+      function flugzeug(typ = "a320", o = {}) {
+        const F = FLUG[typ], r = rng(o.seed ?? 1), g = new THREE.Group(); const farbe = o.farbe ?? [0x1e3a8a, 0xc8202a, 0x0a6a5a, 0x2a2a2e, 0xe0a020][Math.floor(r() * 5)];
+        const tex = livery(F, farbe, typ), haut = new THREE.MeshPhysicalMaterial({ map: tex, metalness: F.lack === "stealth" ? 0.2 : 0.4, roughness: F.lack === "militaer" || F.lack === "stealth" ? 0.6 : 0.3, clearcoat: F.lack === "zivil" || F.lack === "privat" ? 0.6 : 0, clearcoatRoughness: 0.15 });
+        const grau = new THREE.MeshPhysicalMaterial({ color: F.lack === "militaer" ? 0x7a8288 : F.lack === "stealth" ? 0x4a4e54 : F.lack === "x15" ? 0x1a1a1c : 0xe8eaee, metalness: 0.4, roughness: F.lack === "militaer" || F.lack === "stealth" ? 0.6 : 0.3 });
+        const akzent = M(farbe, { roughness: 0.35, metalness: 0.3 }), dunkel = M(0x1a1c1e, { roughness: 0.5, metalness: 0.5 }), metall = M(0xa8acb0, { metalness: 0.9, roughness: 0.3 });
+        const add = (geo, mat, x = 0, y = 0, z = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
+        const lichter = [], props = [], flammen = [];
+        if (F.nurfluegel) { // B-2: Nurflügler mit Sägezahn-Hinterkante
+          const s2 = F.span / 2, sh = new THREE.Shape(); sh.moveTo(0, 10.5); sh.lineTo(s2, -5); sh.lineTo(s2 - 3, -7); sh.lineTo(s2 * 0.62, -4.5); sh.lineTo(s2 * 0.45, -8); sh.lineTo(s2 * 0.2, -5); sh.lineTo(0, -8.5); sh.lineTo(-s2 * 0.2, -5); sh.lineTo(-s2 * 0.45, -8); sh.lineTo(-s2 * 0.62, -4.5); sh.lineTo(-(s2 - 3), -7); sh.lineTo(-s2, -5); sh.closePath();
+          const geo = new THREE.ExtrudeGeometry(sh, { depth: 0.6, bevelEnabled: true, bevelThickness: 0.6, bevelSize: 1.2, bevelSegments: 4 }); geo.rotateX(Math.PI / 2); geo.translate(0, 0.3, 0); add(geo, grau);
+          const kanzel = add(new THREE.SphereGeometry(2.4, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), grau, 0, 0.6, 3); kanzel.scale.set(1.2, 0.55, 3);
+          for (const sx of [-1, 1]) { const ein = add(new THREE.SphereGeometry(1.4, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), grau, sx * 4, 0.6, -0.5); ein.scale.set(1, 0.4, 2.2); add(new THREE.BoxGeometry(1.6, 0.25, 0.4), dunkel, sx * 4, 1.05, 2.5); }
+          for (const sx of [-1, 1]) { const w = add(new THREE.PlaneGeometry(0.8, 0.5), new THREE.MeshStandardMaterial({ color: 0x0a1018, roughness: 0.05, metalness: 0.8 }), sx * 0.7, 1.7, 5.2); w.rotation.x = -1.1; w.rotation.y = sx * 0.3; }
+        } else {
+          const rg = rumpfGeo(F.L, F.R, F); const rumpf = add(rg, haut); if (F.flach) rumpf.scale.set(1.5, 0.65, 1); if (F.schlank) rumpf.scale.set(0.9, 1.1, 1);
+          if (F.buckel) { const b = add(new THREE.SphereGeometry(F.R * 0.85, 28, 18), haut, 0, F.R * 0.62, F.L * 0.28); b.scale.set(0.95, 0.75, 4.6); }
+          // Flügel
+          const s2 = F.span / 2, c0 = F.chord[0], c1 = F.chord[1], dicke = Math.max(0.05, c0 * (F.delta ? 0.04 : 0.09)), wz = F.delta ? -F.L * 0.05 : F.L * 0.12;
+          for (const sx of [-1, 1]) { const fg = add(fluegelGeo(s2, c0, c1, F.sweep, dicke, F.delta), grau, 0, F.flH, wz + c0 * (F.delta ? 0.3 : 0.5)); if (sx < 0) fg.scale.x = -1; fg.rotation.z = sx * (F.flH > 0 ? -0.02 : 0.05);
+            const pf = s2 * Math.tan(F.sweep * (F.delta ? 1 : 0.75)); const tipZ = wz + c0 * (F.delta ? 0.3 : 0.5) - pf;
+            if (F.winglet) { const wl = add(new THREE.BoxGeometry(0.12, s2 * 0.08, c1 * 0.8), akzent, sx * s2, F.flH + s2 * 0.04 + s2 * 0.05 * 0.05, tipZ - c1 * 0.5); wl.rotation.z = -sx * 0.25; }
+            const nav = glanzPunkt(sx < 0 ? 0xff2010 : 0x20ff40, F.L * 0.04 + 0.3); nav.position.set(sx * s2, F.flH + 0.1, tipZ - c1 * 0.3); g.add(nav); lichter.push({ m: nav, art: "nav" });
+            if (F.streben) { const st = add(new THREE.CylinderGeometry(0.03, 0.03, Math.hypot(s2 * 0.45, F.flH + F.R * 0.6), 6), metall, sx * s2 * 0.22, (F.flH - F.R * 0.6) / 2, wz + c0 * 0.2); st.rotation.z = sx * Math.atan2(s2 * 0.45, F.flH + F.R * 0.6); }
+          }
+          if (F.canard) for (const sx of [-1, 1]) { const cn = add(fluegelGeo(1.6, 1.4, 0.4, 0.8, 0.05, true), grau, 0, 0.2, F.L * 0.3); if (sx < 0) cn.scale.x = -1; }
+          // Leitwerk
+          if (F.fin) { const [fh, fc, fsw] = F.fin; const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(fc, 0); sh.lineTo(fc * 0.95 - fh * fsw * 0.2, fh); sh.lineTo(fc * 0.55 - fh * fsw * 0.6 + fc * 0.15, fh); sh.closePath();
+            const fgeo = new THREE.ExtrudeGeometry(sh, { depth: Math.max(0.06, fc * 0.05), bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.08, bevelSegments: 2 }); fgeo.rotateY(Math.PI / 2); fgeo.translate(0, 0, 0);
+            const fin = add(fgeo, F.lack === "zivil" || F.lack === "privat" ? akzent : grau, -Math.max(0.06, fc * 0.05) / 2, F.R * (F.flach ? 0.55 : 0.75), -F.L / 2 + fc * 0.15); fin.position.z = -F.L / 2 + fc + 0.2;
+            if (F.finUnten) { const fu = add(fgeo.clone(), grau, -Math.max(0.06, fc * 0.05) / 2, -F.R * 0.7, -F.L / 2 + fc + 0.2); fu.scale.set(1, -0.8, 1); }
+            const beacon = glanzPunkt(0xff2010, F.L * 0.03 + 0.25); beacon.position.set(0, F.R + 0.1, 0); g.add(beacon); lichter.push({ m: beacon, art: "blitz" });
+            if (F.stab) { const [ss, sc] = F.stab, yH = F.ttail ? F.R * 0.75 + fh : F.R * 0.2; for (const sx of [-1, 1]) { const st = add(fluegelGeo(ss / 2, sc, sc * 0.45, 0.5, Math.max(0.05, sc * 0.06), false), grau, 0, yH, -F.L / 2 + sc + (F.ttail ? fc * 0.15 - fh * fsw * 0.2 : 0.4)); if (sx < 0) st.scale.x = -1; } } }
+          if (F.fin2) for (const sx of [-1, 1]) { const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(2.6, 0); sh.lineTo(2.0, 2.2); sh.lineTo(1.0, 2.2); sh.closePath(); const fgeo = new THREE.ExtrudeGeometry(sh, { depth: 0.08, bevelEnabled: false }); fgeo.rotateY(-Math.PI / 2); const f2 = add(fgeo, grau, sx * 1.2, 0.5, -F.L / 2 + 0.5); f2.rotation.z = -sx * 0.4;
+            const st = add(fluegelGeo(3.2, 2.2, 1.0, 0.6, 0.06, false), grau, 0, 0.1, -F.L / 2 + 2.6); if (sx < 0) st.scale.x = -1; }
+          if (F.stab && !F.fin) { /* nicht genutzt */ }
+          // Kanzel / Cockpit
+          if (F.haube) { const hb = add(new THREE.SphereGeometry(F.R * 0.75, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshPhysicalMaterial({ color: F.lack === "stealth" ? 0xc8a050 : 0x8ab0c8, roughness: 0.02, metalness: 0.6, transparent: true, opacity: 0.6, envMapIntensity: 2 }), 0, F.R * (F.flach ? 0.45 : 0.6), F.L * (F.spitz ? 0.2 : 0.15)); hb.scale.set(0.8, 0.8, F.schlank ? 2.6 : 3.2); }
+          // Triebwerke
+          const fan = (x, y, z, R) => { const gondel = add(new THREE.CylinderGeometry(R, R * 0.82, R * 3.6, 32, 1, true), grau, x, y, z); gondel.rotation.x = Math.PI / 2; gondel.material = new THREE.MeshPhysicalMaterial({ color: 0xd8dadc, metalness: 0.5, roughness: 0.3, side: THREE.DoubleSide });
+            const lip = new THREE.Mesh(new THREE.TorusGeometry(R * 0.96, R * 0.08, 10, 32), metall); lip.position.set(x, y, z + R * 1.8); g.add(lip);
+            const scheibe = add(new THREE.CircleGeometry(R * 0.92, 32), dunkel, x, y, z + R * 1.3); for (let k = 0; k < 18; k++) { const bl = add(new THREE.BoxGeometry(0.04, R * 0.8, 0.02), M(0x5a5e62, { metalness: 0.9, roughness: 0.3 }), x, y, z + R * 1.32); bl.geometry.translate(0, R * 0.45, 0); bl.rotation.z = k / 18 * Math.PI * 2; bl.rotation.y = 0.4; props.push({ m: bl, v: 0, fan: true }); }
+            const spinner = add(new THREE.ConeGeometry(R * 0.28, R * 0.6, 20), metall, x, y, z + R * 1.6); spinner.rotation.x = Math.PI / 2;
+            const duese = add(new THREE.ConeGeometry(R * 0.5, R * 1.4, 20), dunkel, x, y, z - R * 2.2); duese.rotation.x = -Math.PI / 2;
+            const pylon = add(new THREE.BoxGeometry(R * 0.2, Math.abs(F.flH - y) + 0.2, R * 2.4), grau, x, (F.flH + y) / 2, z + R * 0.2); return { x, y, z: z - R * 2.6 }; };
+          const prop = (x, y, z, R, nB, laengs = 0) => { const gondel = add(new THREE.CapsuleGeometry(R, R * 4, 8, 20), grau, x, y, z); gondel.rotation.x = Math.PI / 2;
+            const hub = new THREE.Group(); hub.position.set(x, y, z + R * 3.1 + laengs); g.add(hub); const sp = new THREE.Mesh(new THREE.ConeGeometry(R * 0.55, R * 1.2, 20), F.lack === "militaer" ? dunkel : metall); sp.rotation.x = Math.PI / 2; hub.add(sp);
+            for (let k = 0; k < nB; k++) { const bl = new THREE.Mesh(new THREE.BoxGeometry(F.propR * 0.16, F.propR, 0.05), dunkel); bl.geometry.translate(0, F.propR / 2, 0); bl.rotation.z = k / nB * Math.PI * 2; bl.rotation.y = 0.35; const blg = new THREE.Group(); blg.add(bl); hub.add(blg); }
+            const scheibe = new THREE.Mesh(new THREE.CircleGeometry(F.propR, 40), new THREE.MeshBasicMaterial({ color: 0x222222, transparent: true, opacity: 0.0, depthWrite: false })); hub.add(scheibe); props.push({ m: hub, v: 1, scheibe }); return hub; };
+          const auspuff = [];
+          if (F.tw === "fan") F.tw2.forEach(([xx, yy, zz]) => { for (const sx of [-1, 1]) auspuff.push(fan(sx * xx, F.flH + yy, wz + zz, F.twR)); });
+          if (F.tw === "heck") for (const sx of [-1, 1]) auspuff.push(fan(sx * (F.R + F.twR * 0.9), F.R * 0.35, -F.L * 0.28, F.twR));
+          if (F.tw === "prop") F.tw2.forEach(([xx, yy, zz]) => { for (const sx of [-1, 1]) prop(sx * xx, F.flH - F.twR * 0.3 + (yy - yy), wz + zz * 0.3, F.twR, F.blaetter); });
+          if (F.tw === "nase") { const hub = new THREE.Group(); hub.position.set(0, 0, F.L / 2 + 0.08); g.add(hub); const sp = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.4, 16), metall); sp.rotation.x = Math.PI / 2; hub.add(sp); for (let k = 0; k < F.blaetter; k++) { const bl = new THREE.Mesh(new THREE.BoxGeometry(0.1, F.propR, 0.03), dunkel); bl.geometry.translate(0, F.propR / 2, 0); bl.rotation.z = k / F.blaetter * Math.PI * 2; hub.add(bl); } props.push({ m: hub, v: 1 }); }
+          if (F.tw === "duese1" || F.tw === "duese2" || F.tw === "rakete") { const n = F.tw === "duese2" ? [-0.5, 0.5] : [0]; n.forEach((xx) => { const d2 = add(new THREE.CylinderGeometry(0.5, 0.45, 1.2, 24, 1, true), M(0x3a3a3c, { metalness: 0.8, roughness: 0.4, side: THREE.DoubleSide }), xx, 0, -F.L / 2 - 0.3); d2.rotation.x = Math.PI / 2;
+            if (o.nachbrenner || F.tw === "rakete") { const fl = lichtKegel(F.tw === "rakete" ? 9 : 5, 0.45, F.tw === "rakete" ? 0xffd8a0 : 0xff9a50, 0.9); fl.position.set(xx, 0, -F.L / 2 - 0.9); fl.rotation.x = Math.PI / 2; g.add(fl); flammen.push(fl); const k2 = glanzPunkt(0xffb070, 1.6); k2.position.set(xx, 0, -F.L / 2 - 1.0); g.add(k2); } });
+            if (F.tw !== "rakete") for (const sx of [-1, 1]) add(new THREE.BoxGeometry(0.9, 0.9, 3), dunkel, sx * F.R * 0.9, -F.R * 0.35, F.L * 0.08); } // Lufteinläufe
+          if (F.radar) { const dome = add(new THREE.CylinderGeometry(4.5, 4.5, 0.9, 40), M(0x5a5e62, { roughness: 0.5 }), 0, F.R + 3.2, -F.L * 0.15); const b1 = add(new THREE.CylinderGeometry(0.15, 0.25, 2.6, 8), grau, 0, F.R + 1.5, -F.L * 0.1); b1.rotation.x = 0.3; add(new THREE.BoxGeometry(9, 0.1, 0.4), M(0xe8e8e8), 0, F.R + 3.2, -F.L * 0.15); props.push({ m: dome, v: 0.05, achse: "y" }); }
+          if (F.rampe) add(new THREE.BoxGeometry(F.R * 1.4, 0.05, 3), M(0x3a3e42), 0, -F.R * 0.25, -F.L / 2 + 6).rotation.x = 0.4;
+          // Fahrwerk
+          if (o.fahrwerk || F.fahrwerkFest) { const rad = (x, z, R) => { const st = add(new THREE.CylinderGeometry(R * 0.15, R * 0.15, F.R * 0.9, 8), metall, x, -F.R * 0.9, z); const w = add(new THREE.CylinderGeometry(R, R, R * 0.6, 20), M(0x111111, { roughness: 0.8 }), x, -F.R * 1.35, z); w.rotation.z = Math.PI / 2; };
+            const R = Math.max(0.2, F.R * 0.3); rad(0, F.L * 0.35, R * 0.8); for (const sx of [-1, 1]) rad(sx * F.R * 0.9, F.L * 0.02, R); }
+          g.userData.auspuff = auspuff;
+        }
+        // Kondensstreifen hinter den Triebwerken (weißer, verblassender Schweif)
+        if (o.kondens) { const ziele = (g.userData.auspuff && g.userData.auspuff.length) ? g.userData.auspuff : [{ x: 0, y: 0, z: -F.L / 2 }];
+          ziele.forEach((a) => { const len = o.kondensLaenge ?? F.L * 6; const geo = new THREE.CylinderGeometry(0.15, 1.6, len, 12, 1, true); geo.translate(0, -len / 2, 0); geo.rotateX(Math.PI / 2);
+            const mat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uL: { value: len } }, vertexShader: `varying float vK; uniform float uL; void main(){ vK = clamp(-position.z / uL, 0.0, 1.0); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+              fragmentShader: `varying float vK; void main(){ gl_FragColor = vec4(vec3(1.0), (1.0 - vK) * smoothstep(0.0, 0.03, vK) * 0.75); }` });
+            const tr = new THREE.Mesh(geo, mat); tr.position.set(a.x, a.y, a.z); tr.scale.set(1, 1, 1); g.add(tr); }); }
+        g.userData.lichter = lichter; g.userData.props = props; g.userData.flammen = flammen; g.userData.typ = typ; g.userData.L = F.L;
+        return g;
+      }
+      function flugzeugUpdate(f, T) { const u = f.userData;
+        u.props.forEach((p) => { if (p.achse === "y") p.m.rotation.y = T * p.v * 6; else if (p.fan) {} else { p.m.rotation.z = T * 45; if (p.scheibe) p.scheibe.material.opacity = 0.12; } });
+        u.lichter.forEach((L, i) => { if (L.art === "blitz") L.m.visible = (T * 1.1 + i * 0.3) % 1 < 0.12; });
+        u.flammen.forEach((fl, i) => { fl.scale.set(1, 1, 0.85 + 0.15 * Math.sin(T * 37 + i)); });
+      }
+
+      // ===== Tiere v2: alle Klassen (braucht: tiere.js (vierbeiner, texFell, tierLaufen...), rng, box, cyl, M, canvasTex) =====
+      // saeugetier(seed, "pferd"|"kuh"|"reh"|"baer"|"fuchs"|"elefant"|"wal")  vogel(seed, "spatz"|"adler"|"moewe"|"pinguin"|"rabe"|"ente")
+      // reptil(seed, "eidechse"|"krokodil"|"schlange"|"schildkroete")  amphibie(seed, "frosch"|"molch")  fisch(seed, "hai"|"forelle"|"thunfisch"|"goldfisch")
+      // insekt(seed, "kaefer"|"ameise"|"biene"|"libelle")  spinnentier(seed, "spinne"|"skorpion")  weichtier(seed, "schnecke"|"tintenfisch")  qualle(seed)
+      // Jedes Tier hat userData.anim(T) – einfach in update() aufrufen (Laufen/Schwimmen/Flattern/Kriechen je nach Tier, o.bewegung wählt Variante).
+      function texMuster(art, c1, c2) { const key = art + c1 + "_" + c2; if (FELL[key]) return FELL[key];
+        const t = canvasTex(256, 256, (g) => { const q = rng(c1 % 997 + art.length); g.fillStyle = "#" + new THREE.Color(c1).getHexString(); g.fillRect(0, 0, 256, 256); const b = "#" + new THREE.Color(c2).getHexString();
+          if (art === "flecken") { g.fillStyle = b; for (let i = 0; i < 9; i++) { g.beginPath(); const x = q() * 256, y = q() * 256; for (let k = 0; k < 10; k++) { const a = k / 10 * 6.28, rr = 22 + q() * 26; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr * 0.8); } g.fill(); } }
+          if (art === "schuppen") { for (let y = 0; y < 256; y += 10) for (let x = (y / 10) % 2 * 6; x < 256; x += 12) { g.fillStyle = `rgba(0,0,0,${0.12 + q() * 0.12})`; g.beginPath(); g.arc(x, y, 6, 0, Math.PI); g.fill(); g.strokeStyle = `rgba(255,255,255,${0.08 + q() * 0.08})`; g.beginPath(); g.arc(x, y + 1, 5, Math.PI, 0); g.stroke(); } }
+          if (art === "panzer") { g.strokeStyle = b; g.lineWidth = 5; for (let y = 0; y < 256; y += 64) for (let x = (y / 64) % 2 * 32; x < 256; x += 64) { g.beginPath(); for (let k = 0; k < 6; k++) { const a = k / 6 * 6.28; g.lineTo(x + Math.cos(a) * 30, y + Math.sin(a) * 30); } g.closePath(); g.stroke(); } }
+          if (art === "streifen") { g.fillStyle = b; for (let x = 0; x < 256; x += 40) g.fillRect(x, 0, 14, 256); }
+          if (art === "feder") { for (let i = 0; i < 900; i++) { const x = q() * 256, y = q() * 256; g.strokeStyle = q() < 0.5 ? `rgba(0,0,0,${0.1 + q() * 0.1})` : `rgba(255,255,255,${0.1 + q() * 0.1})`; g.beginPath(); g.arc(x, y, 5, 0.2, Math.PI - 0.2); g.stroke(); } }
+          for (let i = 0; i < 2500; i++) { g.fillStyle = `rgba(0,0,0,${q() * 0.05})`; g.fillRect(q() * 256, q() * 256, 2, 2); } });
+        t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2, 2); FELL[key] = t; return t; }
+      const mkT = (g) => (geo, m, x, y, z, p = g) => { const ms = new THREE.Mesh(geo, m); ms.position.set(x, y, z); ms.castShadow = ms.receiveShadow = true; p.add(ms); return ms; };
+      function augenPaar(mk, p, x, y, z, rr, farbe = 0x1a0e06) { for (const sx of [-1, 1]) { mk(new THREE.SphereGeometry(rr, 12, 10), M(farbe, { roughness: 0.1 }), sx * x, y, z, p); mk(new THREE.SphereGeometry(rr * 0.3, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffffff }), sx * x + sx * rr * 0.2, y + rr * 0.4, z + rr * 0.8, p); } }
+
+      // ---------- Säugetiere ----------
+      const SAEUGER = {
+        pferd: { legH: 0.95, bodyL: 1.0, bodyR: 0.3, headR: 0.17, snout: 0.38, ohr: "steh", rute: "buschig", fell: [0x6a3a1e, 0x2a1a12, 0xd8c8b0, 0x8a5a34], bauch: null, art: "kurz" },
+        kuh:   { legH: 0.72, bodyL: 1.15, bodyR: 0.4, headR: 0.18, snout: 0.22, ohr: "schlapp", rute: "rute", fell: [0xf2f0ea], bauch: null, art: "flecken" },
+        reh:   { legH: 0.62, bodyL: 0.55, bodyR: 0.17, headR: 0.1, snout: 0.12, ohr: "steh", rute: "kurz", fell: [0x9a5a2a], bauch: 0xe8dcc8, art: "kurz" },
+        baer:  { legH: 0.42, bodyL: 0.75, bodyR: 0.38, headR: 0.2, snout: 0.13, ohr: "knick", rute: "kurz", fell: [0x4a2e1a, 0x2a1a10], bauch: null, art: "lang" },
+        fuchs: { legH: 0.26, bodyL: 0.42, bodyR: 0.11, headR: 0.085, snout: 0.12, ohr: "steh", rute: "buschig", fell: [0xc8641e], bauch: 0xf2ece0, art: "kurz" },
+      };
+      function saeugetier(seed, art = "pferd", o = {}) {
+        const r = rng(seed * 13 + 3);
+        if (art === "elefant") return elefant(seed, o); if (art === "wal") return wal(seed, o);
+        const R = Object.assign({}, SAEUGER[art]); const t = vierbeiner(seed, R, Object.assign({ halsband: null }, o)); const u = t.userData, mk = mkT(t), fellC = R.fell[0];
+        t.children.forEach((c) => { if (c.isMesh && c.geometry.type === "TorusGeometry") c.visible = false; }); // kein Halsband bei Wild-/Nutztieren
+        t.traverse((c) => { if (c.isMesh && c.geometry.type === "CylinderGeometry" && c.geometry.parameters.height < 0.01) c.visible = false; }); // keine Hundemarke
+        if (art === "kuh") { t.traverse((c) => { if (c.isMesh && c.material.map && c.material.map === texFell(R.art, seed % 3)) c.material = new THREE.MeshStandardMaterial({ color: 0xffffff, map: texMuster("flecken", 0xf2f0ea, 0x1e1a18), roughness: 0.85 }); });
+          for (const sx of [-1, 1]) { const h = mk(new THREE.ConeGeometry(0.025, 0.14, 10), M(0xe8e0c8, { roughness: 0.5 }), sx * 0.12, 0.14, -0.02, u.kopf); h.rotation.z = -sx * 1.1; }
+          mk(new THREE.SphereGeometry(0.12, 16, 12), M(0xe8a8a0, { roughness: 0.6 }), 0, R.legH + 0.05, -R.bodyL * 0.25).scale.set(1, 0.7, 1.1); // Euter
+          const maul = mk(new THREE.SphereGeometry(0.09, 14, 10), M(0xd89a90, { roughness: 0.5 }), 0, -0.07, 0.34, u.kopf); maul.scale.set(1.1, 0.8, 0.7); }
+        if (art === "pferd") { const mahne = M(new THREE.Color(fellC).multiplyScalar(0.4).getHex(), { roughness: 0.9 }); for (let i = 0; i < 9; i++) { const m = mk(new THREE.BoxGeometry(0.04, 0.16, 0.08), mahne, 0, R.legH + R.bodyR * 1.4 + i * 0.045, R.bodyL / 2 + 0.1 + i * 0.05); m.rotation.x = 0.6; }
+          u.kopf.rotation.x = 0.5; for (const b of u.beine) { const huf = mk(new THREE.CylinderGeometry(0.055, 0.065, 0.06, 14), M(0x1a1410, { roughness: 0.6 }), 0, -R.legH * 0.45 + 0.03, 0.01, b.kn); } }
+        if (art === "reh" && r() < 0.5) for (const sx of [-1, 1]) { const g2 = new THREE.Group(); g2.position.set(sx * 0.04, 0.09, -0.02); g2.rotation.z = -sx * 0.25; u.kopf.add(g2); cyl(0.008, 0.01, 0.16, M(0x6a4a2a), 0, 0.08, 0, g2, 6); for (const k of [0.06, 0.12]) { const e = cyl(0.006, 0.007, 0.07, M(0x6a4a2a), 0, k, 0.025, g2, 6); e.rotation.x = 0.7; } } // Geweih
+        if (art === "baer") u.kopf.scale.set(1.15, 1, 1);
+        t.userData.anim = (T) => (o.bewegung === "laufen" ? tierLaufen(t, T, art === "pferd" ? 0.8 : 1) : tierIdle(t, T)); t.userData.art = art; return t;
+      }
+      function elefant(seed, o = {}) { const g = new THREE.Group(), mk = mkT(g), haut = new THREE.MeshStandardMaterial({ color: 0x8a8682, roughness: 0.95, map: texMuster("schuppen", 0x8a8682, 0x6a6662) });
+        const rumpf = mk(new THREE.SphereGeometry(1, 28, 20), haut, 0, 2.0, 0); rumpf.scale.set(1.0, 1.0, 1.5);
+        const kopf = new THREE.Group(); kopf.position.set(0, 2.4, 1.55); g.add(kopf); mk(new THREE.SphereGeometry(0.62, 24, 18), haut, 0, 0, 0, kopf);
+        const ruessel = []; let p = new THREE.Group(); p.position.set(0, -0.2, 0.5); kopf.add(p); for (let i = 0; i < 9; i++) { const s = new THREE.Group(); s.position.y = i ? -0.2 : 0; p.add(s); mk(new THREE.CylinderGeometry(0.17 - i * 0.012, 0.16 - i * 0.012, 0.22, 14), haut, 0, -0.1, 0, s); s.rotation.x = i ? 0.1 : 0.4; ruessel.push(s); p = s; }
+        for (const sx of [-1, 1]) { const ohr = mk(new THREE.SphereGeometry(0.6, 18, 12), haut, sx * 0.55, 0.05, -0.1, kopf); ohr.scale.set(0.12, 1, 0.85); ohr.rotation.y = sx * 0.4; const sz = mk(new THREE.ConeGeometry(0.06, 0.7, 12), M(0xf2ece0, { roughness: 0.4 }), sx * 0.22, -0.45, 0.45, kopf); sz.rotation.x = -2.3; }
+        augenPaar(mk, kopf, 0.38, 0.12, 0.42, 0.05);
+        const beine = []; for (const [sx, sz] of [[-1, 1], [1, 1], [-1, -1], [1, -1]]) { const hp = new THREE.Group(); hp.position.set(sx * 0.55, 1.6, sz * 0.85); g.add(hp); mk(new THREE.CylinderGeometry(0.3, 0.28, 1.6, 18), haut, 0, -0.8, 0, hp); mk(new THREE.CylinderGeometry(0.31, 0.31, 0.08, 18), M(0xd8d0c0), 0, -1.56, 0, hp); beine.push({ hp, sz }); }
+        const schw = mk(new THREE.CylinderGeometry(0.03, 0.05, 0.9, 8), haut, 0, 1.9, -1.55); schw.rotation.x = 0.3;
+        g.userData.anim = (T) => { ruessel.forEach((s, i) => (s.rotation.x = (i ? 0.1 : 0.4) + Math.sin(T * 0.8 + i * 0.5) * 0.06)); if (o.bewegung === "laufen") beine.forEach((b, i) => (b.hp.rotation.x = Math.sin(T * 2.5 + (i === 0 || i === 3 ? 0 : Math.PI)) * 0.25)); };
+        if (o.groesse) g.scale.setScalar(o.groesse); return g; }
+      function wal(seed, o = {}) { const g = new THREE.Group(), mk = mkT(g); const pts = []; for (let i = 0; i <= 30; i++) { const t = i / 30; pts.push(new THREE.Vector2(Math.max(0.02, Math.sin(Math.pow(t, 0.7) * Math.PI) * 2.2 * (t < 0.15 ? 0.6 + t * 2.6 : 1)), -12 + t * 24)); }
+        const geo = new THREE.LatheGeometry(pts, 32); geo.rotateX(Math.PI / 2); const haut = new THREE.MeshStandardMaterial({ color: 0x4a5a6a, roughness: 0.4, map: texMuster("flecken", 0x4a5a6a, 0x5e6e7a) }); const k = mk(geo, haut, 0, 0, 0); k.scale.set(1, 0.8, 1);
+        const bauch = mk(new THREE.SphereGeometry(2, 20, 12), M(0xa8b0b8, { roughness: 0.6 }), 0, -0.9, 4); bauch.scale.set(0.8, 0.35, 3);
+        for (const sx of [-1, 1]) { const fl = mk(new THREE.SphereGeometry(1, 14, 8), haut, sx * 2.0, -0.6, 4.5); fl.scale.set(1.8, 0.12, 0.6); fl.rotation.z = sx * 0.4; }
+        const schwanz = new THREE.Group(); schwanz.position.z = -11.8; g.add(schwanz); for (const sx of [-1, 1]) { const f = mk(new THREE.SphereGeometry(1, 14, 8), haut, sx * 1.6, 0, -0.4, schwanz); f.scale.set(1.8, 0.1, 0.7); f.rotation.y = sx * 0.4; }
+        augenPaar(mk, g, 1.7, -0.4, 8.5, 0.12);
+        g.userData.anim = (T) => { schwanz.rotation.x = Math.sin(T * 0.8) * 0.3; g.rotation.x = Math.sin(T * 0.8 - 0.8) * 0.03; }; return g; }
+
+      // ---------- Vögel ----------
+      const VOEGEL = { spatz: { gr: 0.08, farbe: 0x8a6a4a, bauch: 0xd8c8b0, kopf: 0x6a4a34, schnabel: 0x3a3a3a, kurz: true }, adler: { gr: 0.45, farbe: 0x4a3220, bauch: 0x5a4028, kopf: 0xf2f0ea, schnabel: 0xe8b830, haken: true, spann: 2.2 },
+        moewe: { gr: 0.25, farbe: 0xf4f4f2, bauch: 0xffffff, kopf: 0xffffff, schnabel: 0xe8c030, fluegel: 0xb8bcc4, spann: 1.4 }, pinguin: { gr: 0.35, farbe: 0x1a1a20, bauch: 0xf6f4ee, kopf: 0x1a1a20, schnabel: 0x1a1a1a, steht: true },
+        rabe: { gr: 0.22, farbe: 0x14141a, bauch: 0x1a1a22, kopf: 0x14141a, schnabel: 0x111111, spann: 1.0 }, ente: { gr: 0.25, farbe: 0x8a7a64, bauch: 0xb8a888, kopf: 0x1e5a3a, schnabel: 0xe8c030, flach: true } };
+      function vogel(seed, art = "spatz", o = {}) { const V = VOEGEL[art], g = new THREE.Group(), mk = mkT(g), s = V.gr; const fed = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, map: texMuster("feder", 0xe8e8e8, 0xe8e8e8) });
+        const koerper = mk(new THREE.SphereGeometry(s * 0.5, 22, 16), fed(V.farbe), 0, s * (V.steht ? 0.9 : 0.6), 0); koerper.scale.set(0.85, V.steht ? 1.6 : 0.85, V.steht ? 0.9 : 1.4); if (V.steht) koerper.position.y = s * 0.95;
+        const bauch = mk(new THREE.SphereGeometry(s * 0.46, 20, 14), fed(V.bauch), 0, koerper.position.y - s * 0.05, s * 0.08); bauch.scale.set(0.78, V.steht ? 1.5 : 0.78, V.steht ? 0.85 : 1.3);
+        const kopf = new THREE.Group(); kopf.position.set(0, V.steht ? s * 1.75 : s * 0.95, V.steht ? s * 0.05 : s * 0.55); g.add(kopf); mk(new THREE.SphereGeometry(s * 0.3, 18, 14), fed(V.kopf), 0, 0, 0, kopf);
+        const sch = mk(new THREE.ConeGeometry(s * (V.flach ? 0.12 : 0.08), s * (V.haken ? 0.35 : V.kurz ? 0.2 : 0.32), 10), M(V.schnabel, { roughness: 0.4 }), 0, -s * 0.04, s * 0.38, kopf); sch.rotation.x = Math.PI / 2 + (V.haken ? 0.4 : 0.05); if (V.flach) sch.scale.set(1.4, 1, 0.45);
+        augenPaar(mk, kopf, s * 0.18, s * 0.06, s * 0.2, s * 0.05, art === "adler" ? 0x8a6a1a : 0x0a0a0a);
+        const fluegel = []; for (const sx of [-1, 1]) { const f = new THREE.Group(); f.position.set(sx * s * 0.38, koerper.position.y + s * 0.1, 0); g.add(f); const fl = mk(new THREE.SphereGeometry(s * 0.5, 16, 10), fed(V.fluegel ?? V.farbe), sx * s * 0.08, 0, -s * 0.1, f); fl.scale.set(0.25, V.steht ? 1.3 : 0.55, V.steht ? 0.5 : 1.3);
+          if (art === "moewe" || art === "adler") mk(new THREE.SphereGeometry(s * 0.2, 10, 6), M(art === "moewe" ? 0x1a1a1a : 0x2a1a10), sx * s * 0.08, 0, -s * 0.6, f).scale.set(0.3, 0.5, 1.5); fluegel.push({ f, fl, sx }); }
+        const schwanz = mk(new THREE.BoxGeometry(s * 0.35, s * 0.04, s * 0.5), fed(V.farbe), 0, koerper.position.y + (V.steht ? -s * 0.6 : 0), V.steht ? -s * 0.4 : -s * 0.75); schwanz.rotation.x = V.steht ? 1.2 : -0.15;
+        const fussM = M(art === "pinguin" ? 0x2a2a2a : art === "ente" ? 0xe8901e : art === "adler" ? 0xe8c030 : 0xb88a6a, { roughness: 0.6 }); for (const sx of [-1, 1]) { cyl(s * 0.03, s * 0.03, s * 0.35, fussM, sx * s * 0.15, s * 0.17, 0, g, 6); box(s * 0.12, s * 0.02, s * 0.2, fussM, sx * s * 0.15, s * 0.01, s * 0.06, g); }
+        const modus = o.bewegung ?? (V.steht ? "watscheln" : "picken");
+        g.userData = { kopf, fluegel, anim(T) { const k = T + seed;
+          if (modus === "fliegen" || modus === "gleiten") { const sch2 = modus === "gleiten" ? Math.sin(k * 1.2) * 0.1 : Math.sin(k * (art === "spatz" ? 30 : art === "adler" ? 5 : 10)) * 0.9;
+            fluegel.forEach(({ f, fl, sx }) => { fl.scale.set(1.6 * (V.spann ?? 1) / 1.4, 0.12, 1.1); fl.position.x = sx * s * 0.75 * (V.spann ?? 1); f.rotation.z = sx * sch2; }); }
+          else if (modus === "watscheln") { g.rotation.z = Math.sin(k * 5) * 0.12; g.position.y = Math.abs(Math.sin(k * 5)) * s * 0.05; fluegel.forEach(({ f, sx }) => (f.rotation.z = sx * (0.3 + Math.sin(k * 5) * 0.1))); }
+          else { const pk = Math.max(0, Math.sin(k * 3)) ** 4; kopf.rotation.x = pk * 1.0; kopf.position.z = (V.steht ? s * 0.05 : s * 0.55) + pk * s * 0.2; kopf.rotation.y = Math.sin(k * 0.9) * 0.4; } } };
+        if (o.groesse) g.scale.setScalar(o.groesse); return g; }
+
+      // ---------- Reptilien & Amphibien ----------
+      function kette(g, mk, n, lenSeg, rad0, rad1, mat, y, z0) { let p = new THREE.Group(); p.position.set(0, y, z0); g.add(p); const segs = []; for (let i = 0; i < n; i++) { const s = new THREE.Group(); s.position.z = i ? -lenSeg : 0; p.add(s); const rr = rad0 + (rad1 - rad0) * i / (n - 1); const c = mk(new THREE.SphereGeometry(rr, 14, 10), mat, 0, 0, -lenSeg / 2, s); c.scale.set(1, 0.75, lenSeg / rr * 0.75); segs.push(s); p = s; } return segs; }
+      function reptil(seed, art = "eidechse", o = {}) { const g = new THREE.Group(), mk = mkT(g), r = rng(seed);
+        const P = { eidechse: { c: 0x5a7a3a, c2: 0x3a5a2a, s: 0.25 }, krokodil: { c: 0x4a5a34, c2: 0x2a3420, s: 3.5 }, schlange: { c: 0x8a6a3a, c2: 0x3a2a1a, s: 1.4 }, schildkroete: { c: 0x6a6a4a, c2: 0x4a3a24, s: 0.35 } }[art];
+        const haut = new THREE.MeshStandardMaterial({ color: 0xffffff, map: texMuster(art === "schlange" ? "flecken" : "schuppen", P.c, P.c2), roughness: art === "schlange" ? 0.35 : 0.7 }); const s = P.s;
+        let segs = [], kopf;
+        if (art === "schildkroete") { const pz = mk(new THREE.SphereGeometry(s * 0.5, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ map: texMuster("panzer", 0x6a5a34, 0x2a2014), roughness: 0.6 }), 0, s * 0.12, 0); pz.scale.set(0.85, 0.6, 1.1); mk(new THREE.CylinderGeometry(s * 0.43, s * 0.43, s * 0.06, 24), haut, 0, s * 0.12, 0).scale.z = 1.25;
+          kopf = new THREE.Group(); kopf.position.set(0, s * 0.15, s * 0.6); g.add(kopf); mk(new THREE.SphereGeometry(s * 0.1, 14, 10), haut, 0, 0, 0, kopf).scale.set(1, 0.85, 1.3); augenPaar(mk, kopf, s * 0.06, s * 0.03, s * 0.08, s * 0.018);
+          for (const [sx, sz] of [[-1, 1], [1, 1], [-1, -1], [1, -1]]) mk(new THREE.SphereGeometry(s * 0.08, 10, 8), haut, sx * s * 0.38, s * 0.06, sz * s * 0.38).scale.set(1.2, 0.6, 1); }
+        else { const n = art === "schlange" ? 22 : 9, len = art === "schlange" ? s / n : s * 0.09; segs = kette(g, mk, n, len, art === "schlange" ? s * 0.035 : s * (art === "krokodil" ? 0.1 : 0.07), art === "schlange" ? s * 0.012 : s * 0.02, haut, art === "schlange" ? s * 0.03 : s * 0.08, 0);
+          kopf = new THREE.Group(); kopf.position.set(0, art === "schlange" ? s * 0.03 : s * 0.08, art === "krokodil" ? s * 0.06 : s * 0.05); g.add(kopf);
+          if (art === "krokodil") { mk(new THREE.BoxGeometry(s * 0.16, s * 0.06, s * 0.32), haut, 0, 0, s * 0.16, kopf); for (let i = 0; i < 9; i++) for (const sx of [-1, 1]) mk(new THREE.ConeGeometry(s * 0.006, s * 0.02, 5), M(0xf2ece0), sx * s * 0.075, -s * 0.032, s * 0.04 + i * s * 0.032, kopf).rotation.x = Math.PI; augenPaar(mk, kopf, s * 0.05, s * 0.045, s * 0.04, s * 0.015, 0x8a7a1a); for (let i = 0; i < 12; i++) mk(new THREE.ConeGeometry(s * 0.012, s * 0.03, 4), haut, 0, s * 0.11, -i * s * 0.09); }
+          else { const k2 = mk(new THREE.SphereGeometry(art === "schlange" ? s * 0.045 : s * 0.06, 14, 10), haut, 0, 0, s * 0.04, kopf); k2.scale.set(1, 0.7, 1.5); augenPaar(mk, kopf, s * (art === "schlange" ? 0.03 : 0.04), s * 0.015, s * 0.06, s * 0.012, 0x8a6a1a);
+            if (art === "schlange") { const zunge = mk(new THREE.BoxGeometry(s * 0.004, s * 0.002, s * 0.05), M(0xc82a3a), 0, -s * 0.01, s * 0.11, kopf); } }
+          if (art !== "schlange") { const beine = []; for (const [sx, i] of [[-1, 1], [1, 1], [-1, 5], [1, 5]]) { const b = new THREE.Group(); b.position.set(sx * s * 0.06, -s * 0.02, -s * 0.045); segs[i].add(b); const ob = mk(new THREE.CylinderGeometry(s * 0.018, s * 0.014, s * 0.12, 8), haut, sx * s * 0.05, -s * 0.02, 0, b); ob.rotation.z = sx * 1.2; const fu = mk(new THREE.SphereGeometry(s * 0.02, 8, 6), haut, sx * s * 0.1, -s * 0.06, s * 0.01, b); fu.scale.set(1.5, 0.4, 1.6); beine.push(b); } g.userData.beine = beine; } }
+        g.userData.anim = (T) => { const k = T * (art === "krokodil" ? 1 : 3) + seed; segs.forEach((sg, i) => (sg.rotation.y = Math.sin(k - i * 0.6) * (art === "schlange" ? 0.35 : 0.12)));
+          (g.userData.beine || []).forEach((b, i) => (b.rotation.y = Math.sin(k + i * Math.PI / 2) * 0.4)); if (kopf) kopf.rotation.y = Math.sin(k * 0.5) * 0.2; };
+        return g; }
+      function amphibie(seed, art = "frosch", o = {}) { const g = new THREE.Group(), mk = mkT(g), c = art === "frosch" ? 0x4a8a3a : 0x3a2a1e, haut = M(c, { roughness: 0.25, map: texMuster("flecken", c, new THREE.Color(c).multiplyScalar(0.6).getHex()) }), s = art === "frosch" ? 0.08 : 0.12;
+        if (art === "frosch") { const k = mk(new THREE.SphereGeometry(s * 0.5, 18, 14), haut, 0, s * 0.35, 0); k.scale.set(1.1, 0.75, 1.2); k.rotation.x = -0.35; mk(new THREE.SphereGeometry(s * 0.42, 16, 12), M(0xe8e0b0, { roughness: 0.4 }), 0, s * 0.28, s * 0.05).scale.set(1, 0.6, 1.1);
+          for (const sx of [-1, 1]) { mk(new THREE.SphereGeometry(s * 0.14, 12, 10), haut, sx * s * 0.25, s * 0.58, s * 0.3); mk(new THREE.SphereGeometry(s * 0.1, 10, 8), M(0xd8a020, { roughness: 0.1 }), sx * s * 0.28, s * 0.62, s * 0.36); mk(new THREE.SphereGeometry(s * 0.05, 8, 6), M(0x050505), sx * s * 0.3, s * 0.63, s * 0.44);
+            const hb = mk(new THREE.SphereGeometry(s * 0.2, 12, 8), haut, sx * s * 0.45, s * 0.12, -s * 0.25); hb.scale.set(0.7, 0.5, 1.6); const vb = mk(new THREE.CylinderGeometry(s * 0.05, s * 0.04, s * 0.3, 8), haut, sx * s * 0.3, s * 0.15, s * 0.35); vb.rotation.z = sx * 0.3; }
+          const kehle = mk(new THREE.SphereGeometry(s * 0.2, 12, 10), M(0xf2ecc8, { roughness: 0.3 }), 0, s * 0.2, s * 0.42); g.userData.anim = (T) => { kehle.scale.setScalar(1 + Math.max(0, Math.sin(T * 6 + seed)) * 0.5); }; }
+        else { const segs = kette(g, mk, 8, s * 0.12, s * 0.08, s * 0.02, haut, s * 0.06, 0); augenPaar(mk, segs[0], s * 0.05, s * 0.03, s * 0.02, s * 0.015); g.userData.anim = (T) => segs.forEach((sg, i) => (sg.rotation.y = Math.sin(T * 2 + seed - i * 0.5) * 0.15)); }
+        return g; }
+
+      // ---------- Fische ----------
+      function fisch(seed, art = "forelle", o = {}) { const g = new THREE.Group(), mk = mkT(g);
+        const P = { hai: { L: 3.0, R: 0.38, c: 0x6a7a88, c2: 0xe8ecf0, rough: 0.35 }, forelle: { L: 0.45, R: 0.06, c: 0x7a8a5a, c2: 0x2a3a2a, rough: 0.2, flecken: true }, thunfisch: { L: 1.8, R: 0.3, c: 0x1e3a5a, c2: 0xc8ccd0, rough: 0.15 }, goldfisch: { L: 0.15, R: 0.04, c: 0xe8701e, c2: 0xf2a040, rough: 0.2 } }[art];
+        const pts = []; for (let i = 0; i <= 24; i++) { const t = i / 24; pts.push(new THREE.Vector2(Math.max(0.002, Math.sin(Math.pow(t, art === "hai" ? 0.9 : 0.75) * Math.PI) * P.R * (t < 0.2 ? 0.4 + t * 3 : 1)), -P.L / 2 + t * P.L)); }
+        const geo = new THREE.LatheGeometry(pts, 24); geo.rotateX(Math.PI / 2); const haut = new THREE.MeshStandardMaterial({ color: 0xffffff, map: texMuster(P.flecken ? "flecken" : "schuppen", P.c, P.c2), roughness: P.rough, metalness: 0.3 });
+        const koerper = new THREE.Group(); g.add(koerper); const k = mk(geo, haut, 0, 0, 0, koerper); k.scale.set(art === "hai" ? 1 : 0.55, 1, 1);
+        mk(new THREE.SphereGeometry(P.R * 0.9, 16, 10), M(P.c2, { roughness: 0.4 }), 0, -P.R * 0.35, 0, koerper).scale.set(art === "hai" ? 0.9 : 0.5, 0.5, P.L / P.R * 0.35);
+        const flosse = (w, h, x, y, z, rx, rz, p = koerper) => { const f = mk(new THREE.ConeGeometry(w, h, 3), haut, x, y, z, p); f.rotation.set(rx, 0, rz); f.scale.z = 0.12; return f; };
+        flosse(P.L * 0.08, P.L * (art === "hai" ? 0.22 : 0.12), 0, P.R * 1.05, 0, -0.4, 0);
+        for (const sx of [-1, 1]) flosse(P.L * 0.05, P.L * 0.12, sx * P.R * 0.7, -P.R * 0.4, P.L * 0.15, -1.2, sx * 1.3);
+        const schwanz = new THREE.Group(); schwanz.position.z = -P.L / 2; koerper.add(schwanz); for (const sy of [-1, 1]) { const f = flosse(P.L * 0.06, P.L * (art === "goldfisch" ? 0.4 : 0.22), 0, sy * P.L * 0.07, -P.L * 0.08, -Math.PI / 2 - sy * 0.6, 0, schwanz); }
+        augenPaar(mk, koerper, P.R * 0.45, P.R * 0.25, P.L * 0.38, P.R * 0.12, art === "hai" ? 0x050505 : 0x1a1a1a);
+        if (art === "hai") for (let i = 0; i < 5; i++) for (const sx of [-1, 1]) mk(new THREE.BoxGeometry(0.005, P.R * 0.5, 0.012), M(0x3a4a58), sx * P.R * 0.98, 0, P.L * 0.22 - i * 0.06, koerper);
+        g.userData.anim = (T) => { const k2 = T * (art === "hai" ? 2 : 7) + seed; schwanz.rotation.y = Math.sin(k2) * 0.5; koerper.rotation.y = Math.sin(k2 - 1) * 0.08; }; if (o.groesse) g.scale.setScalar(o.groesse); return g; }
+
+      // ---------- Wirbellose ----------
+      function beinePaar(mk, p, n, laenge, dicke, mat, x0, zSpan, y) { const beine = []; for (let i = 0; i < n; i++) for (const sx of [-1, 1]) { const b = new THREE.Group(); b.position.set(sx * x0, y, zSpan / 2 - i * zSpan / Math.max(1, n - 1)); p.add(b);
+          const o1 = mk(new THREE.CylinderGeometry(dicke, dicke, laenge * 0.5, 5), mat, sx * laenge * 0.22, laenge * 0.1, 0, b); o1.rotation.z = sx * 1.0; const o2 = mk(new THREE.CylinderGeometry(dicke * 0.8, dicke * 0.5, laenge * 0.6, 5), mat, sx * laenge * 0.5, -laenge * 0.05, 0, b); o2.rotation.z = -sx * 0.4; beine.push({ b, sx, i }); } return beine; }
+      function insekt(seed, art = "kaefer", o = {}) { const g = new THREE.Group(), mk = mkT(g);
+        const P = { kaefer: { s: 0.02, c: 0x1a3a2a, glanz: true }, ameise: { s: 0.008, c: 0x2a1408 }, biene: { s: 0.014, c: 0xd8a020, streifen: true, fluegel: true }, libelle: { s: 0.07, c: 0x2a6aa8, fluegel: true, lang: true } }[art], s = P.s;
+        const chitin = new THREE.MeshPhysicalMaterial({ color: P.c, roughness: 0.25, metalness: P.glanz ? 0.6 : 0.1, clearcoat: 1, map: P.streifen ? texMuster("streifen", 0xd8a020, 0x1a1a1a) : null }), schwarz = M(0x111111, { roughness: 0.4 });
+        mk(new THREE.SphereGeometry(s * 0.35, 12, 10), schwarz, 0, s * 0.5, s * 0.8); const brust = mk(new THREE.SphereGeometry(s * 0.4, 12, 10), art === "biene" ? M(0x6a4a1a, { roughness: 0.9 }) : chitin, 0, s * 0.5, s * 0.35);
+        const hl = mk(new THREE.SphereGeometry(s * (art === "kaefer" ? 0.7 : 0.5), 16, 12), chitin, 0, s * 0.5, P.lang ? -s * 1.6 : -s * 0.35); hl.scale.set(art === "kaefer" ? 0.9 : 0.8, art === "kaefer" ? 0.6 : 0.75, P.lang ? 4 : art === "ameise" ? 1.3 : 1.2);
+        if (art === "kaefer") box(s * 0.01, s * 0.05, s * 1.0, schwarz, 0, s * 0.92, -s * 0.35, g); augenPaar(mk, g, s * 0.2, s * 0.55, s * 0.95, s * (art === "libelle" ? 0.18 : 0.1), art === "libelle" ? 0x2a4a8a : 0x050505);
+        for (const sx of [-1, 1]) { const f = mk(new THREE.CylinderGeometry(s * 0.02, s * 0.02, s * 0.8, 4), schwarz, sx * s * 0.15, s * 0.9, s * 1.1); f.rotation.set(0.8, 0, -sx * 0.4); }
+        const beine = beinePaar(mk, g, 3, s * 1.6, s * 0.04, schwarz, s * 0.2, s * 0.6, s * 0.4);
+        const fl = []; if (P.fluegel) for (const sx of [-1, 1]) for (const fz of art === "libelle" ? [0.1, -0.25] : [0]) { const f = new THREE.Group(); f.position.set(sx * s * 0.2, s * 0.8, s * (0.35 + fz * 4)); g.add(f); const fm = mk(new THREE.SphereGeometry(s * (art === "libelle" ? 1.6 : 0.6), 12, 6), new THREE.MeshPhysicalMaterial({ color: 0xe8f0ff, roughness: 0.1, transparent: true, opacity: 0.35, side: THREE.DoubleSide, iridescence: 1 }), sx * s * (art === "libelle" ? 1.6 : 0.55), 0, 0, f); fm.scale.set(1, 0.03, 0.28); fl.push({ f, sx }); }
+        g.userData.anim = (T) => { const k = T * 14 + seed; beine.forEach((b) => (b.b.rotation.y = Math.sin(k + b.i * 2 + (b.sx > 0 ? Math.PI : 0)) * 0.35)); fl.forEach(({ f, sx }) => (f.rotation.z = sx * Math.sin(T * 120 + seed) * 0.6)); };
+        if (o.groesse) g.scale.setScalar(o.groesse); return g; }
+      function spinnentier(seed, art = "spinne", o = {}) { const g = new THREE.Group(), mk = mkT(g), s = art === "spinne" ? 0.02 : 0.05, c = art === "spinne" ? 0x3a2a1a : 0x5a3a1a, mat = new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.5, clearcoat: 0.5 });
+        mk(new THREE.SphereGeometry(s * 0.45, 14, 10), mat, 0, s * 0.5, s * 0.3).scale.set(1, 0.7, 1.1);
+        if (art === "spinne") { const h = mk(new THREE.SphereGeometry(s * 0.7, 16, 12), new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.6, map: texMuster("flecken", c, 0xd8c8a0) }), 0, s * 0.7, -s * 0.6); h.scale.set(1, 0.85, 1.15); }
+        else { const segs = kette(g, mk, 6, s * 0.3, s * 0.3, s * 0.15, mat, s * 0.5, -s * 0.2); const sw = kette(segs[5], mk, 6, s * 0.18, s * 0.1, s * 0.07, mat, 0, -s * 0.3); sw.forEach((sg) => (sg.rotation.x = -0.45)); const st = mk(new THREE.ConeGeometry(s * 0.04, s * 0.15, 6), M(0x2a1a0a), 0, 0, -s * 0.15, sw[5]); st.rotation.x = -2;
+          for (const sx of [-1, 1]) { const sc = mk(new THREE.SphereGeometry(s * 0.15, 10, 8), mat, sx * s * 0.45, s * 0.45, s * 0.95); sc.scale.set(0.8, 0.5, 1.5); } }
+        augenPaar(mk, g, s * 0.1, s * 0.7, s * 0.65, s * 0.05); const beine = beinePaar(mk, g, 4, s * (art === "spinne" ? 3 : 1.8), s * 0.05, mat, s * 0.25, s * 0.6, s * 0.5);
+        g.userData.anim = (T) => beine.forEach((b) => (b.b.rotation.y = Math.sin(T * 10 + seed + b.i * 1.6 + (b.sx > 0 ? 1 : 0)) * 0.25)); if (o.groesse) g.scale.setScalar(o.groesse); return g; }
+      function weichtier(seed, art = "schnecke", o = {}) { const g = new THREE.Group(), mk = mkT(g);
+        if (art === "schnecke") { const s = 0.04, haut = M(0xa89a7a, { roughness: 0.2 }); const fuss = mk(new THREE.CapsuleGeometry(s * 0.25, s * 1.6, 6, 12), haut, 0, s * 0.22, 0); fuss.rotation.x = Math.PI / 2; fuss.scale.set(1, 1, 0.5);
+          const haus = new THREE.Group(); haus.position.set(0, s * 0.75, -s * 0.2); g.add(haus); for (let i = 0; i < 26; i++) { const t = i / 26, a = t * Math.PI * 5, rr = s * 0.55 * (1 - t * 0.85); mk(new THREE.SphereGeometry(rr * 0.75, 12, 10), M(new THREE.Color(0x8a5a2a).lerp(new THREE.Color(0xd8b080), (i % 4) / 4).getHex(), { roughness: 0.4 }), 0, Math.sin(a) * rr * 0.9, Math.cos(a) * rr * 0.9, haus); }
+          const fuehler = []; for (const sx of [-1, 1]) { const f = mk(new THREE.CylinderGeometry(s * 0.03, s * 0.04, s * 0.5, 6), haut, sx * s * 0.1, s * 0.55, s * 0.9); f.rotation.x = 0.4; f.rotation.z = -sx * 0.3; mk(new THREE.SphereGeometry(s * 0.05, 6, 4), M(0x1a1a1a), sx * s * 0.17, s * 0.78, s * 1.0); fuehler.push(f); }
+          g.userData.anim = (T) => { fuss.scale.z = 0.5 + Math.sin(T * 1.5 + seed) * 0.03; fuehler.forEach((f, i) => (f.rotation.x = 0.4 + Math.sin(T * 2 + i) * 0.15)); }; }
+        else { const s = 0.5, haut = new THREE.MeshPhysicalMaterial({ color: 0xc8644a, roughness: 0.3, clearcoat: 0.6, map: texMuster("flecken", 0xc8644a, 0xa84a3a) }); const mantel = mk(new THREE.SphereGeometry(s * 0.35, 20, 16), haut, 0, s * 0.6, 0); mantel.scale.set(1, 1.6, 1);
+          augenPaar(mk, g, s * 0.22, s * 0.3, s * 0.18, s * 0.06, 0x1a1a1a); const arme = [];
+          for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; const segs = []; let p = new THREE.Group(); p.position.set(Math.cos(a) * s * 0.18, s * 0.15, Math.sin(a) * s * 0.18); p.rotation.y = -a; g.add(p); for (let k = 0; k < 8; k++) { const sg = new THREE.Group(); sg.position.x = k ? s * 0.11 : 0; p.add(sg); mk(new THREE.SphereGeometry(s * (0.07 - k * 0.007), 10, 8), haut, s * 0.055, 0, 0, sg).scale.set(1.6, 1, 1); segs.push(sg); p = sg; } arme.push(segs); }
+          g.userData.anim = (T) => arme.forEach((segs, i) => segs.forEach((sg, k) => (sg.rotation.z = -0.1 + Math.sin(T * 1.6 + i + k * 0.5) * 0.2))); }
+        return g; }
+      function qualle(seed, o = {}) { const g = new THREE.Group(), mk = mkT(g), c = o.farbe ?? 0xb8a0e8; const glocke = mk(new THREE.SphereGeometry(0.25, 28, 16, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.1, transparent: true, opacity: 0.5, emissive: c, emissiveIntensity: 0.25, side: THREE.DoubleSide }), 0, 0.5, 0);
+        const tent = []; for (let i = 0; i < 14; i++) { const a = i / 14 * 6.28; const pts = []; for (let k = 0; k <= 12; k++) pts.push(new THREE.Vector3(Math.cos(a) * 0.2, 0.5 - k * 0.07, Math.sin(a) * 0.2)); const geo = new THREE.BufferGeometry().setFromPoints(pts); const l = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: 0.6 })); g.add(l); tent.push({ l, a }); }
+        g.userData.anim = (T) => { const p = Math.sin(T * 2 + seed); glocke.scale.set(1 + p * 0.1, 1 - p * 0.15, 1 + p * 0.1); g.position.y += 0; tent.forEach(({ l, a }, i) => { const pos = l.geometry.attributes.position; for (let k = 0; k <= 12; k++) { pos.setX(k, Math.cos(a) * 0.2 * (1 + p * 0.1) + Math.sin(T * 1.5 + k * 0.4 + i) * 0.02 * k); pos.setZ(k, Math.sin(a) * 0.2 * (1 + p * 0.1) + Math.cos(T * 1.3 + k * 0.4 + i) * 0.02 * k); } pos.needsUpdate = true; }); };
+        if (o.groesse) g.scale.setScalar(o.groesse); return g; }
+
+      const POST = nachbearbeitung(renderer, { bloom: 0.5 });
+      const SHOTS = ["gesicht1", "gesicht2", "autos", "stadt", "berge", "zivil", "militaer", "tiere1", "tiere2", "wasser", "zimmer"].map((id, i) => ({ id, t0: i, t1: i + 1 })); const DUR = SHOTS.length;
+      // ===== Gesichter =====
       (function () {
-        const s = new THREE.Scene();
-        const sonne = [-0.45, 0.62, 0.35]; const him = himmelShader(s, { zeit: "tag", wolken: 0.5, sonne }); s.fog = new THREE.Fog(0xa8c0dc, 80, 320);
-        s.add(new THREE.HemisphereLight(0xdfeaff, 0x5a5a50, 0.35)); const d = sun(s, 0xfff2da, 2.6, [-45, 62, 35], 45); d.shadow.mapSize.set(4096, 4096); d.shadow.camera.far = 200; d.target.position.set(0, 0, -20);
-        umgebung(s, him);
-        const st = stadt(s, false);
-        const ppl = [];
-        [[801, { kind: "f", hair: "lang", top: "langarm", unten: "hose", schuhe: "sneaker" }, -5.4, -6, Math.PI], [802, { kind: "m", hair: "kurz", bart: "dreitage", top: "hoodie", unten: "hose" }, -6.2, -11, 0.3],
-         [803, { kind: "m", hair: "seitenscheitel", top: "hemd", unten: "hose", schuhe: "halbschuh" }, 5.4, -8, Math.PI], [804, { kind: "f", hair: "bob", top: "pulli", unten: "rock", schuhe: "stiefel" }, 5.9, -14, 0]]
-          .forEach(([sd, o, x, z, ry]) => { const p = person(sd, o); p.position.set(x, 0.14, z); p.rotation.y = ry; s.add(p); ppl.push(p); });
-        // Tiere auf dem Gehweg
-        const tiere = []; ["labrador", "schaeferhund", "dackel", "mops", "husky", "pudel", "beagle"].forEach((ra, k) => { const h = hund(10 + k, { rasse: ra, hecheln: k % 2 === 0 }); h.position.set(-6.4 + (k % 2) * 1.0, 0.14, -4.5 - k * 0.9); h.rotation.y = 0.9 + (k % 3) * 0.3; s.add(h); tiere.push(h); });
-        const katzen = [0, 1, 2].map((k) => { const c = katze(20 + k, { fell: ["rot", "getigert", "schwarz"][k] }); c.position.set(-4.6 - k * 0.5, 0.14, -9.3 - k * 0.6); c.rotation.y = 1.4; s.add(c); return c; });
-        if (katzen[2]) tierSitzen(katzen[2]);
-        const tauben = []; for (let k = 0; k < 6; k++) { const t = taube(30 + k); t.position.set(-4.4 + (k % 3) * 0.35, 0.14, -6.2 - Math.floor(k / 3) * 0.4 - k * 0.12); t.rotation.y = k * 1.1; s.add(t); tauben.push(t); }
-        // Schuh-Nahaufnahme: zwei stehende Figuren
-        const f1 = person(860, { kind: "m", top: "tshirt", unten: "hose", schuhe: "sneaker", farbeUnten: 0x3a5a8a }), f2 = person(861, { kind: "f", top: "pulli", unten: "hose", schuhe: "halbschuh", farbeUnten: 0x2a2a2c });
-        f1.position.set(5.2, 0.14, -2.6); f1.rotation.y = -0.5; f2.position.set(6.0, 0.14, -3.2); f2.rotation.y = -0.9; s.add(f1, f2);
-        const c1 = cam(), c2 = cam(), c3 = cam(), c4 = cam();
-        function upd(T) { him.update(T); st.update(T); ppl.forEach((p, k) => { if (k % 2 === 0) walk(p, T + k, 0.8); else idle(p, T + k); }); idle(f1, T); idle(f2, T + 1);
-          tiere.forEach((h, k) => (k === 2 ? tierLaufen(h, T, 1.4) : tierIdle(h, T + k))); katzen.forEach((c, k) => k < 2 && tierIdle(c, T + k)); tauben.forEach((t, k) => taubePicken(t, T + k * 0.7)); }
-        W.stadt = { scene: s, camera: c1, update(t, T) { c1.position.set(2.6, 1.7, 9); c1.lookAt(-1.5, 9, -45); upd(T); } };
-        W.fassade = { scene: s, camera: c2, update(t, T) { c2.position.set(2.5, 1.6, -6); c2.lookAt(-14, 22, -22); upd(T); } };
-        W.tiere = { scene: s, camera: c3, update(t, T) { c3.position.set(-2.6, 0.75, -3.4); c3.lookAt(-5.4, 0.3, -7.6); upd(T); } };
-        W.schuhe = { scene: s, camera: c4, update(t, T) { c4.position.set(4.3, 0.45, -1.0); c4.lookAt(5.5, 0.25, -2.9); upd(T); } };
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "tag", wolken: 0.4, sonne: [0.3, 0.5, 0.8] });
+        s.add(new THREE.HemisphereLight(0xeef4ff, 0x6a6458, 0.35)); const d = sun(s, 0xfff2e0, 2.0, [8, 14, 18], 6); umgebung(s, him);
+        box(40, 0.1, 40, M(0x8a8a86, { roughness: 0.9, map: texPflaster() }), 0, -0.05, 0, s); box(40, 6, 0.3, M(0xb8b0a4, { roughness: 0.9 }), 0, 3, -3, s);
+        const defs = [["europaeisch", "m", { bart: "dreitage", unrein: true }], ["afrikanisch", "f", { schmuck: true }], ["asiatisch", "m", {}], ["arabisch", "f", { kopftuch: true }], ["suedasiatisch", "m", { bart: "vollbart" }], ["lateinamerikanisch", "f", { sommersprossen: false }], ["europaeisch", "f", { sommersprossen: true, alter: "alt" }], ["arabisch", "m", { stil: "traditionell" }]];
+        const L = defs.map(([h, k, o], i) => { const p = person(1000 + i * 3, Object.assign({ herkunft: h, kind: k, alter: "mittel", jacke: false }, o)); p.position.set((i % 4) * 0.42 - 0.63, 0, Math.floor(i / 4) * -2.2); p.rotation.y = 0; s.add(p); return p; });
+        [0, 1].forEach((j) => { const c = cam(); c.fov = 34; c.updateProjectionMatrix(); W["gesicht" + (j + 1)] = { scene: s, camera: c, update(t, T) { const z = j * -2.2; c.position.set(0, 1.66, z + 1.75); c.lookAt(0, 1.6, z); him.update(T); L.forEach((p, k) => idle(p, T + k)); } }; });
       })();
-      // ===== Nacht, Regen, Feuer =====
+      // ===== Autos: alle Bauformen auf dem Parkplatz =====
       (function () {
-        const s = new THREE.Scene();
-        const mond = [0.35, 0.55, -0.75]; const him = himmelShader(s, { zeit: "nacht", wolken: 0.25, sonne: mond, stadtLicht: 0.6 }); s.fog = new THREE.Fog(0x0a0f1a, 40, 260);
-        s.add(new THREE.HemisphereLight(0x2a3a5a, 0x0a0a0e, 0.18)); const d = sun(s, 0x8aa0d0, 0.25, [25, 40, -50], 40);
-        umgebung(s, him);
-        const st = stadt(s, true);
-        s.traverse((m) => { if (m.isMesh && m.geometry.type === "BoxGeometry" && m.position.y < 0.1 && m.position.y > -0.1 && m.geometry.parameters.height <= 0.16) nass(m.material, 0.85); });
-        [[-1.5, -6], [2.2, -11], [-2.4, -17], [1.0, -28], [-0.5, -40]].forEach(([x, z], k) => pfuetze(s, x, z, 0.9 + (k % 2) * 0.6));
-        const ppl = [];
-        const a1 = person(901, { kind: "f", hair: "lang", top: "langarm", jacke: true, unten: "hose" }); a1.position.set(-5.4, 0.14, -5); a1.rotation.y = Math.PI; regenschirm(a1, 0xc8302a); s.add(a1); ppl.push(a1);
-        const a2 = person(902, { kind: "m", hair: "kurz", top: "hoodie", jacke: true }); a2.position.set(5.6, 0.14, -12); a2.rotation.y = Math.PI; regenschirm(a2, 0x1e2a44); s.add(a2); ppl.push(a2);
-        const hd = hund(77, { rasse: "labrador" }); hd.position.set(-4.8, 0.14, -5.6); hd.rotation.y = Math.PI; s.add(hd);
-        const rain = regen(s, -9, 9, -34, 8, 14, 5000, 99); const spr = regenSpritzer(s, -6, 6, -30, 6, 220, 4, 0.03);
-        // Brennendes Autowrack + Mülltonne
-        const wrack = auto(90, "kleinwagen", 0x1a1a1a); wrack.position.set(-1.8, 0, -52); wrack.rotation.y = 0.4; s.add(wrack);
-        const f1 = feuer(s, -1.8, 1.1, -52, { breite: 3.2, hoehe: 3.4, seed: 2, licht: 6, glut: 120 }); const f2 = feuer(s, 3.8, 0.75, -49, { breite: 0.8, hoehe: 1.4, seed: 5, licht: 2, rauch: false });
-        muelleimer(s, 3.8, -49);
-        const zus = []; [[1.5, -46.5, -2.6], [2.5, -46, -2.9], [-4.8, -45.5, 2.6]].forEach(([x, z, ry], k) => { const p = person(950 + k, { jacke: true }); p.position.set(x, 0.14, z); p.rotation.y = ry; s.add(p); zus.push(p); });
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "abend", wolken: 0.35, sonne: [-0.7, 0.18, -0.4] });
+        s.add(new THREE.HemisphereLight(0xffe8d0, 0x4a4038, 0.35)); const d = sun(s, 0xffc890, 2.4, [-30, 9, -18], 20); d.shadow.mapSize.set(4096, 4096); umgebung(s, him);
+        const t = texAsphalt().clone(); t.needsUpdate = true; t.repeat.set(6, 6); box(80, 0.1, 80, M(0xffffff, { map: t, roughness: 0.85 }), 0, -0.05, 0, s);
+        const typen = Object.keys(KAROSSEN), felgen = ["speichen5", "vielspeichen", "doppelspeichen", "stahl", "turbine", "offroad"], cars = [];
+        typen.forEach((ty, i) => { const c = fahrzeug(20 + i, ty, { felge: ty === "gelaende" ? "offroad" : felgen[i % 5] }); const row = i % 2, col = Math.floor(i / 2); c.position.set(-6 + col * 2.6, 0, row ? -4 : 2.5); c.rotation.y = row ? 0 : Math.PI; if (ty === "stretch") { c.position.set(4, 0, -9.5); c.rotation.y = Math.PI / 2; } s.add(c); cars.push(c);
+          box(0.1, 0.01, 5, M(0xf2f2f0, PO), c.position.x + 1.3, 0.003, c.position.z, s); });
+        const abg = abgas(cars[0], 3, { staerke: 0.4 });
+        const c = cam(); W.autos = { scene: s, camera: c, update(tt, T) { c.position.set(9, 4.2, 10); c.lookAt(-1, 0.6, -1); him.update(T); cars.forEach((k, i) => fahren(k, T + i, 0)); abg.update(T); } };
+      })();
+      // ===== Stadt: Ampeln, Schilder, Müll, Schäden, Leute aller Herkunft, fahrende Autos mit Abgas, Morgennebel =====
+      (function () {
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "dunst", wolken: 0.6, sonne: [0.5, 0.25, -0.6] }); nebel(s, 0xc4c8cc, 0.008);
+        s.add(new THREE.HemisphereLight(0xdde4ea, 0x5a5650, 0.5)); const d = sun(s, 0xfff0d8, 1.6, [20, 12, -26], 30); umgebung(s, him);
+        box(400, 0.1, 400, M(0x3a3c3e, { roughness: 0.95 }), 0, -0.12, -100, s); strasse(s, 120, { zebraZ: -14 }); strassenSchaeden(s, 110, 4);
+        let z = 6, i = 0; while (z > -110) { const w = 10 + (i % 3) * 2; const h = altbau(800 + i, w, 5, {}); h.rotation.y = Math.PI / 2; h.position.set(-7.5, 0, z - w / 2); s.add(h); z -= w; i++; }
+        z = 6; i = 0; while (z > -110) { const w = 16; const h = hochhaus(900 + i, { typ: ["platte", "beton", "ziegel"][i % 3], w, d: 12, etagen: 7 + (i % 3) * 2 }); h.rotation.y = -Math.PI / 2; h.position.set(7.6 + 6, 0, z - w / 2); s.add(h); z -= w + 1; i++; }
+        const amps = [ampel(s, -3.9, -12.2, 0, { phase: 0 }), ampel(s, 3.9, -15.8, Math.PI, { phase: 7 })];
+        verkehrsschild(s, -4.1, -3, "stop", 0, { schief: 1 }); verkehrsschild(s, 4.1, -22, "vorfahrt", Math.PI); verkehrsschild(s, -4.1, -26, "tempo30", 0, { schief: -1 }); verkehrsschild(s, 4.1, -32, "parkverbot", Math.PI); verkehrsschild(s, -4.1, -40, "einbahn", 0); verkehrsschild(s, 4.1, -8, "fussgaenger", Math.PI); verkehrsschild(s, -4.1, -48, "baustelle", 0);
+        [[-5.6, -6, 1], [5.4, -10, 0.3], [-5.8, -19, 0.95], [5.5, -27, 0.6], [-5.5, -33, 0.1]].forEach(([x, z2, f], k) => muelltonne(s, x, z2, { fuell: f, seed: k + 3 }));
+        muell(s, -5.4, -9, 3, 40, 7); muell(s, 5.2, -18, 3, 30, 8); muell(s, 0, -10, 6, 25, 9, 0.002);
+        for (let k = 0; k < 4; k++) schief(laterne(s, -4.0, -6 - k * 20, -1, false), k, 1.2);
+        const HK = ["europaeisch", "afrikanisch", "asiatisch", "arabisch", "suedasiatisch", "lateinamerikanisch", "europaeisch", "europaeisch"];
+        const ppl = HK.map((h, k) => { const p = person(1200 + k, { herkunft: h, stil: k === 2 ? "business" : k === 5 ? "sport" : "alltag", alter: k === 7 ? "alt" : undefined }); p.position.set(k % 2 ? 5.4 : -5.4, 0.14, -4 - k * 2.5); p.rotation.y = k % 2 ? 0 : Math.PI; s.add(p); return p; });
+        const cars = [["kombi", -1.75, 0], ["suv", 1.75, Math.PI], ["steilheck", -1.75, 0], ["minivan", 1.75, Math.PI]].map(([ty, x, ry], k) => { const c = autoPlus(fahrzeug(60 + k, ty), { licht: true, spot: false, seed: k }); c.position.set(x, 0, -8 - k * 12); c.rotation.y = ry; s.add(c); return { c, abg: abgas(c, k + 1, { staerke: 0.45 }) }; });
+        const nb = nebelSchwaden(s, { x: 0, z: -60, breite: 30, tiefe: 80, y: 0.5, hoehe: 3, dichte: 0.18, groesse: 10 });
+        const c = cam(); W.stadt = { scene: s, camera: c, update(t, T) { c.position.set(4.4, 1.65, 3); c.lookAt(-0.5, 2.0, -30); him.update(T); amps.forEach((a) => a.update(T));
+          ppl.forEach((p, k) => { const v = 1.2, base = -4 - k * 2.5; p.position.z = k % 2 ? base + ((T * v) % 6) : base - ((T * v) % 6); walk(p, T + k * 0.37, 1); });
+          cars.forEach(({ c: car, abg }, k) => { const strecke = T * 6, zz = -6 - ((k * 12 + strecke) % 70); car.position.z = k % 2 ? -76 - zz - 6 : zz; fahren(car, T, strecke); abg.update(T); }); nb.update(T); } };
+      })();
+      // ===== Berge, Nebel, Weide mit Tieren =====
+      (function () {
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "tag", wolken: 0.5, sonne: [0.4, 0.45, -0.7] }); s.fog = new THREE.Fog(0xb8c8d8, 120, 1600);
+        s.add(new THREE.HemisphereLight(0xe0ecff, 0x5a6a3a, 0.45)); const d = sun(s, 0xfff2da, 2.2, [40, 50, -60], 40); umgebung(s, him);
+        const ber = berge(s, { z: -520, breite: 1500, tiefe: 600, hoehe: 260, seed: 5, baeume: 2500 }); bergkette(s, { z: -700, abstand: 300, schritt: 300, hoehe: 160, lagen: 3, seed: 3 });
+        const ter = gelaende(s, 160, 160, 3, { z: -60, amp: 0.6 }); grasAufGelaende(s, ter, -20, -30, 40, 30, 20000, 2, { h: 0.2 });
+        const bn = bodenNebel(s, { x: 0, z: -260, breite: 900, tiefe: 400, y: 8, hoehe: 30, dichte: 0.4, schichten: 5 });
+        const tiere = [["kuh", -4, -22], ["kuh", 2, -26], ["pferd", 6, -20], ["reh", -9, -30], ["fuchs", 0, -16]].map(([a, x, z2], k) => { const t = saeugetier(70 + k, a, {}); t.position.set(x, ter.h(x, z2), z2); t.rotation.y = 0.6 + k; s.add(t); return t; });
+        const adler = vogel(3, "adler", { bewegung: "gleiten" }); adler.position.set(-3, 14, -40); s.add(adler);
+        const c = camFar(4000); W.berge = { scene: s, camera: c, update(t, T) { c.position.set(0, 2.2, -4); c.lookAt(0, 18, -300); him.update(T); bn.update(T); tiere.forEach((k) => k.userData.anim(T)); adler.userData.anim(T); adler.position.x = -3 + Math.sin(T * 0.3) * 8; adler.rotation.z = Math.cos(T * 0.3) * 0.3; } };
+      })();
+      // ===== Flugzeuge: zivil und militärisch auf dem Vorfeld =====
+      (function () {
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "tag", wolken: 0.35, sonne: [0.5, 0.5, 0.6] }); s.fog = new THREE.Fog(0xb8c8dc, 200, 2400);
+        s.add(new THREE.HemisphereLight(0xe8f0ff, 0x6a6a64, 0.45)); const d = sun(s, 0xfff2e0, 2.4, [80, 90, 70], 90); d.shadow.camera.far = 400; d.shadow.mapSize.set(4096, 4096); umgebung(s, him);
+        box(2000, 0.1, 2000, M(0x9a9a96, { roughness: 0.9, map: texNoise("beton", "#a4a4a0", "#9a9a96", "#b0b0ac", 4000, 3) }), 0, -0.05, 0, s);
+        const zivil = [["a350", 0, 0], ["a320", -55, 15], ["atr72", 48, 20], ["bizjet", 30, 55], ["cessna", 10, 62], ["segler", -12, 64], ["ul", -24, 60], ["b747f", -110, -20]];
+        const mil = [["eurofighter", 400, 40], ["f35", 425, 40], ["b2", 412, -10], ["a400m", 370, -40], ["awacs", 455, -40], ["x15", 412, 60]];
+        const flz = [...zivil, ...mil].map(([ty, x, z], k) => { const f = flugzeug(ty, { seed: k, fahrwerk: true, nachbrenner: ty === "eurofighter" }); const F = FLUG[ty]; f.position.set(x, F.nurfluegel ? 0.6 : F.R * 1.35 + Math.max(0.2, F.R * 0.3) + 0.05, z); f.rotation.y = Math.PI * 0.85; s.add(f); return f; });
+        const himmelsJet = flugzeug("a350", { seed: 9, kondens: true, kondensLaenge: 500 }); himmelsJet.position.set(-100, 260, -600); himmelsJet.rotation.y = Math.PI / 2; s.add(himmelsJet);
+        const c1 = camFar(4000), c2 = camFar(4000);
+        function upd(T) { him.update(T); flz.forEach((f) => flugzeugUpdate(f, T)); himmelsJet.position.x = -100 + T * 40; }
+        W.zivil = { scene: s, camera: c1, update(t, T) { c1.position.set(30, 7, 120); c1.lookAt(-10, 10, 0); upd(T); } };
+        W.militaer = { scene: s, camera: c2, update(t, T) { c2.position.set(440, 6, 110); c2.lookAt(410, 4, 0); upd(T); } };
+      })();
+      // ===== Tiere: alle Klassen =====
+      (function () {
+        const s = new THREE.Scene(); const him = himmelShader(s, { zeit: "tag", wolken: 0.4, sonne: [0.3, 0.6, 0.7] });
+        s.add(new THREE.HemisphereLight(0xeef6ff, 0x5a6a3a, 0.45)); const d = sun(s, 0xfff2da, 2.2, [10, 20, 14], 12); umgebung(s, him);
+        const ter = gelaende(s, 60, 60, 8, { amp: 0.1, kiesFlecken: true }); grasAufGelaende(s, ter, -8, -8, 16, 12, 9000, 4, { h: 0.12 });
+        const A = []; const setz = (t, x, z, ry = 0.4) => { t.position.set(x, ter.h(x, z) + (t.userData.schwebt ?? 0), z); t.rotation.y = ry; s.add(t); A.push(t); return t; };
+        // Reihe 1: Vögel + Säuger
+        setz(vogel(1, "spatz", { groesse: 2 }), -1.4, -1.5); setz(vogel(2, "rabe"), -0.9, -1.6); setz(vogel(3, "moewe"), -0.3, -1.7); setz(vogel(4, "ente"), 0.3, -1.6); setz(vogel(5, "pinguin"), 0.95, -1.7); setz(vogel(6, "adler"), 1.7, -1.9, -0.3);
+        setz(hund(7, { rasse: "beagle" }), -1.8, -3.2); setz(katze(8, { fell: "getigert" }), -0.9, -3.1); setz(saeugetier(9, "fuchs"), 0.2, -3.3); setz(saeugetier(10, "baer", {}), 2.2, -4.5, -0.5);
+        const ele = setz(saeugetier(11, "elefant"), -3.5, -9, 0.7);
+        // Kleintiere vergrößert (Test), Reptilien, Amphibien, Wirbellose
+        const kl = [[reptil(1, "eidechse"), -1.2, 0.2, 3], [reptil(2, "schlange"), -0.4, 0.4, 1.4], [reptil(3, "schildkroete"), 0.4, 0.2, 2], [amphibie(4, "frosch"), 1.1, 0.4, 3], [amphibie(5, "molch"), 1.6, 0.1, 3],
+          [insekt(6, "kaefer"), -1.4, 1.1, 8], [insekt(7, "ameise"), -0.9, 1.15, 14], [insekt(8, "biene"), -0.4, 1.1, 10], [insekt(9, "libelle"), 0.2, 1.1, 2.5], [spinnentier(10, "spinne"), 0.8, 1.1, 6], [spinnentier(11, "skorpion"), 1.4, 1.1, 3], [weichtier(12, "schnecke"), 1.9, 1.15, 3]];
+        kl.forEach(([t, x, z, gr]) => { t.scale.setScalar(gr); setz(t, x, z, 0.2); });
+        setz(reptil(13, "krokodil"), 3.5, -1.5, -1.2);
+        const w2 = new THREE.Scene(); w2.background = new THREE.Color(0x0e3a5a); w2.fog = new THREE.FogExp2(0x0e4a6a, 0.09); w2.add(new THREE.HemisphereLight(0x8ad0ff, 0x2a3a2a, 0.9)); const dw = sun(w2, 0xc8f0ff, 1.4, [3, 12, 4], 8);
+        box(60, 0.1, 60, M(0xd8c8a0, { roughness: 1, map: texNoise("sand", "#d8c8a0", "#c8b890", "#e8dcc0", 5000, 2) }), 0, -0.05, 0, w2); for (let i = 0; i < 30; i++) { const st = new THREE.Mesh(new THREE.DodecahedronGeometry(0.1 + (i % 4) * 0.08, 0), M(0x6a6a5a)); st.position.set(-3 + (i * 37 % 60) / 10, 0.05, -2 + (i * 53 % 40) / 10); w2.add(st); }
+        for (let i = 0; i < 12; i++) { const sg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.03, 0.8 + (i % 3) * 0.4, 6), M(0x3a7a3a, { roughness: 0.6 })); sg.position.set(-2.5 + i * 0.45, 0.4, -1.5 + (i % 3) * 0.3); sg.rotation.z = Math.sin(i) * 0.2; w2.add(sg); }
+        const WA = []; [[fisch(1, "forelle", { groesse: 2 }), -0.9, 0.9, 0.6], [fisch(2, "goldfisch", { groesse: 3 }), 0.6, 1.3, 0.8], [fisch(3, "thunfisch", { groesse: 0.6 }), 0.2, 2.1, -1.0], [fisch(4, "hai", { groesse: 0.6 }), -0.8, 2.8, -2.4], [weichtier(5, "tintenfisch"), 0.9, 0.05, 0.2], [qualle(6), -0.5, 1.6, 1.0], [qualle(7, { farbe: 0xe8a0c0 }), 1.0, 2.2, -0.2]].forEach(([t, x, y, z]) => { t.position.set(x, y, z); t.rotation.y = 1.2; w2.add(t); WA.push(t); });
+        const wal1 = saeugetier(8, "wal"); wal1.position.set(-6, 6, -16); wal1.rotation.y = 1.4; w2.add(wal1); WA.push(wal1);
+        const c3 = cam(); W.wasser = { scene: w2, camera: c3, update(t, T) { c3.position.set(0.3, 1.2, 4.2); c3.lookAt(0, 1.4, 0); WA.forEach((a) => a.userData.anim(T)); } };
         const c1 = cam(), c2 = cam();
-        function upd(T) { him.update(T); st.update(T); ppl.forEach((p, k) => walk(p, T + k, 0.7)); tierLaufen(hd, T, 1.1); zus.forEach((p, k) => idle(p, T + k)); rain.update(T); spr.update(T); f1.update(T, W.cur); f2.update(T, W.cur); }
-        W.nacht = { scene: s, camera: c1, update(t, T) { c1.position.set(-3.8, 1.6, 6); c1.lookAt(-0.5, 5, -45); W.cur = c1; upd(T); } };
-        W.feuer = { scene: s, camera: c2, update(t, T) { c2.position.set(4.5, 1.7, -38); c2.lookAt(-0.5, 1.6, -52); W.cur = c2; upd(T); } };
+        function upd(T) { him.update(T); A.forEach((t) => t.userData.anim ? t.userData.anim(T) : tierIdle(t, T)); }
+        W.tiere1 = { scene: s, camera: c1, update(t, T) { c1.position.set(0.3, 1.5, 3.2); c1.lookAt(0, 0.4, -3); upd(T); } };
+        W.tiere2 = { scene: s, camera: c2, update(t, T) { c2.position.set(0.3, 1.3, 4.6); c2.lookAt(0.2, 0.35, 0.9); upd(T); } };
       })();
+      // ===== Wohnzimmer am Abend =====
+      (function () {
+        const s = new THREE.Scene(); s.background = new THREE.Color(0x101418); s.add(new THREE.HemisphereLight(0x8aa0c0, 0x2a2420, 0.25)); const d = sun(s, 0x8ab0e8, 0.6, [20, 8, 4], 6);
+        const z = zimmer(s, 5, { art: "wohnzimmer", licht: true, tv: true });
+        const p = person(1500, { kind: "f", herkunft: "asiatisch" }); p.position.set(-0.6, -0.2, -1.5); s.add(p); p.userData.hipL.rotation.x = -1.4; p.userData.hipR.rotation.x = -1.4; p.userData.kneeL.rotation.x = 1.4; p.userData.kneeR.rotation.x = 1.4;
+        const kat = katze(3, { fell: "rot" }); kat.position.set(0.2, 0.52, -1.9); tierSitzen(kat); s.add(kat);
+        const c = cam(); W.zimmer = { scene: s, camera: c, update(t, T) { c.position.set(1.9, 1.5, 0.9); c.lookAt(-0.5, 0.8, -1.5); idle(p, T); const u = p.userData; u.hipL.rotation.x = u.hipR.rotation.x = -1.45; u.kneeL.rotation.x = u.kneeR.rotation.x = 1.5; } };
+      })();
+
       function renderAt(T) { let sh = SHOTS[SHOTS.length - 1]; for (const x of SHOTS) if (T >= x.t0 && T < x.t1) { sh = x; break; } const w = W[sh.id]; w.update(T - sh.t0, T); POST.render(w.scene, w.camera); }
       const clock = { t: 0 }; const tl = gsap.timeline({ paused: true });
       tl.fromTo(clock, { t: 0 }, { t: DUR, duration: DUR, ease: "none", onUpdate: () => renderAt(clock.t) }, 0);
