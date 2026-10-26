@@ -8,7 +8,7 @@ T = "/home/user/kambax-tiktok/.claude/skills/doku-3d-video/templates/"
 rd = lambda p: open(p).read()
 base = rd(B + "base-helpers.js"); a = base.index("      // Gliederpuppen-Figur"); b = base.index("      function sun("); base = base[:a] + base[b:]
 libs = [B + "fx-helpers.js", T + "figuren.js", T + "bausteine.js", T + "render.js", T + "materialien.js", T + "fassaden.js", T + "effekte.js", T + "tiere.js",
-        T + "fahrzeuge.js", T + "stadt2.js", T + "natur2.js", T + "flugzeuge.js", T + "tiere2.js", T + "gebaeude.js", T + "natur3.js", T + "leben.js", T + "innen2.js", T + "typo.js", T + "kamera.js", T + "effekte2.js"]
+        T + "fahrzeuge.js", T + "stadt2.js", T + "natur2.js", T + "flugzeuge.js", T + "tiere2.js", T + "gebaeude.js", T + "natur3.js", T + "leben.js", T + "innen2.js", T + "typo.js", T + "kamera.js", T + "effekte2.js", T + "stadt3.js"]
 lib = base + "\n" + "\n".join(rd(p) for p in libs)
 head = rd("/home/user/kambax-tiktok/projekte/asteroid/compositions/welt.html").split("      // ---------- Zeitplan")[0]
 tail = '''

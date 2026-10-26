@@ -66,6 +66,44 @@ const KLAR = { uSSAA: 1, uBloom: 0.35, uHalation: 0.03, uChroma: 0, uKorn: 0, uV
   - `alu_eloxiert`: diagonale Bürstrillen mit gestrecktem Glanz. Echte Anisotropie gibt es erst ab Three r153, hier entsteht der Effekt über die Rillen-Rauheit. Für Cockpit, Konsolen, Geräte.
 - **Eigene Strukturen:** Neue Materialien mit `matMitLayout()` bauen. Der Farb-Maler legt die Merkmale einmal fest (Risse, Flecken, Niete), und die Maler in `def[6] = { hoehe, rau, metall }` zeichnen genau dieselben Stellen. Sonst passen Glanz und Farbe nicht zusammen. Graustufen: hell = hoch, rau, metallisch. Dazu in `def[4]` `aufl: 512` für feine Details.
 
+**4. Checkliste für jedes neue Projekt (Lehren aus Hudson, gilt ab sofort)**
+
+*Vorbereitung*
+- **Effekte abfragen:** Zusammen mit dem Skript kurz nach Wünschen fragen. Danach selbstständig arbeiten, ohne Rückfragen zu jeder Kleinigkeit, denn der User achtet auf seinen Verbrauch.
+- **Bausteine aus `stadt3.js`** (lädt `bauen.py` automatisch):
+  - `stadt()` für instanzierte Großstädte. Die Dächer sind einfarbig gegen Moiré-Flimmern im Überflug.
+  - `haengebruecke()`, `faehre()`, `stufenTurm()`.
+  - `kabine(jet)` mit echten Fensterausschnitten.
+  - `sitzend()` für Sitzen und Brace-Haltung.
+  - `gelaendeDetail()` für feines Bodendetail auf Kilometerflächen.
+  - Vorlage für die ganze Szene: `scripts/builder/szenen-hudson.js`.
+
+*Bewegung und Figuren*
+- **Fahrzeuge und Flugzeuge immer nase voraus:** Kurs = `Math.atan2(vx, vz)` aus der echten Bewegung berechnen, nie einen festen Winkel schätzen. Im Hudson-Video ist das Flugzeug sonst rückwärts geflogen.
+- **Figuren auf Oberflächen:** Per Raycast auf die Meshes setzen, nur auf `isMesh`, denn Sprites brauchen eine Kamera. Sonst schweben sie.
+- **Schwimmen und Treiben:** nur sehr leicht, unter 3 cm Wippen und unter 0,3° Rollen. Aufsetzen als sanfte Kurve, kein Hüpfen.
+
+*Licht und Materialien*
+- **Schatten:** `bias` und `normalBias` setzen. Die Schattenkamera mit dem Motiv mitführen, sonst flackert Schattenakne.
+- **Nasse Flächen bei flachem Blick:** Bei `spiegelflaeche` mit Pfützenmaske spiegelt sich ein zu dunkler Himmel, die Fläche wird zum marineblauen Band. Für Startbahnen und weite Straßen deshalb `material(..., { nass })` mit Umgebungsreflexion nehmen. Echte Spiegel nur für Wasser, Pfützen in Nahaufnahme und Kopfstein.
+- **Große Flächen:** Makrotextur plus `gelaendeDetail`, nie eine einheitlich graue Fläche. Wellige Geometrie und Schneewälle unregelmäßig formen.
+
+*Kamera und Schärfe*
+- **Schärfe:**
+  - Skala 1, keine Bewegungsunschärfe.
+  - Tiefenschärfe nur dezent.
+  - Hitzeflimmern wird pro Bild zurückgesetzt (`bauen.py`).
+  - Kamera nah oder mit Tele (fov 30–35), damit Hauptobjekte groß und scharf sind.
+
+*Prüfen und Rendern*
+- **Wow-Effekt:** Vor dem Render alle Shots mit dem Probe-Werkzeug in einem einzigen Durchgang prüfen und gesammelt verbessern, nicht in vielen kleinen Runden.
+- **Prüfbilder zeigen:** Dem User Bilder schicken und erst nach seinem OK rendern.
+- **Rendern:** `HF_SEGMENTED_CAPTURE=true HF_SEGMENT_FRAMES=300 … --resume`. Nach 2 Stunden mit demselben Befehl fortsetzen.
+- **Nach dem Render:**
+  - Flackern messen (`signalstats` YDIF, Einzelspitzen außerhalb der Schnitte suchen).
+  - TikTok-Export in zwei Durchgängen mit 12 Mbit/s und `loudnorm` auf −15 LUFS.
+  - Die Datei mit `display: "attach"` schicken, damit sie herunterladbar ist.
+
 ## Gestaltung
 
 **3D-Welt (Three.js r149, `assets/vendor/three.min.js`, im Szenen-`<template>` laden):**
