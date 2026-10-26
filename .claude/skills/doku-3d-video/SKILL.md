@@ -127,6 +127,22 @@ Werkzeuge (in `effekte2.js` und `render.js`):
 - `randLicht()` war fehlerhaft (die Blickrichtung war vertauscht, dadurch leuchtete die ganze Figur). Das ist behoben, die Kanten leuchten jetzt nur noch an der Silhouette.
 - Die Looks `bernstein`, `nachtblau` und `tagDoku` stehen als `look` pro Shot zur Verfügung.
 
+**Echte Menschen und Gelände v2 (Detail-Übernahme aus Lengede, Standard für realistische Figuren und Außenszenen)**
+- `menschen3d.js`: geriggte glTF-Menschen mit Skelett-Animation statt Gliederpuppen. `bauen.py` lädt den Loader (`vendor-gltf-loader.js`, enthält GLTFLoader, DRACOLoader und SkeletonUtils) und kopiert `templates/modelle/*.glb` nach `assets/modelle/`. Der Render wartet über `window.__hf.buildReady` auf die Modelle, und `probe.cjs` wartet ebenfalls darauf.
+  - `mensch3d(s, { typ: "mann"|"frau"|"arbeiter", x, y, z, ry, anim, tempo, phase, farben: { oben, unten, schuhe, kopf, ton }, bart, muetze, rand })` → `{ g, update(T), setAnim }`. Pro Frame `update(T)` aufrufen. Die Animation ist deterministisch über `mixer.setTime`. Die Position (`g.position`, Höhe per `ter.h(x, z)`) setzt die Szene selbst.
+  - `menge3d(s, n, { x, z, breite, tiefe, ziel: [x, z], anim, typ, rand })`: Gruppe mit Blick zum Ziel, gemischt aus 60 % Mann, 25 % Frau, 15 % Arbeiter.
+  - Bewegungen: `idle`, `walk`, `run`, `agree`, `headShake`, `sad_pose`, `sneak_pose` aus Xbot. Sie werden auf jedes Rig umgerechnet: Ruhepose in T-Pose drehen, dann `q = P⁻¹·q_quelle·P·R`. Nur Namen ersetzen reicht nicht, die Figuren verdrehen sich sonst. Der Arbeiter nutzt seine eigenen Clips (`eigen_*` haben Vorrang).
+  - Qualität: `mann` (ReadyPlayerMe) ist realistisch, mit einzeln färbbarem Oberteil, Hose, Schuhen, Mütze und Bart. `frau` (Michelle) ist stilisiert, daher eher Mittel- und Hintergrund. `arbeiter` (Soldier) wird entsättigt und getönt, wirkt aber wie eine Schutzausrüstung, daher eher entfernt oder im Halbdunkel. Wie in der Referenz die Figuren meist von hinten zeigen, mit `rand` 0.4–0.6.
+  - Bessere Modelle (z. B. Mixamo- oder ReadyPlayerMe-Avatare als .glb) kann der User liefern. Datei nach `templates/modelle/` legen und `MENSCH_URL` erweitern. Mixamo-Rigs funktionieren ohne Anpassung.
+  - Nicht verwendbar: `kira.glb` aus den three-Beispielen (nur Teilskelett).
+- `gelaende2.js`, Gelände wie in der Referenz:
+  - `feld()`: unebenes Gelände mit Matsch und Fahrspuren, nasse Stellen glänzen, Detail-Shader. Detailtexturen in einem `onBeforeCompile` immer mit `LinearEncoding`, sonst wird der Boden schwarz.
+  - `halme()`: 30–40 Tsd. gebogene Halme, Wind, dunkler Ansatz, Normalen nach oben gegen dunkle Rückseiten.
+  - `unkraut()`: hohe Stauden im Vordergrund.
+  - `kahlerBaum()`: knorrig, ohne Laub.
+  - `zaun()`: schiefe Pfosten mit durchhängendem Seil.
+- Testszene: `projekte/_menschtest/szenen.js` (bedecktes Feld, Menge, drei laufende Typen, Look `tagDoku`).
+
 ## Gestaltung
 
 **3D-Welt (Three.js r149, `assets/vendor/three.min.js`, im Szenen-`<template>` laden):**

@@ -7,8 +7,8 @@ B = "/home/user/kambax-tiktok/.claude/skills/doku-3d-video/scripts/builder/"
 T = "/home/user/kambax-tiktok/.claude/skills/doku-3d-video/templates/"
 rd = lambda p: open(p).read()
 base = rd(B + "base-helpers.js"); a = base.index("      // Gliederpuppen-Figur"); b = base.index("      function sun("); base = base[:a] + base[b:]
-libs = [B + "fx-helpers.js", T + "figuren.js", T + "bausteine.js", T + "render.js", T + "materialien.js", T + "fassaden.js", T + "effekte.js", T + "tiere.js",
-        T + "fahrzeuge.js", T + "stadt2.js", T + "natur2.js", T + "flugzeuge.js", T + "tiere2.js", T + "gebaeude.js", T + "natur3.js", T + "leben.js", T + "innen2.js", T + "typo.js", T + "kamera.js", T + "effekte2.js", T + "stadt3.js"]
+libs = [T + "vendor-gltf-loader.js", B + "fx-helpers.js", T + "figuren.js", T + "bausteine.js", T + "render.js", T + "materialien.js", T + "fassaden.js", T + "effekte.js", T + "tiere.js",
+        T + "fahrzeuge.js", T + "stadt2.js", T + "natur2.js", T + "flugzeuge.js", T + "tiere2.js", T + "gebaeude.js", T + "natur3.js", T + "leben.js", T + "innen2.js", T + "typo.js", T + "kamera.js", T + "effekte2.js", T + "stadt3.js", T + "menschen3d.js", T + "gelaende2.js"]
 lib = base + "\n" + "\n".join(rd(p) for p in libs)
 head = rd("/home/user/kambax-tiktok/projekte/asteroid/compositions/welt.html").split("      // ---------- Zeitplan")[0]
 tail = '''
@@ -21,10 +21,14 @@ tail = '''
         wind(T); w.update(T - sh.t0, T); w.camera.updateMatrixWorld(); POST.render(w.scene, w.camera, T, vorher); }
       const clock = { t: 0 }; const tl = gsap.timeline({ paused: true });
       tl.fromTo(clock, { t: 0 }, { t: DUR, duration: DUR, ease: "none", onUpdate: () => renderAt(clock.t) }, 0);
-      window.addEventListener("hf-seek", (e) => renderAt(e.detail.time)); tempoOptimieren(W, SHOTS, window.TEMPO || {}); renderAt(0); window.__timelines["welt"] = tl;
+      window.addEventListener("hf-seek", (e) => renderAt(e.detail.time)); tempoOptimieren(W, SHOTS, window.TEMPO || {}); renderAt(0); if (MENSCH_LADEN) MENSCH_LADEN.then(() => { _letztesT = null; _holdId = null; renderAt(0); }); window.__timelines["welt"] = tl;
     })();
   </script>
 </template>
 '''
 post = "\n      const POST = nachbearbeitung(renderer, { bloom: 0.5, skala: " + (sys.argv[2] if len(sys.argv) > 2 else "0.8") + " });\n      const POST_STANDARD = {}; Object.entries(POST.uniforms).forEach(([k, u]) => { if (typeof u.value === \"number\") POST_STANDARD[k] = u.value; });\n      const POST_AUS = {}; // (alt) – alle Effekte werden pro Shot automatisch auf Standard zurückgesetzt\n"
+import os, shutil, glob
+os.makedirs("assets/modelle", exist_ok=True); os.makedirs("compositions", exist_ok=True)
+for m in glob.glob(T + "modelle/*.glb"):
+    if "kira" not in m and not os.path.exists("assets/modelle/" + os.path.basename(m)): shutil.copy(m, "assets/modelle/")
 open("compositions/welt.html", "w").write(head + lib + post + rd(sys.argv[1]) + tail); print("ok")
