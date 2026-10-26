@@ -78,10 +78,23 @@
         const rim = new THREE.SpotLight(o.rimFarbe ?? 0xffffff, 8 * k, 15, 0.5, 0.6, 1.5); rim.position.set(ziel[0] - 1, ziel[1] + 2.2, ziel[2] - 2.8); rim.target = zt; g.add(key, fill, rim); return { g, key, fill, rim }; }
       // Kantenlicht (Fresnel-Rim) auf beliebigem Standard-Material
       function randLicht(mat, farbe = 0xffe8c8, staerke = 0.6) { const u = { uRimF: { value: new THREE.Color(farbe).multiplyScalar(staerke) } }; const alt = mat.onBeforeCompile;
-        mat.onBeforeCompile = (sh, r) => { if (alt) alt(sh, r); Object.assign(sh.uniforms, u); sh.fragmentShader = "uniform vec3 uRimF;\n" + sh.fragmentShader.replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n float rimK = pow(1.0 - clamp(dot(normalize(vViewPosition) * -1.0, normal), 0.0, 1.0), 3.0); totalEmissiveRadiance += uRimF * rimK;"); };
+        mat.onBeforeCompile = (sh, r) => { if (alt) alt(sh, r); Object.assign(sh.uniforms, u); sh.fragmentShader = "uniform vec3 uRimF;\n" + sh.fragmentShader.replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n float rimK = pow(1.0 - clamp(dot(normalize(vViewPosition), normal), 0.0, 1.0), 3.0); totalEmissiveRadiance += uRimF * rimK;"); };
         mat.customProgramCacheKey = () => "rim" + farbe; mat.needsUpdate = true; return mat; }
       // Abtrocknender nasser Boden: Rauheit wächst mit Zeit und Fleckenmuster (Pfützen trocknen zuletzt)
       function trocknen(mat, o = {}) { const u = { uTrock: { value: 0 } }; const alt = mat.onBeforeCompile;
         mat.onBeforeCompile = (sh, r) => { if (alt) alt(sh, r); Object.assign(sh.uniforms, u); sh.vertexShader = "varying vec3 vTrW;\n" + sh.vertexShader.replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\n vTrW = (modelMatrix * vec4(transformed, 1.0)).xyz;");
           sh.fragmentShader = "uniform float uTrock; varying vec3 vTrW;\n" + GLSL_NOISE + sh.fragmentShader.replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n float nassK = smoothstep(uTrock - 0.15, uTrock + 0.15, fbm(vTrW.xz * 0.35)); roughnessFactor = mix(roughnessFactor, 0.08, nassK); diffuseColor.rgb *= mix(1.0, 0.62, nassK);"); };
         mat.customProgramCacheKey = () => "trocknen"; mat.needsUpdate = true; return { setze(k) { u.uTrock.value = k; } }; }
+      // ===== Doku-Licht nach Referenz Lengede: motivierte Lichtquellen statt flacher Helligkeit =====
+      // praktischesLicht(s, x, y, z, { farbe, staerke, reichweite, ziel: [x,y,z], winkel, schatten, kegel, staub, glanz }) -> { g, licht, update(T) }
+      //   Helmlampe, Laterne, Fenster, Feuer: SpotLight mit Schatten + leuchtender Punkt + optional Lichtkegel und Staub im Strahl
+      function praktischesLicht(s, x, y, z, o = {}) { const g = new THREE.Group(); g.position.set(x, y, z); s.add(g); const farbe = o.farbe ?? 0xffb060;
+        const L = new THREE.SpotLight(farbe, o.staerke ?? 30, o.reichweite ?? 18, o.winkel ?? 0.7, 0.6, 1.6); L.castShadow = o.schatten !== false; L.shadow.mapSize.set(1024, 1024); L.shadow.bias = -0.0005; L.shadow.normalBias = 0.03; g.add(L);
+        const zt = new THREE.Object3D(); zt.position.set(...(o.ziel ?? [0, -1, 2])); g.add(zt); L.target = zt;
+        if (o.glanz !== false) g.add(glanzPunkt(farbe, o.glanzGroesse ?? 0.35));
+        let kg = null; if (o.kegel) { kg = lichtKegel(o.reichweite ?? 8, Math.tan(o.winkel ?? 0.7) * (o.reichweite ?? 8) * 0.6, farbe, o.kegel === true ? 0.18 : o.kegel); kg.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), zt.position.clone().normalize()); g.add(kg); }
+        const st = o.staub ? staubLicht(s, x - 1.5, x + 1.5, y - 2, y + 0.5, z - 1.5, z + 3, 160, { hell: 1.4, farbe }) : null;
+        return { g, licht: L, update(T) { L.intensity = (o.staerke ?? 30) * (1 + Math.sin(T * 13 + x) * (o.flackern ?? 0) * 0.15); st && st.update(T); } }; }
+      // dokuFigur(p, { rand, matt, dunkler }): Figuren wie in der Referenz – matte Stoffe, gedämpfte Farben, Randlicht trennt die Silhouette vom Dunkel
+      function dokuFigur(p, o = {}) { const gesehen = new Set(); p.traverse((m) => { if (!m.isMesh || !m.material || Array.isArray(m.material)) return; if (gesehen.has(m.material)) return; gesehen.add(m.material);
+          const mt = m.material; if (mt.roughness !== undefined && !mt.userData.haut) mt.roughness = Math.max(mt.roughness, o.matt ?? 0.85); if (mt.color && o.dunkler) mt.color.multiplyScalar(1 - o.dunkler); if (o.rand !== false && !mt.userData.randLicht) { randLicht(mt, o.randFarbe ?? 0xffd8a8, o.rand ?? 0.35); mt.userData.randLicht = true; } m.castShadow = true; m.receiveShadow = true; }); return p; }

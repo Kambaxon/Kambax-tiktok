@@ -132,13 +132,16 @@
       //  Farbe:  uSat, uKon, uBel, uLift/uGamma/uGain (vec3), uSplitSchatten/uSplitLicht (vec3) + uSplit, uMono (Schwarzweiß), uKreuz (Cross-Processing), uSchwarz (Schwarzwert), uRolloff (weiche Lichter), uTint
       //  Finish: uSchaerfe, uKlarheit, uHalation, uKorn (Filmkorn – Standard aus!), uBloom, uSchwelle
       //  Stil:   uKontur (Umrisslinien aus Tiefe), uToon (Farbstufen), uHalbton, uGlitch, uVHS, uScan (CRT-Zeilen), uLeck (Lichtlecks), uKratzer, uTon (Ton-/Clay-Look, Szene grau), uDraht (Drahtgitter-Overlay)
-      // Farblooks: POST.look("tealOrange"|"noir"|"golden"|"cyberpunk"|"moody"|"pastell"|"neutral"|"kreuz")
+      // Farblooks: POST.look("tealOrange"|"noir"|"golden"|"cyberpunk"|"moody"|"pastell"|"neutral"|"kreuz"|"bernstein"|"nachtblau"|"tagDoku")
       const LOOKS = {
         neutral:    { uSat: 1.08, uKon: 1.05, uLift: [0, 0, 0], uGamma: [1, 1, 1], uGain: [1, 1, 1], uSplit: 0, uMono: 0, uKreuz: 0, uSchwarz: 0, uTint: [1, 1, 1] },
         tealOrange: { uSat: 1.12, uKon: 1.1, uLift: [-0.01, 0.01, 0.03], uGamma: [1, 1, 1], uGain: [1.04, 1, 0.94], uSplitSchatten: [0.1, 0.45, 0.55], uSplitLicht: [1.0, 0.62, 0.32], uSplit: 0.22, uMono: 0, uKreuz: 0, uSchwarz: 0.01, uTint: [1, 1, 1] },
         noir:       { uSat: 1, uKon: 1.35, uLift: [0, 0, 0], uGamma: [0.95, 0.95, 0.95], uGain: [1.05, 1.05, 1.05], uSplit: 0, uMono: 1, uKreuz: 0, uSchwarz: 0.04, uTint: [1, 1, 1] },
         golden:     { uSat: 1.12, uKon: 1.06, uLift: [0.015, 0.008, -0.005], uGamma: [1, 1, 1.02], uGain: [1.08, 1.0, 0.86], uSplitSchatten: [0.3, 0.25, 0.4], uSplitLicht: [1.0, 0.75, 0.4], uSplit: 0.15, uMono: 0, uKreuz: 0, uSchwarz: 0, uTint: [1.04, 1.0, 0.94] },
         cyberpunk:  { uSat: 1.3, uKon: 1.15, uLift: [0.02, -0.01, 0.05], uGamma: [1, 1.02, 0.95], uGain: [1.05, 0.9, 1.12], uSplitSchatten: [0.1, 0.2, 0.7], uSplitLicht: [1.0, 0.3, 0.8], uSplit: 0.3, uMono: 0, uKreuz: 0, uSchwarz: 0.02, uTint: [1, 1, 1] },
+        bernstein:  { uSat: 0.95, uKon: 1.28, uLift: [-0.02, -0.025, -0.03], uGamma: [1.0, 1.04, 1.1], uGain: [1.12, 1.0, 0.82], uSplitSchatten: [0.12, 0.1, 0.12], uSplitLicht: [1.0, 0.68, 0.32], uSplit: 0.2, uMono: 0, uKreuz: 0, uSchwarz: 0.05, uTint: [1, 1, 1] }, // Referenz Lengede: warme Lampen, tiefe Schwärzen
+        nachtblau:  { uSat: 0.8, uKon: 1.22, uLift: [-0.02, 0.0, 0.02], uGamma: [1.06, 1.02, 0.96], uGain: [0.9, 0.98, 1.06], uSplitSchatten: [0.12, 0.22, 0.32], uSplitLicht: [0.85, 0.9, 1.0], uSplit: 0.18, uMono: 0, uKreuz: 0, uSchwarz: 0.04, uTint: [1, 1, 1] }, // kaltes Wasser/Nacht, gedämpft
+        tagDoku:    { uSat: 0.85, uKon: 1.12, uLift: [0.0, 0.0, 0.01], uGamma: [1.0, 1.0, 1.0], uGain: [1.02, 1.0, 0.97], uSplitSchatten: [0.22, 0.3, 0.36], uSplitLicht: [1.0, 0.92, 0.8], uSplit: 0.1, uMono: 0, uKreuz: 0, uSchwarz: 0.02, uTint: [1, 1, 1] }, // bedeckter Tag, entsättigt, natürlich
         moody:      { uSat: 0.72, uKon: 1.12, uLift: [0.0, 0.01, 0.02], uGamma: [1.03, 1.03, 1.0], uGain: [0.95, 0.98, 1.0], uSplitSchatten: [0.2, 0.3, 0.4], uSplitLicht: [0.8, 0.75, 0.65], uSplit: 0.12, uMono: 0, uKreuz: 0, uSchwarz: 0.02, uTint: [1, 1, 1] },
         pastell:    { uSat: 0.82, uKon: 0.86, uLift: [0.06, 0.05, 0.07], uGamma: [0.95, 0.95, 0.95], uGain: [1.0, 0.98, 1.02], uSplitSchatten: [0.6, 0.5, 0.8], uSplitLicht: [1.0, 0.85, 0.85], uSplit: 0.2, uMono: 0, uKreuz: 0, uSchwarz: 0, uTint: [1, 1, 1] },
         kreuz:      { uSat: 1.2, uKon: 1.15, uLift: [0, 0.02, 0.04], uGamma: [1, 1, 1], uGain: [1, 1, 1], uSplit: 0, uMono: 0, uKreuz: 1, uSchwarz: 0.02, uTint: [1, 1, 1] },

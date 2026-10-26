@@ -104,6 +104,29 @@ const KLAR = { uSSAA: 1, uBloom: 0.35, uHalation: 0.03, uChroma: 0, uKorn: 0, uV
   - TikTok-Export in zwei Durchgängen mit 12 Mbit/s und `loudnorm` auf −15 LUFS.
   - Die Datei mit `display: "attach"` schicken, damit sie herunterladbar ist.
 
+**5. Referenz-Look „Lengede 1963“ (Analyse eines Profi-Videos, gilt ab sofort als Standard)**
+
+Vergleich mit unserem Hudson-Video:
+
+| Punkt | Referenz (besser) | Wir bisher | Ab jetzt Standard |
+|---|---|---|---|
+| Licht | Low-Key, motivierte Lichtquellen (Helmlampe, Laterne, Fenster), viel Schwarz, starke Kontraste | gleichmäßig hell, flach, grau-weiß | `praktischesLicht()` als Hauptlicht, Umgebungslicht klein (Hemisphere 0.1–0.3), tiefe Schwärzen (`uSchwarz` 0.04–0.05) |
+| Farbe | eine Stimmung pro Akt: Bernstein unter Tage, kaltes Teal bei Wasser/Nacht, entsättigter Tag im Finale | überall gleiches Blaugrau | Looks `bernstein`, `nachtblau`, `tagDoku`; der Wechsel des Looks erzählt die Geschichte mit |
+| Materialien | nasser Fels mit Glanzlichtern, Holzmaserung, Pfützen spiegeln die Lampen | saubere CG-Flächen | Realismus-Materialien mit `nass`, Pfützen in Nahaufnahmen mit `spiegelflaeche`, Glanz durch harte Lichtquellen |
+| Menschen | realistische Proportionen, meist von hinten oder als Silhouette, im Halbdunkel, Helme und Arbeitskleidung, Randlicht trennt sie vom Hintergrund | glänzende Gliederpuppen, frontal und hell → spielzeughaft | `dokuFigur()` (matt + Randlicht), Figuren von hinten, seitlich oder im Gegenlicht zeigen, keine frontalen Gesichter in Nahaufnahme, Kleidung dunkel und gedämpft |
+| Kamera | Ich-Perspektive (eigene Hände), nah, Handkamera, Vordergrund verdeckt teilweise, viel Tiefe | weite Totalen, ruhige Fahrten | nahe Kameras, `hand: 0.4–0.6`, Vordergrund-Objekte, Ich-Perspektive bei „Du …“-Sätzen, Totalen nur als Kontrast |
+| Atmosphäre | Staub im Licht, Dunst, Lichtstrahlen, Funken | wenig | `staubLicht`, `nebelSchwaden`, Lichtkegel, Partikel in jedem Innenraum |
+| Konturen | keine Outlines; Kanten entstehen durch Randlicht, Kontrast und Nebeltiefe | – | kein `uKontur`; Trennung über Randlicht und Hell-Dunkel |
+| Tempo | 22 Schnitte in 59 s (≈ 2,7 s pro Einstellung) | 13 Einstellungen in 78 s (≈ 5 s) | 2–3 s pro Einstellung, lange Sätze auf 2–3 Bilder aufteilen |
+| Infos | Fakten in der 3D-Welt (Listen am Brett, Zahlen im Titel) | flache Karte und Panels | Karte und Panel bleiben, aber Fakten zusätzlich in der Szene zeigen (Zettel, Schilder, Bildschirme) |
+| Technik | 720p, 1,2 Mbit/s, −14 LUFS | 1080p, 12 Mbit/s, −15 LUFS | unsere Technik ist besser und bleibt |
+
+Werkzeuge (in `effekte2.js` und `render.js`):
+- `praktischesLicht(s, x, y, z, { farbe, staerke (≈ 30), reichweite, ziel, winkel, kegel, staub, flackern })`: Spotlicht mit Schatten, Leuchtpunkt, optional Lichtkegel und Staub im Strahl.
+- `dokuFigur(person, { matt, dunkler, rand, randFarbe })`: matte Stoffe, gedämpfte Farben, Randlicht.
+- `randLicht()` war fehlerhaft (die Blickrichtung war vertauscht, dadurch leuchtete die ganze Figur). Das ist behoben, die Kanten leuchten jetzt nur noch an der Silhouette.
+- Die Looks `bernstein`, `nachtblau` und `tagDoku` stehen als `look` pro Shot zur Verfügung.
+
 ## Gestaltung
 
 **3D-Welt (Three.js r149, `assets/vendor/three.min.js`, im Szenen-`<template>` laden):**
