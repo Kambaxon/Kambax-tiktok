@@ -195,14 +195,15 @@
       const c = {}; ["fenster", "rollen", "start", "startB", "gaense", "knall", "stille", "gleit", "cockpit", "hudson", "bruecke", "brace", "wasserung", "aufsetzen", "rettungNah", "rettung", "schluss"].forEach((k) => { c[k] = camFar(45000); c[k].near = ["cockpit", "brace", "fenster"].includes(k) ? 0.05 : ["rollen", "rettungNah", "knall", "aufsetzen"].includes(k) ? 0.2 : 1.5; c[k].updateProjectionMatrix(); });
       function hitzeA(cam) { jetA.updateMatrixWorld(true); hitzePunkte(POST, cam, abgasA.map((p) => ({ pos: v3(p.x, p.y, p.z - 3).applyMatrix4(jetA.matrixWorld), radius: 0.07, staerke: 0.8 }))); }
 
+      // Kabine nur im Fenster-Shot zeigen: die Kabinendecke ragt sonst oben aus dem Rumpf (Flugzeug ohne Dach)
       // 1) Am Fenster: Rollen zur Startbahn, Blick nach rechts über die Tragfläche zur Skyline
       W.fenster = { scene: A, camera: c.fenster, look: "tealOrange", post: Object.assign({}, KLAR, { uKon: 1.2, uDof: 0, uUnscharfAn: 0, uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55] }),
-        update(t, T) { himA.update(T); jetA.position.set(200 - t * 6, 2.6, 0); sA.target.position.copy(jetA.position); sA.position.set(jetA.position.x - 350, 300, jetA.position.z - 890); sA.target.updateMatrixWorld(); jetA.rotation.set(0, -Math.PI / 2, 0); jetA.updateMatrixWorld(true); a320A.userData.fanWinkel = T * 1.6; flugzeugUpdate(a320A, T);
+        update(t, T) { himA.update(T); kabA.g.visible = true; jetA.position.set(200 - t * 6, 2.6, 0); sA.target.position.copy(jetA.position); sA.position.set(jetA.position.x - 350, 300, jetA.position.z - 890); sA.target.updateMatrixWorld(); jetA.rotation.set(0, -Math.PI / 2, 0); jetA.updateMatrixWorld(true); a320A.userData.fanWinkel = T * 1.6; flugzeugUpdate(a320A, T);
           nachbarn.forEach((n, i) => n.setze(0, T + i)); const cam = c.fenster; const pz = kabA.Z0 + kabA.L / 2 - 2.2 - 18 * 0.81 - 0.1;
           const lokal = v3(-1.36, 0.36 + Math.sin(t * 0.7) * 0.004, pz + 0.04), ziel = v3(-5, 0.6, pz + 1.5 + t * 0.06); zielen(cam, lokal.applyMatrix4(jetA.matrixWorld), ziel.applyMatrix4(jetA.matrixWorld), 54); cam.rotation.z += Math.sin(t * 9) * 0.0015; } };
       // 2) Start: Abheben über der Bucht, Kamera am Rand der Bahn schwenkt mit
       W.start = { scene: A, camera: c.start, look: "tealOrange", post: Object.assign({}, KLAR, { uKon: 1.22, uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55], uStrahlen: 0.15 }),
-        update(t, T) { himA.update(T); const v = 30 + t * 22, x = -500 + 30 * t + 11 * t * t, roh = Math.max(0, t - 3.2), y = 2.6 + roh * roh * 4.5 + roh * 2, nick = Math.min(0.2, Math.max(0, t - 2.9) * 0.18);
+        update(t, T) { himA.update(T); kabA.g.visible = false; const v = 30 + t * 22, x = -500 + 30 * t + 11 * t * t, roh = Math.max(0, t - 3.2), y = 2.6 + roh * roh * 4.5 + roh * 2, nick = Math.min(0.2, Math.max(0, t - 2.9) * 0.18);
           jetA.position.set(x, y, 0); jetA.rotation.set(0, Math.PI / 2, 0); sA.target.position.set(x, 0, 0); sA.position.set(x - 350, 300, -890); sA.target.updateMatrixWorld(); jetA.rotation.order = "YXZ"; jetA.rotation.x = -nick; jetA.updateMatrixWorld(true); a320A.userData.fanWinkel = T * 1.6; flugzeugUpdate(a320A, T);
           const cam = c.start; zielen(cam, v3(-90 + t * 18, 2.1, 36.5), v3(x + 8, y + 2.5, 0), 32); hitzeA(cam); } };
 
@@ -264,7 +265,7 @@
       const jl = (x, y, z) => v3(x, y, z).applyMatrix4(jet.matrixWorld);
       // 1b) Außen: der Airbus rollt vorbei, tiefe Kamera in trockenen Winterhalmen, Stauden unscharf im Vordergrund
       W.rollen = { scene: A, camera: c.rollen, look: "tealOrange", post: Object.assign({}, KLAR, { uKon: 1.2, uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55] }),
-        update(t, T) { W.fenster.update(T, T); const jx = jetA.position.x; zielen(c.rollen, v3(149 + t * 0.5, 1.2, 62), v3(jx - 6, 3.0, 0), 34); c.rollen.rotation.z += Math.sin(t * 1.3) * 0.002; hitzeA(c.rollen); } };
+        update(t, T) { W.fenster.update(T, T); kabA.g.visible = false; const jx = jetA.position.x; zielen(c.rollen, v3(149 + t * 0.5, 1.2, 62), v3(jx - 6, 3.0, 0), 34); c.rollen.rotation.z += Math.sin(t * 1.3) * 0.002; hitzeA(c.rollen); } };
       // 2b) Steigflug direkt über die Kamera (Tele, Untersicht)
       W.startB = { scene: A, camera: c.startB, look: "tealOrange", post: Object.assign({}, KLAR, { uKon: 1.22, uSplit: 0.12, uSplitSchatten: [0.2, 0.4, 0.55], uStrahlen: 0.2 }),
         update(t, T) { W.start.update(t + 3.8, T); const p = jetA.position; zielen(c.startB, v3(330, 1.6, -42), v3(p.x + 4, p.y + 2, p.z), 20); hitzeA(c.startB); } };
