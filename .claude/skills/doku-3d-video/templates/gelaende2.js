@@ -1,6 +1,6 @@
       // ===== Gelände v2 (Referenz „Lengede 1963“): unebenes Feld mit Matsch, Fahrspuren, echten Grashalmen, Unkraut, kahlen Bäumen, Zäunen =====
       // feld(s, { breite, tiefe, x, z, seed, amp, grund, matsch: [[x, z, r]], spuren: [[x1, z1, x2, z2]] }) -> { mesh, h(x, z) }
-      // halme(s, ter, { x, z, breite, tiefe, n, hoehe, trocken (0..1), skip(x, z) })  – gebogene, verjüngte Halme, schwingen im Wind
+      // halme(s, ter, { x, z, breite, tiefe, n, hoehe, trocken (0..1), farbe, ansatz (Helligkeit am Halmansatz, 0.3 = dunkel, 0.6 auf Schnee), skip(x, z) })  – gebogene, verjüngte Halme, schwingen im Wind
       // unkraut(s, ter, x, z, { n, hoehe, seed })  – hohe Stauden/Disteln für den Vordergrund (Tiefe durch Unschärfe)
       // kahlerBaum(s, x, z, { hoehe, seed, y, rinde })  – knorrig, verzweigt, ohne Laub
       // zaun(s, ter, punkte, { abstand, seil, hoehe })  – schiefe Holzpfosten mit durchhängendem Seil
@@ -33,7 +33,7 @@
         const n = o.n ?? 30000, r = rng(o.seed ?? 11), H = o.hoehe ?? 0.32;
         // ein Halm: 4 Segmente, verjüngt, nach vorn gebogen (Biegung in der Geometrie, Wind im Shader); Normalen nach oben = gleiches Licht wie der Boden, keine dunklen Rückseiten
         const geo = new THREE.BufferGeometry(), pos = [], idx = []; for (let i = 0; i <= 4; i++) { const t = i / 4, w = 0.012 * (1 - t * 0.92); pos.push(-w, t, t * t * 0.18, w, t, t * t * 0.18); if (i < 4) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); } }
-        geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.setAttribute("color", new THREE.Float32BufferAttribute(pos.map((v, i) => { const t = pos[i - (i % 3) + 1]; return 0.3 + 0.7 * t; }), 3)); geo.setAttribute("normal", new THREE.Float32BufferAttribute(pos.map((_, i) => (i % 3 === 1 ? 1 : 0)), 3));
+        geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.setAttribute("color", new THREE.Float32BufferAttribute(pos.map((v, i) => { const t = pos[i - (i % 3) + 1]; return (o.ansatz ?? 0.3) + (1 - (o.ansatz ?? 0.3)) * t; }), 3)); geo.setAttribute("normal", new THREE.Float32BufferAttribute(pos.map((_, i) => (i % 3 === 1 ? 1 : 0)), 3));
         const mat = windMat(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, vertexColors: true, envMapIntensity: 0.3, side: THREE.DoubleSide }), 1.6);
         const mesh = new THREE.InstancedMesh(geo, mat, n), m4 = new THREE.Matrix4(), qt = new THREE.Quaternion(), e = new THREE.Euler(), c = new THREE.Color();
         const gruen = new THREE.Color(o.farbe ?? 0x3e5424), tro = new THREE.Color(0x8a7c50); let k = 0;

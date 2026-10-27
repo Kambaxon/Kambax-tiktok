@@ -5,6 +5,7 @@
       //   "arbeiter" = Soldier.glb         (Arbeits-/Schutzkleidung, Helm-Optik; eigene Clips idle/walk/run, gedeckt getönt)
       //   Bewegungen aus Xbot.glb: idle, walk, run, agree, headShake, sad_pose, sneak_pose (nur Rotationen → passen auf alle drei)
       // mensch3d(s, { typ, seed, x, y, z, ry, skala, anim, tempo, phase, farben: { oben, unten, schuhe, kopf, ton }, bart, muetze, rand })
+      //   kopfArt: "muetze" (Strickmütze, Winter) | "hut" | "frei" (Glatze), Standard zufällig 60/25/15 %
       //   -> { g, update(T), setAnim(name) }   Platzhalter sofort; Modell wird nachgeladen, der Render wartet über window.__hf.buildReady
       //   Bewegung im Raum selbst setzen (g.position); update(T) setzt die Animation deterministisch (gleiches T = gleiches Bild).
       const MENSCH_URL = { mann: "assets/modelle/readyplayer.me.glb", frau: "assets/modelle/Michelle.glb", arbeiter: "assets/modelle/Soldier.glb", anim: "assets/modelle/Xbot.glb" };
@@ -45,13 +46,13 @@
         menschenLaden(); const r = rng((o.seed ?? 1) * 131 + 7), pick = (a) => a[Math.floor(r() * a.length)];
         const g = new THREE.Group(); g.position.set(o.x ?? 0, o.y ?? 0, o.z ?? 0); g.rotation.y = o.ry ?? 0; s.add(g);
         const typ = o.typ ?? (() => { const z = r(); return z < 0.6 ? "mann" : z < 0.85 ? "frau" : "arbeiter"; })(), F = Object.assign({ oben: pick(MENSCH_FARBEN.oben), unten: pick(MENSCH_FARBEN.unten), schuhe: pick(MENSCH_FARBEN.schuhe), kopf: pick(MENSCH_FARBEN.kopf) }, o.farben || {});
-        const skala = (o.skala ?? 1) * (0.94 + r() * 0.1), phase = o.phase ?? r() * 10, tempo = o.tempo ?? (0.92 + r() * 0.16);
+        const kopfArt = o.kopfArt ?? (o.muetze === true ? "hut" : o.muetze === false ? "frei" : (() => { const z = r(); return z < 0.6 ? "muetze" : z < 0.85 ? "hut" : "frei"; })()); const skala = (o.skala ?? 1) * (0.94 + r() * 0.1), phase = o.phase ?? r() * 10, tempo = o.tempo ?? (0.92 + r() * 0.16);
         let mixer = null, aktion = null, animName = o.anim ?? "idle";
         const aufbauen = () => { const src = MENSCH_GLTF[typ]; if (!src) return; const obj = SkeletonUtils.clone(src.scene); g.add(obj);
           const tint = (m, c, hell = 1.5) => { m = m.clone(); m.color = new THREE.Color(c).multiplyScalar(hell); m.roughness = Math.max(m.roughness ?? 0.8, 0.8); return m; };
           obj.traverse((m) => { if (!m.isMesh) return; m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; const n = m.name;
             if (typ === "mann") { if (n.includes("Outfit_Top")) m.material = tint(m.material, F.oben); else if (n.includes("Outfit_Bottom")) m.material = tint(m.material, F.unten); else if (n.includes("Footwear")) m.material = tint(m.material, F.schuhe, 1.2);
-              else if (n.includes("Headwear")) { m.visible = o.muetze ?? r() < 0.6; m.material = tint(m.material, F.kopf); } else if (n.includes("Beard")) m.visible = o.bart ?? r() < 0.4; else m.material = m.material.clone(); }
+              else if (n.includes("Headwear")) { m.visible = kopfArt === "hut"; m.material = tint(m.material, F.kopf); } else if (n.includes("Beard")) { m.visible = o.bart ?? r() < 0.4; m.material = m.material.clone(); } else m.material = m.material.clone(); }
             else if (typ === "frau") { m.material = m.material.clone(); m.material.roughness = 0.85; if (m.material.sheen !== undefined) m.material.sheen = 0.2; const unten = new THREE.Color(F.unten).multiplyScalar(2.2), oben = new THREE.Color(F.oben).multiplyScalar(1.6);
               m.material.onBeforeCompile = (sh) => { sh.uniforms.uUnten = { value: unten }; sh.uniforms.uOben = { value: oben }; sh.fragmentShader = sh.fragmentShader.replace("void main() {", "uniform vec3 uUnten; uniform vec3 uOben;\nvoid main() {").replace("#include <map_fragment>", `#include <map_fragment>
                 float gelb = smoothstep(0.12, 0.3, min(diffuseColor.r, diffuseColor.g) - diffuseColor.b); float l = dot(diffuseColor.rgb, vec3(0.3, 0.55, 0.15));
@@ -61,6 +62,9 @@
               m.material.onBeforeCompile = (sh) => { sh.uniforms.uTon = { value: ton }; sh.fragmentShader = sh.fragmentShader.replace("void main() {", "uniform vec3 uTon;\nvoid main() {").replace("#include <map_fragment>", "#include <map_fragment>\n diffuseColor.rgb = vec3(dot(diffuseColor.rgb, vec3(0.3, 0.55, 0.15))) * uTon * 2.2;"); };
               m.material.customProgramCacheKey = () => "arbeiterTon"; }
             if (o.rand && typeof randLicht === "function") randLicht(m.material, o.randFarbe ?? 0xffd8a8, o.rand); });
+          if (kopfArt === "muetze" && typ === "mann") { let kopf = null; obj.traverse((b) => { if (b.isBone && /Head$/.test(b.name)) kopf = b; }); if (kopf) { obj.updateMatrixWorld(true); const ws = kopf.getWorldScale(new THREE.Vector3()).x || 1;
+            const mz = new THREE.Mesh(new THREE.SphereGeometry(0.104 / ws, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.56), new THREE.MeshStandardMaterial({ color: new THREE.Color(F.kopf).multiplyScalar(1.4), roughness: 1, map: typeof texStoff === "function" ? texStoff("strick") : null })); mz.position.set(0, 0.105 / ws, -0.004 / ws); mz.scale.set(1, 0.92, 1.08); mz.castShadow = true; mz.frustumCulled = false; kopf.add(mz);
+            const bund = new THREE.Mesh(new THREE.TorusGeometry(0.1 / ws, 0.018 / ws, 8, 24), mz.material); bund.rotation.x = Math.PI / 2; bund.position.set(0, 0.098 / ws, -0.004 / ws); bund.scale.set(1, 1.08, 1); kopf.add(bund); if (o.rand && typeof randLicht === "function") randLicht(mz.material, o.randFarbe ?? 0xffd8a8, o.rand); } }
           obj.scale.multiplyScalar(skala); mixer = new THREE.AnimationMixer(obj); obj.userData.typ = typ; g.userData.modell = obj; setze(animName); };
         const setze = (name) => { animName = name; if (!mixer) return; const K = MENSCH_CLIPS[typ] || {}, C = K["eigen_" + name] || K[name] || K.idle; if (!C) return;
           mixer.stopAllAction(); aktion = mixer.clipAction(C); aktion.play(); };

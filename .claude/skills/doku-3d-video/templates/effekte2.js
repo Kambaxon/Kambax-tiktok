@@ -77,7 +77,8 @@
         const fill = new THREE.PointLight(o.fillFarbe ?? 0xc8d8ff, 0.8 * k, 12, 2); fill.position.set(ziel[0] - 2.5, ziel[1] + 0.3, ziel[2] + 2);
         const rim = new THREE.SpotLight(o.rimFarbe ?? 0xffffff, 8 * k, 15, 0.5, 0.6, 1.5); rim.position.set(ziel[0] - 1, ziel[1] + 2.2, ziel[2] - 2.8); rim.target = zt; g.add(key, fill, rim); return { g, key, fill, rim }; }
       // Kantenlicht (Fresnel-Rim) auf beliebigem Standard-Material
-      function randLicht(mat, farbe = 0xffe8c8, staerke = 0.6) { const u = { uRimF: { value: new THREE.Color(farbe).multiplyScalar(staerke) } }; const alt = mat.onBeforeCompile;
+      const RAND_MATS = new WeakSet(); // jedes Material nur einmal (sonst „uRimF redefinition“ bei geteilten Materialien)
+      function randLicht(mat, farbe = 0xffe8c8, staerke = 0.6) { if (RAND_MATS.has(mat)) return mat; RAND_MATS.add(mat); const u = { uRimF: { value: new THREE.Color(farbe).multiplyScalar(staerke) } }; const alt = mat.onBeforeCompile;
         mat.onBeforeCompile = (sh, r) => { if (alt) alt(sh, r); Object.assign(sh.uniforms, u); sh.fragmentShader = "uniform vec3 uRimF;\n" + sh.fragmentShader.replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n float rimK = pow(1.0 - clamp(dot(normalize(vViewPosition), normal), 0.0, 1.0), 3.0); totalEmissiveRadiance += uRimF * rimK;"); };
         mat.customProgramCacheKey = () => "rim" + farbe; mat.needsUpdate = true; return mat; }
       // Abtrocknender nasser Boden: Rauheit wächst mit Zeit und Fleckenmuster (Pfützen trocknen zuletzt)
